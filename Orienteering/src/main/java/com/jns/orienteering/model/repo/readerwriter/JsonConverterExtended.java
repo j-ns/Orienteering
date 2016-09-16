@@ -1,0 +1,441 @@
+/**
+ *
+ *  Copyright (c) 2016, Jens Stroh
+ *
+ *  This program is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ *  ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ *  WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ *  DISCLAIMED. IN NO EVENT SHALL JENS STROH BE LIABLE FOR ANY
+ *  DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ *  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ *  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ *  ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ *  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ *  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+package com.jns.orienteering.model.repo.readerwriter;
+
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import javax.json.Json;
+import javax.json.JsonArray;
+import javax.json.JsonArrayBuilder;
+import javax.json.JsonBuilderFactory;
+import javax.json.JsonNumber;
+import javax.json.JsonObject;
+import javax.json.JsonObjectBuilder;
+import javax.json.JsonString;
+import javax.json.JsonValue;
+import javax.json.JsonValue.ValueType;
+
+//gluon copyright einfügen?
+
+import com.gluonhq.impl.connect.converter.ClassInspector;
+
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.DoubleProperty;
+import javafx.beans.property.FloatProperty;
+import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.LongProperty;
+import javafx.beans.property.StringProperty;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+
+/**
+ * A utility class to convert Java objects from JSON Objects and from JSON Objects into Java objects.
+ *
+ * @param <T>
+ *            the type of the object to convert from and into a JSON Object
+ */
+public class JsonConverterExtended<T> {
+
+    private static final Logger             LOGGER         = Logger.getLogger(JsonConverterExtended.class.getName());
+
+    private static final JsonBuilderFactory builderFactory = Json.createBuilderFactory(null);
+
+    private final Class<T>                  targetClass;
+    private final ClassInspector<T>         inspector;
+
+    /**
+     * Construct a JsonConverter to convert between JSON and objects of the specified <code>targetClass</code>.
+     *
+     * @param targetClass
+     *            The target class defining the objects being converted from and into JSON Objects.
+     */
+    public JsonConverterExtended(Class<T> targetClass) {
+        this.targetClass = targetClass;
+        this.inspector = new ClassInspector<>(targetClass);
+    }
+
+    /**
+     * Returns the target class that defines the objects being converted from and into JSON objects.
+     *
+     * @return The target class.
+     */
+    public Class<T> getTargetClass() {
+        return targetClass;
+    }
+
+    /**
+     * Convert the provided JSON Object into a Java object. If a new instance could not be created from the specified
+     * <code>targetClass</code> in the constructor, then <code>null</code> will be returned.
+     *
+     * <p>
+     * The conversion works by inspecting all the property methods of the target class. A property method is any
+     * field that has both a getter and a setter method. The name of the property is taken from the getter method, by
+     * stripping the string "get" from the method name and converting the first character from upper case to lower case.
+     * It's possible to override the property name by adding an {@literal @XmlElement} annotation. Then the name value
+     * of the annotation will be used as the property name.
+     * </p>
+     *
+     * <p>
+     * The property name will then be looked up in the provided JSON Object. If a key was not found, the property
+     * will be ignored. Otherwise, the setter method will be called with the value from the JSON Object that is mapped
+     * to the key. The JsonConverter is able to convert from all types of JSON values, except for nested JSON Arrays.
+     * </p>
+     *
+     * @param json
+     *            the instance of the JSON Object that needs to be converted into a Java object
+     * @return The Java object that is converted from the provided JSON Object.
+     */
+    public T readFromJson(JsonObject json) {
+        T t = null;
+
+        try {
+            t = targetClass.newInstance();
+
+            Map<String, Method> settersMappedByPropertyName = this.inspector.getSetters();
+            if (settersMappedByPropertyName != null) {
+                for (String property : settersMappedByPropertyName.keySet()) {
+                    if (!json.containsKey(property)) {
+                        LOGGER.log(Level.INFO, "Property " + property + " not defined on json object for class " + targetClass + ".");
+                        continue;
+                    }
+
+                    if (json.containsKey(property)) {
+                        Method setter = settersMappedByPropertyName.get(property);
+                        Class<?> parameterType = setter.getParameterTypes()[0];
+                        Object[] args = new Object[1];
+                        JsonValue jsonValue = json.get(property);
+                        ValueType valueType = jsonValue.getValueType();
+
+                        switch (valueType) {
+                            case NULL:
+                                args[0] = null;
+                                break;
+                            case FALSE:
+                                args[0] = Boolean.FALSE;
+                                break;
+                            case TRUE:
+                                args[0] = Boolean.TRUE;
+                                break;
+                            case STRING:
+                                JsonString stringProperty = (JsonString) jsonValue;
+                                if (parameterType.isEnum()) {
+                                    args[0] = Enum.valueOf(parameterType.asSubclass(Enum.class), stringProperty.getString());
+                                } else {
+                                    args[0] = stringProperty.getString();
+                                }
+                                break;
+                            case NUMBER:
+                                JsonNumber numberProperty = (JsonNumber) jsonValue;
+                                Class setterParameterType = setter.getParameterTypes()[0];
+                                if (!setterParameterType.isArray()) {
+                                    String setterParameterTypeName = setterParameterType.getName();
+                                    switch (setterParameterTypeName) {
+                                        case "byte":
+                                        case "java.lang.Byte":
+                                        case "int":
+                                        case "java.lang.Integer":
+                                        case "short":
+                                        case "java.lang.Short":
+                                            args[0] = numberProperty.intValue();
+                                            break;
+                                        case "long":
+                                        case "java.lang.Long":
+                                            args[0] = numberProperty.longValue();
+                                            break;
+                                        case "double":
+                                        case "java.lang.Double":
+                                            args[0] = numberProperty.doubleValue();
+                                            break;
+                                        case "float":
+                                        case "java.lang.Float":
+                                            args[0] = (float) numberProperty.doubleValue();
+                                            break;
+                                        case "java.lang.String":
+                                        case "javafx.beans.property.StringProperty":
+                                            args[0] = numberProperty.toString();
+                                            break;
+                                    }
+                                }
+                                break;
+                            case ARRAY:
+                                JsonArray arrayProperty = (JsonArray) jsonValue;
+                                List<Object> values;
+                                if (parameterType.isAssignableFrom(ObservableList.class)) {
+                                    values = FXCollections.observableArrayList();
+                                } else {
+                                    values = new ArrayList<>();
+                                }
+                                for (JsonValue arrayValue : arrayProperty) {
+                                    switch (arrayValue.getValueType()) {
+                                        case NULL:
+                                            values.add(null);
+                                            break;
+                                        case FALSE:
+                                            values.add(Boolean.FALSE);
+                                            break;
+                                        case TRUE:
+                                            values.add(Boolean.TRUE);
+                                            break;
+                                        case STRING:
+                                            JsonString stringArrayValue = (JsonString) arrayValue;
+                                            values.add(stringArrayValue.getString());
+                                            break;
+                                        case NUMBER:
+                                            JsonNumber numberArrayValue = (JsonNumber) arrayValue;
+                                            if (numberArrayValue.isIntegral()) {
+                                                values.add(numberArrayValue.longValue());
+                                            } else {
+                                                values.add(numberArrayValue.doubleValue());
+                                            }
+                                            break;
+                                        case ARRAY:
+                                            // TODO: implement nested arrays in arrays
+                                            LOGGER.log(Level.WARNING, "Arrays within arrays not yet supported.");
+                                            break;
+                                        case OBJECT:
+                                            ParameterizedType listType = (ParameterizedType) setter.getGenericParameterTypes()[0];
+                                            Class<?> listClass = (Class<?>) listType.getActualTypeArguments()[0];
+                                            JsonConverterExtended<?> jsonConverter = new JsonConverterExtended<>(listClass);
+                                            values.add(jsonConverter.readFromJson((JsonObject) arrayValue));
+                                            break;
+                                    }
+                                }
+                                args[0] = values;
+                                break;
+                            case OBJECT:
+                                if (!Map.class.equals(parameterType)) {
+                                    JsonConverterExtended<?> jsonConverter = new JsonConverterExtended<>(parameterType);
+                                    args[0] = jsonConverter.readFromJson((JsonObject) jsonValue);
+                                    break;
+                                } else {
+                                    Map<String, Boolean> map = new HashMap<>();
+                                    JsonObject nestedJsonObject = json.getJsonObject(property);
+
+                                    Set<String> keys = nestedJsonObject.keySet();
+                                    for (String key : keys) {
+                                        map.put(key, nestedJsonObject.getBoolean(key));
+                                    }
+                                    args[0] = map;
+                                    break;
+                                }
+                        }
+
+                        try {
+                            setter.invoke(t, args);
+                        } catch (IllegalArgumentException | InvocationTargetException ex) {
+                            LOGGER.log(Level.WARNING, "Failed to call setter " + setter + " with value " + property, ex);
+                        }
+                    }
+                }
+            }
+        } catch (Exception ex) {
+            LOGGER.log(Level.WARNING, "Failed to create object of type " + targetClass + " from the following json object " + json, ex);
+        }
+
+        return t;
+    }
+
+    /**
+     * Convert the provided Java object into a JSON Object.
+     *
+     * <p>
+     * The conversion works by inspecting all the property methods of the target class. A property method is any
+     * field that has both a getter and a setter method. The name of the property is taken from the getter method, by
+     * stripping the string "get" from the method name and converting the first character from upper case to lower case.
+     * It's possible to override the property name by adding an {@literal @XmlElement} annotation. Then the name value
+     * of the annotation will be used as the property name.
+     * </p>
+     *
+     * <p>
+     * The property name will then be used as the key inside the JSON Object. Where the value will be the value that
+     * was returned by calling the getter method on the provided Java object.
+     * </p>
+     *
+     * <p>
+     * As the return type of the getter method, all primitive java types are supported as well as the basic JavaFX
+     * property objects (like BooleanProperty, IntegerProperty, etc...). {@link java.util.List Lists} are supported as
+     * well and will be converted into a JSON Array. If the getter returns any other type, then the returned value will
+     * be converted into a JSON Object as well by using a JsonConverter.
+     * </p>
+     *
+     * @param t
+     *            the Java object to convert into a JSON Object
+     * @return The JSON Object that was converted from the provided Java object.
+     */
+    public JsonObject writeToJson(T t) {
+        JsonObjectBuilder jsonObjectBuilder = builderFactory.createObjectBuilder();
+        Map<String, Method> getters = inspector.getGetters();
+        if (getters != null) {
+            for (String property : getters.keySet()) {
+                Method getter = getters.get(property);
+
+                try {
+                    writeProperty(jsonObjectBuilder, property, getter, t);
+                } catch (IllegalAccessException | InvocationTargetException ex) {
+                    LOGGER.log(Level.WARNING, "Failed to call getter " + getter + " on object " + t, ex);
+                }
+            }
+        }
+        return jsonObjectBuilder.build();
+    }
+
+    private void writeProperty(JsonObjectBuilder jsonObjectBuilder, String property, Method method, T target)
+                                                                                                              throws IllegalAccessException,
+                                                                                                              InvocationTargetException {
+        Object value = method.invoke(target);
+
+        if (boolean.class.equals(method.getReturnType())) {
+            jsonObjectBuilder.add(property, (boolean) value);
+        } else if (byte.class.equals(method.getReturnType())) {
+            jsonObjectBuilder.add(property, (byte) value);
+        } else if (double.class.equals(method.getReturnType())) {
+            jsonObjectBuilder.add(property, (double) value);
+        } else if (float.class.equals(method.getReturnType())) {
+            jsonObjectBuilder.add(property, (float) value);
+        } else if (int.class.equals(method.getReturnType())) {
+            jsonObjectBuilder.add(property, (int) value);
+        } else if (long.class.equals(method.getReturnType())) {
+            jsonObjectBuilder.add(property, (long) value);
+        } else if (short.class.equals(method.getReturnType())) {
+            jsonObjectBuilder.add(property, (short) value);
+        } else if (String.class.equals(method.getReturnType())) {
+            if (value == null) {
+                jsonObjectBuilder.addNull(property);
+            } else {
+                jsonObjectBuilder.add(property, (String) value);
+            }
+        } else if (List.class.equals(method.getReturnType()) || ObservableList.class.equals(method.getReturnType())) {
+            List list = (List) value;
+            if (list != null) {
+                ParameterizedType listType = (ParameterizedType) method.getGenericReturnType();
+                Class<?> listClass = (Class<?>) listType.getActualTypeArguments()[0];
+
+                JsonArrayBuilder jsonArrayBuilder = builderFactory.createArrayBuilder();
+                for (Object item : list) {
+                    writeProperty(jsonArrayBuilder, listClass, item);
+                }
+
+                jsonObjectBuilder.add(property, jsonArrayBuilder);
+
+            } else {
+                jsonObjectBuilder.addNull(property);
+            }
+        } else if (Map.class.equals(method.getReturnType())) {
+            JsonObjectBuilder nestedObjectBuilder = builderFactory.createObjectBuilder();
+
+            Map<String, Boolean> map = (Map<String, Boolean>) value;
+            for (Entry<String, Boolean> entry : map.entrySet()) {
+                nestedObjectBuilder.add(entry.getKey(), entry.getValue());
+            }
+            jsonObjectBuilder.add(property, nestedObjectBuilder);
+
+        } else if (BooleanProperty.class.equals(method.getReturnType())) {
+            BooleanProperty booleanProperty = (BooleanProperty) value;
+            if (booleanProperty != null) {
+                jsonObjectBuilder.add(property, booleanProperty.get());
+            }
+        } else if (DoubleProperty.class.equals(method.getReturnType())) {
+            DoubleProperty doubleProperty = (DoubleProperty) value;
+            if (doubleProperty != null) {
+                jsonObjectBuilder.add(property, doubleProperty.get());
+            }
+        } else if (FloatProperty.class.equals(method.getReturnType())) {
+            FloatProperty floatProperty = (FloatProperty) value;
+            if (floatProperty != null) {
+                jsonObjectBuilder.add(property, floatProperty.get());
+            }
+        } else if (IntegerProperty.class.equals(method.getReturnType())) {
+            IntegerProperty integerProperty = (IntegerProperty) value;
+            if (integerProperty != null) {
+                jsonObjectBuilder.add(property, integerProperty.get());
+            }
+        } else if (LongProperty.class.equals(method.getReturnType())) {
+            LongProperty longProperty = (LongProperty) value;
+            if (longProperty != null) {
+                jsonObjectBuilder.add(property, longProperty.get());
+            }
+        } else if (StringProperty.class.equals(method.getReturnType())) {
+            StringProperty stringProperty = (StringProperty) value;
+            if (stringProperty != null) {
+                String string = stringProperty.get();
+                if (string != null) {
+                    jsonObjectBuilder.add(property, string);
+                } else {
+                    jsonObjectBuilder.addNull(property);
+                }
+            }
+        } else if (method.getReturnType().isEnum()) {
+            if (value == null) {
+                jsonObjectBuilder.addNull(property);
+            } else {
+                jsonObjectBuilder.add(property, ((Enum) value).name());
+            }
+        } else {
+            if (value != null) {
+                JsonConverterExtended converter = new JsonConverterExtended(method.getReturnType());
+                jsonObjectBuilder.add(property, converter.writeToJson(value));
+            } else {
+                jsonObjectBuilder.addNull(property);
+            }
+        }
+    }
+
+    private void writeProperty(JsonArrayBuilder jsonArrayBuilder, Class<?> type, Object value) {
+        if (Boolean.class.equals(type)) {
+            jsonArrayBuilder.add((Boolean) value);
+        } else if (Byte.class.equals(type)) {
+            jsonArrayBuilder.add((Byte) value);
+        } else if (Double.class.equals(type)) {
+            jsonArrayBuilder.add((Double) value);
+        } else if (Float.class.equals(type)) {
+            jsonArrayBuilder.add((Float) value);
+        } else if (Integer.class.equals(type)) {
+            jsonArrayBuilder.add((Integer) value);
+        } else if (Long.class.equals(type)) {
+            jsonArrayBuilder.add((Long) value);
+        } else if (Short.class.equals(type)) {
+            jsonArrayBuilder.add((Short) value);
+        } else if (String.class.equals(type)) {
+            jsonArrayBuilder.add((String) value);
+        } else {
+            JsonConverterExtended converter = new JsonConverterExtended(type);
+            jsonArrayBuilder.add(converter.writeToJson(value));
+        }
+    }
+}

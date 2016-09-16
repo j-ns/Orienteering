@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.*?>
+<?import javafx.scene.control.*?>
+<?import com.gluonhq.charm.glisten.control.*?>
+<?import com.gluonhq.charm.glisten.mvc.*?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.layout.VBox?>
+<?import com.jns.orienteering.control.FloatingTextField?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.Label?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.BorderPane?>
+<?import com.jns.orienteering.control.ChoiceFloatingTextField?>
+<?import com.jns.orienteering.control.TextFieldValidator?>
+
+<View fx:id="view" xmlns="http://javafx.com/javafx/8.0.60" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.jns.orienteering.view.task.TaskPresenter">
+	<center>
+		<StackPane styleClass="view-padding">
+			<ScrollPane fx:id="scrollPane" fitToWidth="true" vbarPolicy="NEVER" hbarPolicy="NEVER"
+				BorderPane.alignment="TOP_LEFT">
+				<VBox fx:id="boxContent" id="boxTask" styleClass="background-dark">
+					<ChoiceFloatingTextField fx:id="choiceCity" hint="%label.city" />
+					<FloatingTextField fx:id="txtName" hint="%label.name" />
+					<fx:define>
+						<TextFieldValidator fx:id="gpsValidator" regex="[+-]?\\d?,?\\s?" />
+					</fx:define>
+					<FloatingTextField fx:id="txtPosition" hint="%task.position" />
+					<Label text="%label.picture">
+						<padding>
+							<Insets top="16.0" right="0.0" bottom="4.0" left="0.0" />
+						</padding>
+					</Label>
+					<HBox>
+						<padding>
+							<Insets top="0.0" right="0.0" bottom="4.0" left="0.0" />
+						</padding>
+						<Button fx:id="btnTakePicture" />
+						<Button fx:id="btnSelectPicture" />
+						<Button fx:id="btnClearPicture" />
+					</HBox>
+					<ImageView fx:id="imgView" />
+					<Label text="%task.description">
+						<padding>
+							<Insets top="16.0" right="0.0" bottom="4.0" left="0.0" />
+						</padding>
+					</Label>
+					<TextArea fx:id="txtDescription" wrapText="true" prefWidth="200" />
+					<FloatingTextField fx:id="txtScanCode" hint="%task.scanCode" />
+					<fx:define>
+						<TextFieldValidator fx:id="pointsValidator" regex="^$|[1-9]{1}([0-9]{1,4})?" />
+					</fx:define>
+					<FloatingTextField fx:id="txtPoints" hint="%hint.points" validator="$pointsValidator" />
+					<ChoiceFloatingTextField fx:id="choiceAccess" hint="%label.access" />
+				</VBox>
+			</ScrollPane>
+		</StackPane>
+	</center>
+</View>

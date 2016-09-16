@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.*?>
+<?import javafx.scene.control.*?>
+<?import com.gluonhq.charm.glisten.control.*?>
+<?import com.gluonhq.charm.glisten.mvc.*?>
+<?import com.jns.orienteering.control.FloatingTextField?>
+<?import javafx.scene.control.CheckBox?> 
+<?import javafx.scene.control.ListView?> 
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.geometry.Insets?>
+<?import com.jns.orienteering.control.ChoiceFloatingTextField?>
+<?import com.jfoenix.controls.JFXTabPane?>
+<?import javafx.scene.control.Tab?>
+<?import com.jns.orienteering.model.common.ListViewExtended?>
+<?import com.gluonhq.charm.glisten.layout.MobileLayoutPane?>
+<?import com.gluonhq.maps.MapView?>
+<?import javafx.scene.layout.StackPane?>
+<?import com.jns.orienteering.control.TextFieldValidator?>
+
+
+<View fx:id="view" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8.0.60" xmlns:fx="http://javafx.com/fxml/1"
+	fx:controller="com.jns.orienteering.view.mission.MissionPresenter">
+	<center>
+		<MobileLayoutPane>
+			<center>
+				<JFXTabPane>
+					<tabs>
+						<Tab fx:id="tabInfo" closable="false" text="%tab.info">
+							<content>
+								<VBox fx:id="boxMissionDetails" spacing="10" styleClass="view-padding">
+									<ChoiceFloatingTextField fx:id="choiceCity" hint="%label.city" />
+									<FloatingTextField fx:id="txtName" hint="%label.name" />
+									<fx:define>
+										<TextFieldValidator fx:id="distanceValidator" modus="MAX_FRACTION_DIGITS" countOf="3" />
+									</fx:define>
+									<FloatingTextField fx:id="txtDistance" hint="%label.distanceInUnit" validator="$distanceValidator" />
+									<ChoiceFloatingTextField fx:id="choiceAccess" hint="%label.access" />
+								</VBox>
+							</content>
+						</Tab>
+						<Tab fx:id="tabTasks" closable="false" text="%tab.tasks">
+							<content>
+								<MobileLayoutPane fx:id="paneListView">
+									<center>
+										<ListViewExtended fx:id="lviewMissionTasks" />
+									</center>
+								</MobileLayoutPane>
+							</content>
+						</Tab>
+						<Tab fx:id="tabMap" closable="false" text="%tab.map">
+							<content>
+								<StackPane fx:id="pneMapLayers">
+									<MapView fx:id="map">
+									</MapView>
+									<VBox fx:id="boxMapControls" styleClass="map-controls" StackPane.alignment="TOP_RIGHT" alignment="TOP_RIGHT"
+										pickOnBounds="false">
+										<padding>
+											<Insets top="8" right="8" bottom="0" left="0" />
+										</padding>
+									</VBox>
+
+								</StackPane>
+							</content>
+						</Tab>
+					</tabs>
+				</JFXTabPane>
+			</center>
+		</MobileLayoutPane>
+	</center>
+</View>

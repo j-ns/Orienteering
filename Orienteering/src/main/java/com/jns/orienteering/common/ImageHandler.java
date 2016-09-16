@@ -1,0 +1,366 @@
+/*
+* Copyright (c) 2016, Jens Stroh
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL JENS STROH BE LIABLE FOR ANY
+ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+package com.jns.orienteering.common;
+
+import static com.jns.orienteering.util.Validators.isNullOrEmpty;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.function.Consumer;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.gluonhq.charm.down.common.PlatformFactory;
+import com.gluonhq.charm.down.common.cache.Cache;
+import com.gluonhq.connect.GluonObservableList;
+import com.gluonhq.connect.GluonObservableObject;
+import com.google.cloud.storage.StorageException;
+import com.jns.orienteering.model.common.FireBaseStorage;
+import com.jns.orienteering.model.common.StorableImage;
+import com.jns.orienteering.model.persisted.ChangeLogEntry;
+import com.jns.orienteering.platform.PlatformProvider;
+import com.jns.orienteering.util.GluonObservableHelper;
+import com.jns.orienteering.util.Trigger;
+
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+
+public class ImageHandler {
+
+    private static final Logger          LOGGER              = LoggerFactory.getLogger(ImageHandler.class);
+
+    /**
+     * https://commons.wikimedia.org/wiki/File:WikiFont_uniE600_-_userAvatar_-_blue.svg
+     * By User:MGalloway (WMF) (mw:Design/WikiFont) [CC BY-SA 3.0 (http://creativecommons.org/licenses/by-sa/3.0)], via Wikimedia
+     * Commons
+     */
+
+    /**
+     * https://commons.wikimedia.org/wiki/File:Flakturm-Volkspark-Humboldthain-Berlin-Gesundbrunnen-Denis-Apel-3.JPG
+     * By User:Denis Apel [CC BY-SA 3.0 (http://creativecommons.org/licenses/by-sa/3.0)], via Wikimedia
+     * Commons
+     */
+
+    /**
+     *
+     *
+     * photo credit: http://www.flickr.com/photos/25414200@N07/2588362340 by Sebastian Ludwig via
+     * http://photopin.com https://creativecommons.org/licenses/by-nc-sa/2.0
+     */
+
+    /**
+     * https://commons.wikimedia.org/wiki/File:Gesundbrunnen_Humboldthain_Rosengarten_Diana-001.jpg
+     * By user:Fridolin f0reudenfett [CC-BY-SA-4.0] (https://creativecommons.org/licenses/by-sa/4.0/deed.en), via Wikimedia
+     * Commons
+     */
+
+    /**
+     * https://commons.wikimedia.org/wiki/File:Tempelhofer_Feld_(16895371610).jpg
+     * By user:Tony Webster [CC-BY- 2.0] (https://creativecommons.org/licenses/by/2.0/deed.en), via Wikimedia Commons
+     */
+
+    public static final Image            AVATAR_PLACE_HOLDER = new Image("/images/WikiFont_uniE600_-_userAvatar_-_blue.svg.png");
+    public static final Image            IMAGE_PLACE_HOLDER  = new Image("/images/army_texture2.jpg");
+
+    private static final FireBaseStorage storage             = FireBaseStorage.INSTANCE;
+    private static final ImageCache      imageCache          = new ImageCache();
+
+    private static final ExecutorService executor            = Executors.newFixedThreadPool(4, runnable ->
+                                                             {
+                                                                 Thread thread = Executors.defaultThreadFactory().newThread(runnable);
+                                                                 thread.setName("ImageHandlerThread");
+                                                                 thread.setDaemon(true);
+                                                                 return thread;
+                                                             });
+
+    private ImageHandler() {
+    }
+
+    public static GluonObservableObject<Image> storeImageAsync(StorableImage storableImage) {
+        return executeAsync(() -> storeImage(storableImage), obsImage -> GluonObservableHelper.setInitialized(obsImage, storableImage.get(),
+                                                                                                              true));
+    }
+
+    public static boolean storeImage(StorableImage storableImage) {
+        imageCache.add(storableImage);
+
+        String targetUrl = storableImage.getTargetUrl();
+        try {
+            storage.create(storableImage.getContent(), targetUrl);
+
+        } catch (StorageException e) {
+            LOGGER.error("Error uploading image: {}", targetUrl, e);
+            imageCache.remove(targetUrl);
+            throw e;
+        }
+        return true;
+    }
+
+    public static GluonObservableObject<Image> updateImageAsync(StorableImage storableImage, String oldUrl) {
+        return executeAsync(() -> updateImage(storableImage, oldUrl), obsImage -> GluonObservableHelper.setInitialized(obsImage, storableImage
+                                                                                                                                              .get(),
+                                                                                                                       true));
+    }
+
+    public static void updateImage(StorableImage storableImage, String oldUrl) {
+        storeImage(storableImage);
+        if (oldUrl != null) {
+            deleteImage(oldUrl);
+        }
+    }
+
+    public static GluonObservableObject<Image> deleteImageAsync(String url) {
+        return executeAsync(() -> deleteImage(url), obsImage -> GluonObservableHelper.setInitialized(obsImage, true));
+    }
+
+    public static void deleteImage(String url) {
+        imageCache.remove(url);
+
+        boolean deleted = storage.delete(url);
+        if (deleted) {
+            LOGGER.debug("deleted image: {}", url);
+        } else {
+            LOGGER.debug("unable to delete image: {}", url);
+        }
+    }
+
+    public static void cacheImageAsync(String targetUrl) { // async?
+        executor.execute(() ->
+        {
+            Image localImage = imageCache.getImage(targetUrl);
+            if (localImage == null) {
+                imageCache.add(retrieveImageFromCloud(targetUrl));
+            }
+        });
+    }
+
+    private static GluonObservableObject<Image> executeAsync(Trigger action, Consumer<GluonObservableObject<Image>> onSuccess) {
+        GluonObservableObject<Image> obsImage = new GluonObservableObject<>();
+
+        executor.execute(() ->
+        {
+            try {
+                action.start();
+                onSuccess.accept(obsImage);
+            } catch (StorageException ex) {
+                GluonObservableHelper.setException(obsImage, ex);
+            }
+        });
+        return obsImage;
+    }
+
+    public static void loadInto(ImageView imageView, String url, boolean showDefaultPlaceHolder) {
+        loadInto(imageView, url, showDefaultPlaceHolder ? IMAGE_PLACE_HOLDER : null);
+    }
+
+    public static void loadInto(ImageView imageView, String url, Image placeHolder) {
+        if (isNullOrEmpty(url)) {
+            imageView.setImage(placeHolder);
+            return;
+        }
+
+        executor.execute(() ->
+        {
+            Image localImage = imageCache.getImage(url);
+            if (localImage != null) {
+                imageView.setImage(localImage);
+
+            } else {
+                StorableImage cloudImage = retrieveImageFromCloud(url);
+                imageView.setImage(cloudImage.get());
+                imageCache.add(cloudImage);
+            }
+        });
+    }
+
+    public static GluonObservableObject<Image> retrieveImageAsync(String url, Image placeHolder) {
+        GluonObservableObject<Image> obsImage = new GluonObservableObject<>();
+
+        if (isNullOrEmpty(url)) {
+            GluonObservableHelper.setInitialized(obsImage, placeHolder, true);
+            return obsImage;
+        }
+
+        executor.execute(() ->
+        {
+            Image localImage = imageCache.getImage(url);
+            if (localImage != null) {
+                GluonObservableHelper.setInitialized(obsImage, localImage, true);
+
+            } else {
+                StorableImage cloudImage = retrieveImageFromCloud(url);
+                GluonObservableHelper.setInitialized(obsImage, cloudImage.get(), true);
+
+                imageCache.add(cloudImage);
+            }
+        });
+        return obsImage;
+    }
+
+    public static StorableImage retrieveImage(String url, Image placeHolder) {
+        if (isNullOrEmpty(url)) {
+            return new StorableImage(placeHolder);
+        }
+
+        Image localImage = imageCache.getImage(url);
+        if (localImage != null) {
+            return new StorableImage(localImage, url);
+        }
+        StorableImage storableImage = retrieveImageFromCloud(url);
+        executor.execute(() -> imageCache.add(storableImage));
+        return storableImage;
+    }
+
+    public static StorableImage retrieveImageFromCloud(String url) {
+        if (url == null) {
+            return StorableImage.emptyInstance();
+        }
+
+        byte[] content = storage.retrieve(url);
+        if (content.length > 0) {
+            return new StorableImage(content, url);
+        }
+        return StorableImage.emptyInstance();
+    }
+
+    public static void removeFromCacheAsync(GluonObservableList<ChangeLogEntry> changeLog) {
+        if (isNullOrEmpty(changeLog)) {
+            return;
+        }
+        executor.execute(() ->
+        {
+            for (ChangeLogEntry logEntry : changeLog) {
+                imageCache.remove("tasks/" + logEntry.getTargetId() + ".jpg");
+            }
+        });
+    }
+
+    // public static void shutdownExecutor() {
+    // if (executor != null) {
+    // executor.shutdown();
+    // LOGGER.debug("shutting down executor");
+    // }
+    // }
+
+    private static class ImageCache {
+
+        private static final String  IMAGES_DIR = "images";
+        private final File           iamgeStore;
+
+        private Cache<String, Image> cache;
+
+        private ImageCache() {
+            iamgeStore = PlatformProvider.getPlatform().getStorage().getPrivateFile(IMAGES_DIR);
+            cache = PlatformFactory.getPlatform().getCacheManager().createCache("image_cache");
+
+            LOGGER.debug("imageStore: {}", iamgeStore);
+        }
+
+        public boolean add(StorableImage storableImage) {
+            if (storableImage.get() == null || isNullOrEmpty(storableImage.getTargetUrl())) {
+                return false;
+            }
+            String targetUrl = storableImage.getTargetUrl();
+
+            File target = new File(iamgeStore, targetUrl);
+            if (target.exists()) {
+                LOGGER.debug("image already exists: {}", target);
+                return true;
+            }
+            target.getParentFile().mkdirs();
+
+            try {
+                storeImageLocal(storableImage, target);
+                cache.put(targetUrl, storableImage.get());
+
+                LOGGER.debug("cached image {}", targetUrl);
+            } catch (IOException e) {
+                LOGGER.error("unable to cache image: {}", targetUrl, e);
+                return false;
+            }
+            return true;
+        }
+
+        public Image getImage(String url) {
+            if (isNullOrEmpty(url)) {
+                return null;
+            }
+
+            Image cachedImage = cache.get(url);
+            if (cachedImage == null) {
+                LOGGER.debug("image not in cache: {}", url);
+
+                Image storedImage = loadLocalImage(url);
+                if (storedImage == null) {
+                    LOGGER.debug("image not on disk: {}", url);
+
+                } else {
+                    cache.put(url, storedImage);
+                    LOGGER.debug("image loaded from disk, into cache {}", url);
+                    return storedImage;
+                }
+            }
+            return cachedImage;
+        }
+
+        public void remove(String url) {
+            if (isNullOrEmpty(url)) {
+                return;
+            }
+            cache.remove(url);
+
+            File storedFile = new File(iamgeStore, url);
+            if (storedFile.isFile()) {
+                boolean deleted = storedFile.delete();
+                if (deleted) {
+                    LOGGER.debug("removed from cache and disk: {}", url);
+                } else {
+                    LOGGER.debug("unable to delete file: {}", url);
+                }
+            } else {
+                LOGGER.info("Can't delete url: {} (file does not exist, or is not a file)", url);
+            }
+        }
+
+        private void storeImageLocal(StorableImage storableImage, File target) throws IOException {
+            try (FileOutputStream outputStream = new FileOutputStream(target)) {
+                outputStream.write(storableImage.getContent());
+            }
+        }
+
+        private Image loadLocalImage(String url) {
+            File file = new File(iamgeStore, url);
+            return file.exists() ? new Image(file.toURI().toString()) : null;
+        }
+
+    }
+}

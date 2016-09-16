@@ -1,0 +1,93 @@
+.root {
+	-primary-text-color: #202020;
+	-secondary-text-color: #737373;
+
+	-selected-row-color: #F5F5F5;
+
+	-divider-color: #EBEBEB;
+	-accent-color: #DF066D;
+}
+
+/*******************************************************************************
+ *                                                                             *
+ * BUTTON					                                                   *
+ *                                                                             *
+ ******************************************************************************/
+
+.button{
+	-fx-background-color: -color-accent;
+
+	-fx-padding: 0.0 8.0 0.0 8.0;
+	-fx-min-width: 88.0;
+	-fx-min-height: 36.0;
+
+	-fx-font-size: 14.0;
+}
+
+.button:hover {
+	-fx-background-color: -color-accent;
+}
+.button:pressed {
+	-fx-background-color: -color-accent-dark;
+}
+
+.button.flat {
+	-fx-background-color: white;
+
+	-fx-padding: 0.0 8.0 0.0 8.0;
+	-fx-min-width: 88.0;
+	-fx-min-height: 36.0;
+
+	-fx-font-family: 'Roboto Medium';
+	-fx-font-size: 14.0;
+	-fx-text-fill: -color-accent;
+}
+
+.button.flat:pressed{
+	-fx-background-color: white;
+	-fx-opacity: 0.88;
+}
+
+.button.flat:pressed {
+ 	-fx-background-color: derive(#999999, -40.0%);
+}
+
+.button.flat:disabled{
+	-fx-background-color: derive(#FFFFFF, -12.0%);
+	-fx-text-fill: derive(#FFFFFF, -26.0%);
+}
+
+/*******************************************************************************
+ *                                                                             *
+ * TABLE					                                                   *
+ *                                                                             *
+ ******************************************************************************/
+
+.table-view .column-header-background{
+	-fx-pref-height: 56.0;
+}
+
+ .table-view .column-header.table-column .label {
+	-fx-alignment: center-right  ;
+	-fx-font-family: "Roboto Medium";
+	-fx-font-size: 12.0;
+	-fx-text-fill: -secondary-text-color;
+}
+
+.table-view .table-cell.table-column {
+	-fx-pref-height: 48.0;
+	-fx-font-family: "Roboto";
+	-fx-font-size: 13.0;
+}
+.table-cell {
+	-fx-text-fill: -primary-text-color;
+}
+
+.table-row-cell:odd {
+    -fx-background: -fx-control-inner-background-alt;
+}
+.table-row-cell:empty {
+	-fx-background: white;
+}
+
+
