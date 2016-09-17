@@ -53,6 +53,8 @@ import javafx.scene.control.Button;
  */
 public abstract class BasePresenter {
 
+    private MobileApplication application = MobileApplication.getInstance();
+
     @FXML
     protected View view;
 
@@ -77,7 +79,7 @@ public abstract class BasePresenter {
      */
     protected AppBar getAppBar() {
         if (appBar == null) {
-            appBar = MobileApplication.getInstance().getAppBar();
+            appBar = application.getAppBar();
         }
         return appBar;
     }
@@ -87,7 +89,7 @@ public abstract class BasePresenter {
      *
      */
     protected void showAppBar(boolean value) {
-        MobileApplication.getInstance().getAppBar().setVisible(value);
+        application.getAppBar().setVisible(value);
     }
 
     /**
@@ -142,7 +144,7 @@ public abstract class BasePresenter {
     }
 
     protected Button createGoHomeButton() {
-        return Icon.Buttons.back(e -> MobileApplication.getInstance().goHome());
+        return Icon.Buttons.back(e -> application.goHome());
     }
 
     protected Button createMenuButton() {
@@ -150,30 +152,30 @@ public abstract class BasePresenter {
     }
 
     protected void showView(String name) {
-        MobileApplication.getInstance().switchView(name);
+        application.switchView(name);
     }
 
     protected void showPreviousView() {
-        boolean viewSwitched = MobileApplication.getInstance().switchToPreviousView();
+        boolean viewSwitched = application.switchToPreviousView();
         if (!viewSwitched) {
-            MobileApplication.getInstance().goHome();
+            application.goHome();
         }
     }
 
     protected void showHomeView() {
-        MobileApplication.getInstance().goHome();
+        application.goHome();
     }
 
     protected void addLayer(String name, Layer layer) {
-        MobileApplication.getInstance().addLayerFactory(name, () -> layer);
+        application.addLayerFactory(name, () -> layer);
     }
 
     protected void showLayer(String name) {
-        MobileApplication.getInstance().showLayer(name);
+        application.showLayer(name);
     }
 
     protected void hideLayer(String name) {
-        MobileApplication.getInstance().hideLayer(name);
+        application.hideLayer(name);
     }
 
     protected void onShowing() {

@@ -176,6 +176,9 @@ public class MissionStat extends Stat implements Postable {
 
     @Override
     public boolean isCompleted() {
+        if (taskStats.isEmpty()) {
+            return false;
+        }
         for (TaskStat taskStat : taskStats) {
             if (!taskStat.isCompleted()) {
                 return false;

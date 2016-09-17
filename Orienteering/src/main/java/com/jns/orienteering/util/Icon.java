@@ -143,39 +143,8 @@ public enum Icon {
         return GlyphsDude.createIcon(glypIcon, size);
     }
 
-    public Node centeredIcon() {
-        return createIconPane(icon());
-    }
-
-    public Node centeredIcon(String size) {
-        return createIconPane(icon(size));
-    }
-
-    /**
-     * @param direction
-     *            "up" or "down"
-     * @return
-     */
-    public static Node fileIcon(String direction) {
-        Node file = Icon.FILE.icon(Icon.DEFAULT_ICON_SIZE);
-        file.getStyleClass().add("file");
-
-        Node share = Icon.FORWARD.icon("14");
-        share.getStyleClass().addAll("arrow", direction);
-        share.setTranslateX(1);
-        share.setTranslateY(3);
-
-        return new StackPane(file, share);
-    }
-
     public Node progressIcon() {
         return new StackPane(icon("32"));
-    }
-
-    private StackPane createIconPane(Node icon) {
-        StackPane iconPane = new StackPane(icon);
-        iconPane.getStyleClass().add("icon-pane");
-        return iconPane;
     }
 
     public static class Buttons {

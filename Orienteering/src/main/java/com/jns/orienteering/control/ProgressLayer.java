@@ -37,35 +37,25 @@ import com.gluonhq.charm.glisten.application.MobileApplication;
 import com.gluonhq.charm.glisten.application.MobileApplication.MobileEvent;
 import com.gluonhq.charm.glisten.control.ProgressIndicator;
 import com.gluonhq.charm.glisten.layout.Layer;
-import com.jns.orienteering.util.Icon;
 import com.jns.orienteering.util.Trigger;
 
 import javafx.animation.Animation.Status;
 import javafx.animation.PauseTransition;
 import javafx.animation.Transition;
 import javafx.event.EventHandler;
-import javafx.scene.Node;
 import javafx.scene.layout.StackPane;
-import javafx.scene.shape.Circle;
 import javafx.util.Duration;
 
-/**
- * @author jns
- *
- */
 public class ProgressLayer extends Layer {
 
-    private static final int   CLOCK_RADIUS   = 16;
-    public static final double DEFAULT_RADIUS = 30;
-    public static final double DEFAULT_DELAY  = 150;
+    public static final double DEFAULT_DELAY = 150;
 
-    private GlassPane glassPane = MobileApplication.getInstance().getGlassPane();
+    private GlassPane          glassPane     = MobileApplication.getInstance().getGlassPane();
 
-    private StackPane  root;
-    private double     size;
-    private double     delay = DEFAULT_DELAY;
+    private StackPane          root;
+    private double             delay         = DEFAULT_DELAY;
 
-    private boolean fadeLayer;
+    private boolean            fadeLayer;
 
     private ShowHideTransition showHideTransition;
 
@@ -73,34 +63,16 @@ public class ProgressLayer extends Layer {
         this(PauseFadeInFadeOut::new);
     }
 
-    public ProgressLayer(Node icon) {
-        this(icon, DEFAULT_RADIUS);
-    }
-
-    public ProgressLayer(Node icon, double radius) {
-        this(icon, radius, PauseFadeInFadeOut::new);
-    }
-
     public ProgressLayer(Function<ProgressLayer, ShowHideTransition> transitionProvider) {
-        this(Icon.CLOCK.progressIcon(), CLOCK_RADIUS, transitionProvider);
-    }
-
-    public ProgressLayer(Node icon, double radius, Function<ProgressLayer, ShowHideTransition> transitionProvider) {
         getStyleClass().add("progress-layer");
         setAutoHide(false);
-
-        icon.getStyleClass().add("progress-icon");
-        size = radius * 2;
-
-        Circle clip = new Circle(radius, radius, radius - 2);
-        icon.setClip(clip);
 
         ProgressIndicator progress = new ProgressIndicator();
         progress.setStyle("-fx-color:#ff9100");
 
         root = new StackPane(progress);
-
         getChildren().add(root);
+
         glassPane.getLayers().add(this);
 
         showHideTransition = transitionProvider.apply(this);
@@ -148,8 +120,9 @@ public class ProgressLayer extends Layer {
         if (!isShowing()) {
             return;
         }
-        root.resize(size, size);
-        resizeRelocate((glassPane.getWidth() - size) / 2, (glassPane.getHeight() - size) / 2, size, size);
+
+        double size = root.prefWidth(-1);
+        resizeRelocate(glassPane.getWidth() / 2, glassPane.getHeight() / 2, size, size);
     }
 
     public abstract static class ShowHideTransition {
@@ -179,7 +152,7 @@ public class ProgressLayer extends Layer {
         protected Transition    showTransition;
         private Transition      hideTransition;
 
-        private boolean running;
+        private boolean         running;
 
         public PauseFadeInFadeOut(ProgressLayer progressLayer) {
             super(progressLayer);
