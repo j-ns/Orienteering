@@ -30,9 +30,6 @@ package com.jns.orienteering.model.repo.synchronizer;
 
 import java.time.LocalDate;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.gluonhq.connect.GluonObservableList;
 import com.jns.orienteering.common.ImageHandler;
 import com.jns.orienteering.model.persisted.ActiveTaskList;
@@ -41,8 +38,6 @@ import com.jns.orienteering.model.persisted.Task;
 import com.jns.orienteering.model.repo.AsyncResultReceiver;
 
 public class ImageSynchronizer extends BaseSynchronizer<Task, Task, ActiveTaskList> {
-
-    private static final Logger LOGGER                = LoggerFactory.getLogger(ImageSynchronizer.class);
 
     public static final String  NAME                  = "image_synchronizer";
     private static final String IMAGE_LIST_IDENTIFIER = "images";
@@ -59,10 +54,8 @@ public class ImageSynchronizer extends BaseSynchronizer<Task, Task, ActiveTaskLi
     @Override
     public void syncNow(SyncMetaData syncMetaData) {
         LocalDate firstOfMonth = LocalDate.now().withDayOfMonth(1);
-        LOGGER.debug("firstOfMonth (epochDay): {}", firstOfMonth.toEpochDay());
 
         if (!syncMetaData.isLastSyncedBefore(firstOfMonth)) {
-            LOGGER.debug("lastSynced was after firstOfMonth");
             return;
         }
 
@@ -81,7 +74,7 @@ public class ImageSynchronizer extends BaseSynchronizer<Task, Task, ActiveTaskLi
 
     @Override
     protected void syncLocalData(GluonObservableList<ChangeLogEntry> log) {
-        // noop
+        // no op
     }
 
 }

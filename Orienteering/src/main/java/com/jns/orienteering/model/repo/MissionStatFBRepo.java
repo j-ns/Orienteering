@@ -42,6 +42,7 @@ import com.jns.orienteering.model.persisted.StatByMission;
 import com.jns.orienteering.model.persisted.StatByUser;
 import com.jns.orienteering.model.repo.readerwriter.RestObjectsReader;
 import com.jns.orienteering.util.Dialogs;
+import com.jns.orienteering.util.GluonObservableHelper;
 
 public class MissionStatFBRepo extends FireBaseRepo<MissionStat> {
 
@@ -81,7 +82,11 @@ public class MissionStatFBRepo extends FireBaseRepo<MissionStat> {
     }
 
     public GluonObservableList<StatByUser> getStatsByUser(String userId) {
-        return statByUserRepo.retrieveListAsync(userId);
+        boolean statsByUserExists = checkIfUrlExists(userId);
+        if (statsByUserExists) {
+            return statByUserRepo.retrieveListAsync(userId);
+        }
+        return GluonObservableHelper.newGluonObservableListInitialized();
     }
 
     public GluonObservableList<MissionStat> getMissionStats(String missionId) {

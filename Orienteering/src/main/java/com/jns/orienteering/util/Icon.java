@@ -75,6 +75,7 @@ public enum Icon {
     FLASH_LIGHT(MaterialDesignIcon.FLASHLIGHT),
     FLASH_LIGHT_OFF(MaterialDesignIcon.FLASHLIGHT_OFF),
     GAS(OctIcon.FLAME),
+    GLOBE(FontAwesomeIcon.GLOBE),
     GPS_LOCATION(MaterialDesignIcon.CROSSHAIRS_GPS),
     HELP(MaterialDesignIcon.HELP),
     INFO(FontAwesomeIcon.INFO),

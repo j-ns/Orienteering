@@ -26,56 +26,44 @@
  *  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  *  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package com.jns.orienteering.model.repo.readerwriter;
+package com.jns.orienteering.view;
 
-import java.util.Collections;
-import java.util.Iterator;
+import com.jns.orienteering.model.common.ListUpdater;
+import com.jns.orienteering.model.common.UpdatableListItem;
+import com.jns.orienteering.model.persisted.City;
 
-import javax.json.JsonObject;
-import javax.json.JsonReader;
-import javax.json.JsonValue;
-import javax.json.stream.JsonParsingException;
+public class ListViewUpdater<T extends UpdatableListItem> {
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+    private ListUpdater<T> listUpdater;
 
-import com.gluonhq.connect.converter.InputStreamIterableInputConverter;
-import com.gluonhq.impl.connect.converter.JsonUtil;
-
-public class JsonTreeConverter<T> extends InputStreamIterableInputConverter<T> implements Iterator<T> {
-
-    private static final Logger      LOGGER = LoggerFactory.getLogger(JsonTreeConverter.class);
-
-    private JsonObject               tree;
-    private Iterator<String>         iterator;
-    private JsonConverterExtended<T> converter;
-
-    public JsonTreeConverter(Class<T> targetClass) {
-        this.converter = new JsonConverterExtended<>(targetClass);
+    public ListViewUpdater(ListUpdater<T> listUpdater) {
+        this.listUpdater = listUpdater;
     }
 
-    @Override
-    public Iterator<T> iterator() {
-        try (JsonReader reader = JsonUtil.createJsonReader(getInputStream())) {
-            tree = reader.readObject();
+    public void update(T newItem, T previousItem, City selectedCity) {
+        boolean accessTypesMatches = listUpdater.getAccess() == newItem.getAccessType();
+        boolean cityHasChanged = newItem.hasCityChanged();
+        boolean nameHasChanged = newItem.hasNameChanged();
 
-        } catch (JsonParsingException e) {
-            LOGGER.error("Error parsing json", e);
-            return Collections.emptyIterator();
+        if (accessTypesMatches && !cityHasChanged) {
+            if (nameHasChanged) {
+                listUpdater.remove(previousItem);
+                listUpdater.add(newItem);
+            } else {
+                listUpdater.update(newItem);
+            }
+        } else {
+            listUpdater.remove(newItem);
         }
-        iterator = tree.keySet().iterator();
-        return this;
     }
 
-    @Override
-    public boolean hasNext() {
-        return iterator.hasNext();
-    }
+    public void add(T item) {
+        boolean accessTypesMatches = listUpdater.getAccess() == item.getAccessType();
+        boolean cityHasChanged = item.hasCityChanged();
 
-    @Override
-    public T next() {
-        JsonValue json = tree.get(iterator.next());
-        return converter.readFromJson((JsonObject) json);
+        if (accessTypesMatches && !cityHasChanged) {
+            listUpdater.add(item);
+        }
     }
 
 }

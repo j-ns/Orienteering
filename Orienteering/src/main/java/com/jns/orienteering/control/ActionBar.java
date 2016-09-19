@@ -57,7 +57,7 @@ public class ActionBar extends Pane {
     }
 
     /**
-     * Toggles the visibility of a specific Node in the ActionBar
+     * Toggles the visibility of the Node at <code>nodeIdx</code>
      *
      * @param nodeIdx
      *            position of the Node whose visibility should be changed. From left to right

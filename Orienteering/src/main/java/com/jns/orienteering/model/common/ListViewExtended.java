@@ -125,9 +125,6 @@ public class ListViewExtended<T> extends ListView<T> implements ActivatableDeact
         }
     }
 
-    /**
-     * Removes selectedItem + scrollListeners and sets selectedItem,items, listUpdater == null
-     */
     public void removeListenersAndClearAll() {
         removeListeners();
         setItems(null);

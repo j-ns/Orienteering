@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.*?>
+<?import javafx.scene.control.*?>
+<?import com.gluonhq.charm.glisten.control.*?>
+<?import com.gluonhq.charm.glisten.mvc.*?>
+<?import com.jfoenix.controls.JFXTabPane?>
+<?import javafx.scene.control.Tab?>
+<?import javafx.scene.layout.StackPane?>
+<?import com.gluonhq.maps.MapView?>
+<?import javafx.scene.control.ScrollPane?>
+<?import com.jns.orienteering.model.common.ListViewExtended?>
+<?import javafx.scene.layout.VBox?>
+<?import com.gluonhq.charm.glisten.control.ListTile?>
+<?import com.jns.orienteering.control.cell.TaskCellSmall?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.shape.Circle?>
+<?import javafx.scene.shape.Rectangle?>
+<?import javafx.scene.layout.Region?>
+
+<View fx:id="view" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8.0.60" xmlns:fx="http://javafx.com/fxml/1"
+	fx:controller="com.jns.orienteering.view.ActiveMissionPresenter">
+	<center>
+		<JFXTabPane fx:id="tabPane">
+			<tabs>
+				<Tab fx:id="tabCompact" text="%tab.compact">
+					<StackPane fx:id="paneCompact">
+						<VBox fx:id="boxCompact">
+							<MapView fx:id="mapCompact" />
+							<ListViewExtended fx:id="lviewTask" id="lviewCompactTask" minHeight="144" />
+						</VBox>
+						<fx:define>
+							<VBox fx:id="boxNavigationCompact" StackPane.alignment="TOP_RIGHT" alignment="TOP_RIGHT" spacing="4"
+								maxWidth="-Infinity" maxHeight="-Infinity" pickOnBounds="false" styleClass="map-controls">
+								<padding>
+									<Insets top="8" right="8" bottom="8" left="8" />
+								</padding>
+							</VBox>
+						</fx:define>
+					</StackPane>
+				</Tab>
+				<Tab fx:id="tabMap" text="%tab.map">
+					<StackPane fx:id="paneLarge">
+						<MapView fx:id="mapLarge" />
+						<fx:define>
+							<VBox fx:id="boxNavigationLarge" StackPane.alignment="TOP_RIGHT" alignment="TOP_RIGHT" spacing="4" maxWidth="-Infinity"
+								maxHeight="-Infinity" pickOnBounds="false" styleClass="map-controls">
+								<padding>
+									<Insets top="8" right="8" bottom="8" left="8" />
+								</padding>
+							</VBox>
+						</fx:define>
+					</StackPane>
+				</Tab>
+				<Tab fx:id="tabChrono" text="%tab.chrono">
+					<StackPane fx:id="paneStats">
+						<ListViewExtended fx:id="lviewStats" />
+					</StackPane>
+				</Tab>
+				<Tab fx:id="tabTasks" text="%tab.tasks">
+					<StackPane fx:id="paneTasks">
+						<ListViewExtended fx:id="lviewTasks" id="lviewActiveMissionTasks" />
+					</StackPane>
+				</Tab>
+			</tabs>
+		</JFXTabPane>
+	</center>
+</View>

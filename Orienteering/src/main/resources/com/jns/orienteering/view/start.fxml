@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.*?>
+<?import javafx.scene.control.*?>
+<?import com.gluonhq.charm.glisten.control.*?>
+<?import com.gluonhq.charm.glisten.mvc.*?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.image.ImageView?>
+<?import com.gluonhq.charm.glisten.control.ProgressBar?>
+<?import com.gluonhq.charm.glisten.control.ProgressIndicator?>
+
+<View fx:id="view" id="startView" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8.0.60"
+	xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.jns.orienteering.view.StartPresenter">
+	<center>
+		<StackPane id="startView">
+			<ImageView fx:id="image" StackPane.alignment="TOP_CENTER" translateY="20"/>
+			<VBox spacing="16" alignment="CENTER" translateY="30">
+				<Label id="startTitle" text="Orientierungslauf" />
+				<ProgressBar fx:id="progressBar" maxWidth="200"/>
+			</VBox>
+<!-- 			<Label text="Copyright 2016 Jens Stroh" StackPane.alignment="BOTTOM_RIGHT"/> -->
+		</StackPane>
+	</center>
+</View>

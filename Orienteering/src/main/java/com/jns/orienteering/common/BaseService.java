@@ -41,8 +41,6 @@ import com.gluonhq.charm.glisten.application.MobileApplication;
 import com.gluonhq.connect.ConnectState;
 import com.gluonhq.connect.GluonObservableList;
 import com.gluonhq.connect.GluonObservableObject;
-import com.jns.orienteering.Navigation;
-import com.jns.orienteering.OrienteeringApp;
 import com.jns.orienteering.model.CityHolder;
 import com.jns.orienteering.model.common.ListUpdater;
 import com.jns.orienteering.model.common.StorableImage;
@@ -57,10 +55,10 @@ import com.jns.orienteering.model.repo.LocalRepo;
 import com.jns.orienteering.model.repo.MissionFBRepo;
 import com.jns.orienteering.model.repo.RepoService;
 import com.jns.orienteering.model.repo.UserFBRepo;
+import com.jns.orienteering.model.repo.synchronizer.ActiveMissionSynchronizer;
 import com.jns.orienteering.model.repo.synchronizer.ActiveTasksSynchronizer;
 import com.jns.orienteering.model.repo.synchronizer.CitySynchronizer;
 import com.jns.orienteering.model.repo.synchronizer.ImageSynchronizer;
-import com.jns.orienteering.model.repo.synchronizer.ActiveMissionSynchronizer;
 import com.jns.orienteering.model.repo.synchronizer.RepoSynchronizer;
 import com.jns.orienteering.model.repo.synchronizer.SyncMetaData;
 import com.jns.orienteering.util.CountProperty;
@@ -75,6 +73,7 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.image.Image;
@@ -89,7 +88,6 @@ public class BaseService {
     private RepoSynchronizer                repoSynchronizer   = new RepoSynchronizer();
     private CountProperty                   pendingResultCount = new CountProperty();
 
-    private Map<String, ListUpdater<?>>     listUpdaters       = new HashMap<>();
 
     private UserFBRepo                      userCloudRepo;
     private LocalRepo<User, User>           userLocalRepo;
@@ -115,15 +113,13 @@ public class BaseService {
     private MissionStat                     activeMissionStats;
     private BooleanProperty                 stopMission;
 
+    private Map<String, ListUpdater<?>>     listUpdaters       = new HashMap<>();
+
     private String                          previousView;
 
     private BooleanProperty                 initialized        = new SimpleBooleanProperty(false);
 
     public BaseService() {
-        Navigation navigationDrawer = ((OrienteeringApp) MobileApplication.getInstance()).getNavigationDrawer();
-        navigationDrawer.aliasProperty().bind(alias);
-        navigationDrawer.profileImageProperty().bind(profileImage);
-
         MobileApplication.getInstance().viewProperty().addListener((obsValue, v, v1) ->
         {
             if (v != null) {
@@ -488,5 +484,9 @@ public class BaseService {
         public String getOriginalCityId() {
             return originalCityId;
         }
+    }
+
+    public ObservableValue<String> aliasProperty() {
+        return alias;
     }
 }

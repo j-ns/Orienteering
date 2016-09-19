@@ -34,7 +34,6 @@ import java.util.Set;
 
 import com.gluonhq.charm.glisten.application.MobileApplication;
 import com.gluonhq.connect.MultiValuedMap;
-import com.jns.orienteering.OrienteeringApp;
 import com.jns.orienteering.control.ActivatableDeactivatable;
 import com.jns.orienteering.util.Trigger;
 
@@ -64,7 +63,7 @@ public class ActivatorDeactivatorService {
     }
 
     private void onViewChanged(String viewName) {
-        if (OrienteeringApp.HOME_VIEW.equals(viewName)) {
+        if (MobileApplication.HOME_VIEW.equals(viewName)) {
             if (!activeViewNames.isEmpty()) {
                 deactivateAll();
             }

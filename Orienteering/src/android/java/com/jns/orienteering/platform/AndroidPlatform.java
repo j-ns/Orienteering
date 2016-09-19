@@ -34,11 +34,11 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.jns.orienteering.util.DateTimeFormatters;
 
 import android.content.Context;
 import android.content.Intent;
@@ -48,7 +48,6 @@ import android.net.Uri;
 import android.os.Environment;
 import android.os.Vibrator;
 import android.provider.MediaStore;
-import android.util.Log;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ObservableValue;
@@ -216,14 +215,13 @@ public class AndroidPlatform implements PlatformService {
                         imageProperty().set(new Image(is));
 
                     } catch (FileNotFoundException ex) {
-                        Log.e("GalleryActivity", "resolveActivity failed " + ex.getMessage());
+                        LOGGER.error("GalleryActivity resolveActivity failed", ex);
                     } finally {
                         try {
                             if (is != null) {
                                 is.close();
                             }
                         } catch (IOException ex) {
-                            LOGGER.error("GalleryActivity", "resolveActivity failed " + ex.getMessage());
                         }
                     }
                 }
@@ -231,7 +229,7 @@ public class AndroidPlatform implements PlatformService {
 
             FXActivity.getInstance().startActivityForResult(Intent.createChooser(intent, "Select Picture"), SELECT_PICTURE);
         } else {
-            Log.e("GalleryActivity", "resolveActivity failed");
+            LOGGER.error("GalleryActivity resolveActivity failed");
         }
     }
 
@@ -249,7 +247,7 @@ public class AndroidPlatform implements PlatformService {
     }
 
     private File createImageFile() throws IOException {
-        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+        String timeStamp = DateTimeFormatters.createTimeStamp();
         String imageFileName = "JPEG_" + timeStamp + "_";
 
         File storageDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);

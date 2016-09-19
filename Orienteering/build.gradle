@@ -5,7 +5,7 @@ buildscript {
     }
     dependencies {
         classpath 'org.javafxports:jfxmobile-plugin:1.0.8'
-        classpath 'com.jns.gradle:Templates-Plugin:1.0.0-all'
+//        classpath 'com.jns.gradle:Templates-Plugin:1.0.0-all'
     }
 }
 plugins { id "org.sonarqube" version "1.2" 
@@ -33,7 +33,7 @@ repositories {
 ext.GLUON_VERSION = "3.0.0"
 dependencies {
 
-    /***************** GLUON ***********************/
+    /***************** GLUON **************************/
     compile 'com.airhacks:afterburner.mfx:1.6.2'
 
     compile ("com.gluonhq:charm:$GLUON_VERSION")
@@ -50,7 +50,7 @@ dependencies {
 
 
     /***************** DIVERSE ***********************/
-   compile 'de.jensd:fontawesomefx:8.8' /*8.9 verwendet invokeDynamic*/
+   compile 'de.jensd:fontawesomefx:8.8' 
    
    compile files('libs/jfoenix-0.0.0-SNAPSHOT-retrolambda.jar',
             'libs/maps-1.0.1-SNAPSHOT.jar'
@@ -62,12 +62,12 @@ dependencies {
         exclude group: 'javax.inject', module: 'javax.inject'
     }
 
-    compile 'com.twelvemonkeys.common:common-io:3.2.1'
-    compile 'com.twelvemonkeys.common:common-image:3.2.1'
-    compile 'com.twelvemonkeys.common:common-lang:3.2.1'
-    compile 'com.twelvemonkeys.imageio:imageio-core:3.2.1'
-    compile 'com.twelvemonkeys.imageio:imageio-metadata:3.2.1'
-    compile 'com.twelvemonkeys.imageio:imageio-jpeg:3.2.1'
+//    compile 'com.twelvemonkeys.common:common-io:3.2.1'
+//    compile 'com.twelvemonkeys.common:common-image:3.2.1'
+//    compile 'com.twelvemonkeys.common:common-lang:3.2.1'
+//    compile 'com.twelvemonkeys.imageio:imageio-core:3.2.1'
+//    compile 'com.twelvemonkeys.imageio:imageio-metadata:3.2.1'
+//    compile 'com.twelvemonkeys.imageio:imageio-jpeg:3.2.1'
 
     /***************** TESTS ************************/
     testCompile 'junit:junit:4.12'
@@ -103,11 +103,9 @@ eclipse {
 
 retrolambda {
     oldJdk System.getenv("JAVA7_HOME")
-    jdk System.getenv("JAVA_HOME") //wird für sonarQube tests benötigt.
+    jdk System.getenv("JAVA_HOME") 
 }
 
-def libraries = "${System.properties['java.home']}/lib/ext/jfxrt.jar,F:/AndroidSDK/platforms/android-23/android.jar,/libs/*.jar,${configurations.runtime.join(",")}"
- 
 tasks.withType(Test).each { task ->
     task.enabled = false
 }

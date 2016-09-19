@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.*?>
+<?import javafx.scene.control.*?>
+<?import com.gluonhq.charm.glisten.control.*?>
+<?import com.gluonhq.charm.glisten.mvc.*?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ToggleButton?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.layout.ColumnConstraints?> 
+<?import javafx.scene.layout.GridPane?> 
+<?import javafx.scene.layout.HBox?> 
+<?import javafx.scene.layout.RowConstraints?>
+<?import com.jns.orienteering.control.DurationDisplay?>
+
+<View fx:id="view" id="homeView" xmlns="http://javafx.com/javafx/8.0.60" xmlns:fx="http://javafx.com/fxml/1"
+	fx:controller="com.jns.orienteering.view.HomePresenter">
+	<center>
+		<VBox fx:id="boxContent" alignment="TOP_CENTER" spacing="8" styleClass="view-padding">
+			<HBox>
+				<padding>
+					<Insets left="8.0" top="0.0" right="8.0" bottom="8.0" />
+				</padding>
+				<Label fx:id="lblDate" id="lblDate" />
+			</HBox>
+
+			<Label fx:id="lblMission" id="lblMission" text="%view.home.mission" prefHeight="36" alignment="BOTTOM_CENTER" />
+			<Button fx:id="btnActiveMission" id="btnActiveMission" prefHeight="36"/>
+
+			<GridPane alignment="CENTER" prefHeight="180">
+				<columnConstraints>
+					<ColumnConstraints hgrow="NEVER" minWidth="150.0" prefWidth="150.0" maxWidth="-1.0"/>
+					<ColumnConstraints hgrow="NEVER" minWidth="100.0" prefWidth="200.0" maxWidth="-1.0" halignment="RIGHT" />
+				</columnConstraints>
+				<rowConstraints>
+					<RowConstraints prefHeight="30" />
+					<RowConstraints prefHeight="30" />
+					<RowConstraints prefHeight="30" />
+					<RowConstraints prefHeight="30" />
+				</rowConstraints>
+				<padding>
+					<Insets bottom="16.0" left="16.0" right="16.0" top="16.0" />
+				</padding>
+				<children>
+					<Label text="%label.start" styleClass="dark-white" />
+					<Label text="%label.end" GridPane.rowIndex="1" styleClass="dark-white" />
+					<Label text="%label.duration" GridPane.rowIndex="2" styleClass="dark-white" />
+					<Label text="%label.points" GridPane.rowIndex="3"  styleClass="dark-white" />
+					<Label fx:id="lblStart" GridPane.columnIndex="1" />
+					<Label fx:id="lblEnd" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+					<DurationDisplay fx:id="lblDuration" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+					<Label fx:id="lblPoints" GridPane.columnIndex="1" GridPane.rowIndex="3" />
+				</children>
+			</GridPane>
+
+<!-- 			<HBox alignment="CENTER"> -->
+<!-- 				<padding> -->
+<!-- 					<Insets left="8.0" top="0.0" right="8.0" bottom="24.0" /> -->
+<!-- 				</padding> -->
+<!-- 				<Label fx:id="lblMissionStatus" id="lblMissionStatus" translateY="-20"  rotate="-15" text="Mission accomplished" -->
+<!-- 					visible="true" /> -->
+<!-- 			</HBox> -->
+			<HBox fx:id="boxButtons" maxHeight="1.7976931348623157E308" VBox.vgrow="ALWAYS" alignment="BOTTOM_CENTER"
+				fillHeight="true" spacing="16">
+				<padding>
+					<Insets left="8.0" top="0.0" right="8.0" bottom="0.0" />
+				</padding>
+				<ToggleButton fx:id="tglStartStop" id="btnStart" text="%button.start" prefHeight="56"
+					maxWidth="256" HBox.hgrow="ALWAYS" />
+				<fx:define>
+					<Button fx:id="btnContinue" id="btnContinue" text="%button.continue" prefHeight="56" maxWidth="256"
+						HBox.hgrow="ALWAYS" />
+				</fx:define>
+			</HBox>
+		</VBox>
+	</center>
+</View>
