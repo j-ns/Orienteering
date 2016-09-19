@@ -149,7 +149,7 @@ public class ImageHandler {
         if (deleted) {
             LOGGER.debug("deleted image: {}", url);
         } else {
-            LOGGER.debug("unable to delete image: {}", url);
+            LOGGER.debug("delete image failed: {}", url);
         }
     }
 
@@ -304,7 +304,7 @@ public class ImageHandler {
 
                 LOGGER.debug("cached image {}", targetUrl);
             } catch (IOException e) {
-                LOGGER.error("unable to cache image: {}", targetUrl, e);
+                LOGGER.error("cache image failed: {}", targetUrl, e);
                 return false;
             }
             return true;
@@ -317,15 +317,15 @@ public class ImageHandler {
 
             Image cachedImage = cache.get(url);
             if (cachedImage == null) {
-                LOGGER.debug("image not in cache: {}", url);
+                LOGGER.debug("image not found in cache: {}", url);
 
                 Image storedImage = loadLocalImage(url);
                 if (storedImage == null) {
-                    LOGGER.debug("image not on disk: {}", url);
+                    LOGGER.debug("image not found on disk: {}", url);
 
                 } else {
                     cache.put(url, storedImage);
-                    LOGGER.debug("image loaded from disk, into cache {}", url);
+                    LOGGER.debug("image loaded from disk into cache {}", url);
                     return storedImage;
                 }
             }
@@ -342,12 +342,12 @@ public class ImageHandler {
             if (storedFile.isFile()) {
                 boolean deleted = storedFile.delete();
                 if (deleted) {
-                    LOGGER.debug("removed from cache and disk: {}", url);
+                    LOGGER.debug("image removed from cache and disk: {}", url);
                 } else {
-                    LOGGER.debug("unable to delete file: {}", url);
+                    LOGGER.debug("failed to delete file: {}", url);
                 }
             } else {
-                LOGGER.info("Can't delete url: {} (file does not exist, or is not a file)", url);
+                LOGGER.info("failed to delete url: {} (file does not exist, or is not a file)", url);
             }
         }
 
