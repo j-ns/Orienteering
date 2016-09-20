@@ -115,9 +115,10 @@ public class HomePresenter extends BasePresenter {
 
             if (b1) {
                 if (service.getActiveTasks().isEmpty()) {
-                    Dialogs.ok("view.home.error.loadActiveTasks").showAndWait();
+                    Dialogs.ok(localize("view.home.error.loadActiveTasks")).showAndWait();
                     return;
                 }
+
                 tglStartStop.setText(localize("button.stop"));
                 boxButtons.getChildren().add(btnContinue);
                 lblEnd.setText("");

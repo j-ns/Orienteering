@@ -108,7 +108,7 @@ public class Dialogs {
         return new DialogAnswer(dialog).isYesOrOk();
     }
 
-    private static Label contentPlaceHolder(String titleText) { // mit hbox testen statt label
+    private static Label contentPlaceHolder(String titleText) {
         Label label = new Label();
         label.setPrefWidth(Math.max(Calculations.textWidth(titleText), 280));
         label.setMinHeight(16);

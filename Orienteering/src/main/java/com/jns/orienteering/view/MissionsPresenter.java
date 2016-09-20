@@ -115,9 +115,14 @@ public class MissionsPresenter extends ListViewPresenter<Mission> {
     }
 
     private void onSetActiveMission(Mission mission) {
+        if (service.getUser() == null) {
+            Platform.runLater(() -> Dialogs.ok(localize("view.missions.info.userMustBeLoggedIn")).showAndWait());
+            return;
+        }
+
         boolean missionContainsTasks = cloudRepo.missionContainsTasks(mission.getId());
         if (!missionContainsTasks) {
-            Platform.runLater(() -> Dialogs.ok("view.activeMission.info.missionDoesntContainTask").showAndWait());
+            Platform.runLater(() -> Dialogs.ok(localize("view.missions.info.missionDoesntContainTask")).showAndWait());
             return;
         }
 
@@ -132,6 +137,11 @@ public class MissionsPresenter extends ListViewPresenter<Mission> {
     private void onDeleteMission(Mission mission) {
         Platform.runLater(() ->
         {
+            if (!mission.getOwnerId().equals(service.getUserId())) {
+                Dialogs.ok(localize("missions.info.missionCanOnlyBeDeletedByOwner")).showAndWait();
+                return;
+            }
+
             if (confirmDeleteMission()) {
                 try {
                     cloudRepo.deleteMission(mission);
