@@ -6,7 +6,7 @@ Every user can create cities, tasks and missions.
 
 A city is always accessible by all users, but can only be edited by its owner.
 
-Tasks and missions can have be public or private. Private ones are only visible to its  owner,  while public ones are visible to everyone.
+Tasks and missions can be public or private. Private ones are only visible to its  owner,  while public ones are visible to everyone.
 Private tasks can be made visible to a user other than their owner, when they are added to a public mission by their owner.
 
 When you start a mission, the first task is select and the corresponding gps location is shown on the map. When the location is reached, the task is marked complete, and the next task is selected.
