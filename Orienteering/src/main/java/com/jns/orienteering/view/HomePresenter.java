@@ -36,7 +36,6 @@ import java.time.LocalTime;
 
 import javax.inject.Inject;
 
-import com.gluonhq.charm.down.common.JavaFXPlatform;
 import com.jns.orienteering.common.BaseService;
 import com.jns.orienteering.control.DurationDisplay;
 import com.jns.orienteering.model.persisted.Mission;
@@ -49,8 +48,6 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ToggleButton;
-import javafx.scene.input.KeyCode;
-import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.HBox;
 
 public class HomePresenter extends BasePresenter {
@@ -88,6 +85,16 @@ public class HomePresenter extends BasePresenter {
     protected void initialize() {
         super.initialize();
 
+        btnMenu = createMenuButton();
+        btnMenu.setOnAction(e ->
+        {
+            if (tglStartStop.isSelected()) {
+                showMissionIsActiveInfo();
+            } else {
+                showLayer(Navigation.NAVIGATION_DRAWER);
+            }
+        });
+
         btnActiveMission.textProperty().bind(new When(service.activeMissionNameProperty().isNull())
                                                                                                    .then(localize("button.selectMission"))
                                                                                                    .otherwise(service.activeMissionNameProperty()));
@@ -96,18 +103,9 @@ public class HomePresenter extends BasePresenter {
 
         tglStartStop.setSelected(false);
         tglStartStop.selectedProperty().addListener(onStartStopSelected());
+        tglStartStop.disableProperty().bind(service.activeMissionProperty().isNull());
 
         btnContinue.setOnAction(e -> showView(ViewRegistry.ACTIVE_MISSION));
-
-        // test:
-        if (JavaFXPlatform.isDesktop()) {
-            view.addEventHandler(KeyEvent.KEY_RELEASED, evt ->
-            {
-                if (evt.getCode() == KeyCode.ESCAPE) {
-                    showPreviousView();
-                }
-            });
-        }
     }
 
     private ChangeListener<? super Boolean> onStartStopSelected() {
@@ -139,16 +137,6 @@ public class HomePresenter extends BasePresenter {
 
     @Override
     protected void initAppBar() {
-        btnMenu = createMenuButton();
-        btnMenu.setOnAction(e ->
-        {
-            if (tglStartStop.isSelected()) {
-                showMissionIsActiveInfo();
-            } else {
-                showLayer(Navigation.NAVIGATION_DRAWER);
-            }
-        });
-
         setAppBar(btnMenu, localize("view.home.title"));
     }
 
@@ -163,15 +151,11 @@ public class HomePresenter extends BasePresenter {
     protected void onShown() {
         super.onShown();
 
-        platformService().removeNodePositionAdjuster();
-        service.setSelectedMission(null);
-
         lblDate.setText(formatLong(LocalDate.now()));
 
         Mission mission = service.getActiveMission();
-        tglStartStop.setDisable(mission == null);
-
         MissionStat missionStats = service.getActiveMissionStats();
+
         if (missionStats != null) {
             if (!missionStats.isFinished()) {
                 lblDuration.startAt(missionStats.getDuration());
@@ -181,8 +165,7 @@ public class HomePresenter extends BasePresenter {
             }
             lblStart.setText(formatTime(missionStats.getStart()));
             lblDuration.setVisible(true);
-            lblPoints.setText(String.format("%s / %s", missionStats.getPoints(), mission.getMaxPoints()));
-
+            lblPoints.setText(missionStats.getPoints() + " / " + mission.getMaxPoints());
         } else {
             lblDuration.setVisible(false);
         }

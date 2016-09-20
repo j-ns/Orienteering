@@ -33,6 +33,7 @@ import com.airhacks.afterburner.injection.Injector;
 import com.gluonhq.charm.glisten.application.MobileApplication;
 import com.gluonhq.charm.glisten.control.NavigationDrawer;
 import com.gluonhq.charm.glisten.control.NavigationDrawer.Item;
+import com.gluonhq.charm.glisten.layout.layer.SidePopupView;
 import com.jns.orienteering.util.Icon;
 
 import javafx.beans.value.ChangeListener;
@@ -105,6 +106,11 @@ public enum ViewRegistry {
             view.getView().setName(viewId);
             return view.getView();
         });
+    }
+
+    public static void registerNavigation(MobileApplication app) {
+        navigation.viewProperty().bind(app.viewProperty());
+        app.addLayerFactory(Navigation.NAVIGATION_DRAWER, () -> new SidePopupView(navigation.getNavigationDrawer()));
     }
 
     public String getViewName() {

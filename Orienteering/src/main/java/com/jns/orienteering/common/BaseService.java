@@ -44,6 +44,7 @@ import com.gluonhq.connect.GluonObservableObject;
 import com.jns.orienteering.model.common.ListUpdater;
 import com.jns.orienteering.model.common.StorableImage;
 import com.jns.orienteering.model.dynamic.CityHolder;
+import com.jns.orienteering.model.dynamic.CountProperty;
 import com.jns.orienteering.model.persisted.ActiveTaskList;
 import com.jns.orienteering.model.persisted.City;
 import com.jns.orienteering.model.persisted.Mission;
@@ -61,8 +62,9 @@ import com.jns.orienteering.model.repo.synchronizer.CitySynchronizer;
 import com.jns.orienteering.model.repo.synchronizer.ImageSynchronizer;
 import com.jns.orienteering.model.repo.synchronizer.RepoSynchronizer;
 import com.jns.orienteering.model.repo.synchronizer.SyncMetaData;
-import com.jns.orienteering.util.CountProperty;
+import com.jns.orienteering.platform.PlatformProvider;
 import com.jns.orienteering.util.Dialogs;
+import com.jns.orienteering.view.ViewRegistry;
 
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
@@ -88,7 +90,6 @@ public class BaseService {
     private RepoSynchronizer                repoSynchronizer   = new RepoSynchronizer();
     private CountProperty                   pendingResultCount = new CountProperty();
 
-
     private UserFBRepo                      userCloudRepo;
     private LocalRepo<User, User>           userLocalRepo;
 
@@ -96,8 +97,9 @@ public class BaseService {
     private LocalRepo<Task, ActiveTaskList> activeTasksLocalRepo;
 
     private ObjectProperty<User>            user               = new SimpleObjectProperty<>();
-    private ObjectProperty<Image>           profileImage       = new SimpleObjectProperty<>();
     private StringProperty                  alias              = new SimpleStringProperty();
+    private ObjectProperty<Image>           profileImage       = new SimpleObjectProperty<>();
+
     private GluonObservableList<City>       cities             = new GluonObservableList<>();
     private ObjectProperty<City>            defaultCity        = new SimpleObjectProperty<>();
     private ObjectProperty<City>            selectedCity       = new SimpleObjectProperty<>();
@@ -124,6 +126,12 @@ public class BaseService {
         {
             if (v != null) {
                 previousView = v.getName();
+
+                if (ViewRegistry.HOME.equals(previousView)) {
+                    PlatformProvider.getPlatform().removeNodePositionAdjuster();
+                    setSelectedMission(null);
+                    clearListUpdaters();
+                }
             }
         });
 
@@ -408,6 +416,10 @@ public class BaseService {
 
     public void setListUpdater(String name, ListUpdater<?> listUpdater) {
         listUpdaters.put(name, listUpdater);
+    }
+
+    public void clearListUpdaters() {
+        listUpdaters.clear();
     }
 
     public String getPreviousView() {
