@@ -39,7 +39,8 @@ public class DesktopStorage extends Storage {
 
     @Override
     public File getPrivate() {
-        String home = System.getProperty("user.home");
+         String home = "E:/Downloads";
+//        String home = System.getProperty("user.home");
         File f = new File(home, "orienteering");
         if (!f.isDirectory()) {
             f.mkdirs();
