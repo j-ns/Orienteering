@@ -34,7 +34,6 @@ import java.util.function.Function;
 
 import com.jns.orienteering.control.ActivatableDeactivatable;
 import com.jns.orienteering.control.ScrollListener;
-import com.jns.orienteering.control.SelectedObjectProperty;
 
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.SortedList;
@@ -83,7 +82,7 @@ public class ListViewExtended<T> extends ListView<T> implements ActivatableDeact
 
     public ListUpdater<T> getListUpdater(AccessType accessType) {
         ListUpdater<T> _listUpdater = getListUpdater();
-        _listUpdater.setAccess(accessType);
+        _listUpdater.setAccessType(accessType);
         return _listUpdater;
     }
 

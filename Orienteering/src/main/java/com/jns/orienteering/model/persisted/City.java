@@ -31,6 +31,7 @@ package com.jns.orienteering.model.persisted;
 import javax.xml.bind.annotation.XmlElement;
 
 import com.jns.orienteering.model.common.JsonDefaultConstructor;
+import com.jns.orienteering.model.common.Postable;
 
 public class City extends BaseSynchronizable implements Postable, Comparable<City> {
 

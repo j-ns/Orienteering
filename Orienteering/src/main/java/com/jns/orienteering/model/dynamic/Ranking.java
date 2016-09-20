@@ -26,18 +26,62 @@
  *  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  *  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package com.jns.orienteering.model.persisted;
+package com.jns.orienteering.model.dynamic;
 
-import com.jns.orienteering.model.common.Model;
+import com.jns.orienteering.model.persisted.MissionStat;
 
-public interface Synchronizable extends Model{
+public class Ranking implements Comparable<Ranking> {
 
-    long getTimeStamp();
+    private static int  referenceDuration;
 
-    void setTimeStamp(long epochSeconds);
+    private MissionStat missionStat;
+    private int         timeDifference;
+    private int         place;
 
-    void setRepoAction(RepoAction action);
+    public Ranking(MissionStat missionStats) {
+        missionStat = missionStats;
+    }
 
-    RepoAction getRepoAction();
+    public void setReferenceDuration() {
+        referenceDuration = missionStat.getDuration();
+    }
+
+    public void calculateTimeDifference() {
+        timeDifference = missionStat.getDuration() - referenceDuration;
+    }
+
+    public int getTimeDifference() {
+        return timeDifference;
+    }
+
+    public String getTimeDifferenceText() {
+        return "+" +  Long.toString(timeDifference);
+    }
+
+    public MissionStat getMissionStat() {
+        return missionStat;
+    }
+
+    public int getPlace() {
+        return place;
+    }
+
+    public String getPlaceText() {
+        return Integer.toString(place);
+    }
+
+    public void setPlace(int place) {
+        this.place = place;
+    }
+
+    @Override
+    public int compareTo(Ranking other) {
+        int result = Integer.compare(missionStat.getDuration(), other.missionStat.getDuration());
+
+        if (result == 0) {
+            result = Double.compare(missionStat.getDistance(), other.missionStat.getDistance());
+        }
+        return result;
+    }
 
 }

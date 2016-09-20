@@ -36,7 +36,14 @@ import com.gluonhq.charm.glisten.application.MobileApplication;
 import com.gluonhq.connect.MultiValuedMap;
 import com.jns.orienteering.control.ActivatableDeactivatable;
 import com.jns.orienteering.util.Trigger;
+import com.jns.orienteering.view.ViewRegistry;
 
+
+
+/**
+ * Service to activate  {@link ActivatableDeactivatable} targets, when the corresponding view is shown.
+ * When the current showing view changes to {@link ViewRegistry#HOME}, all active targets will be deactivated.
+ */
 public class ActivatorDeactivatorService {
 
     private MultiValuedMap<String, ActivatorDeactivatorConsumer> activatorDeactivatorConsumers = new MultiValuedMap<>();
@@ -63,7 +70,7 @@ public class ActivatorDeactivatorService {
     }
 
     private void onViewChanged(String viewName) {
-        if (MobileApplication.HOME_VIEW.equals(viewName)) {
+        if (ViewRegistry.HOME.equals(viewName)) {
             if (!activeViewNames.isEmpty()) {
                 deactivateAll();
             }

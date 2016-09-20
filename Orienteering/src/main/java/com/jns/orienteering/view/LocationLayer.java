@@ -109,7 +109,7 @@ public class LocationLayer extends MapLayer {
     }
 
     private boolean pointsEqual(MapPoint point, MapPoint _point) {
-        return point.getLongitude() == _point.getLongitude() && point.getLatitude() == _point.getLongitude();
+        return point.getLongitude() == _point.getLongitude() && point.getLatitude() == _point.getLatitude();
     }
 
     public void removeAll() {

@@ -54,10 +54,10 @@ import com.jns.orienteering.control.ChoiceFloatingTextField;
 import com.jns.orienteering.control.FloatingTextField;
 import com.jns.orienteering.control.ScrollEventFilter;
 import com.jns.orienteering.control.cell.TaskCellSmall;
-import com.jns.orienteering.model.CityHolder;
 import com.jns.orienteering.model.common.AccessType;
 import com.jns.orienteering.model.common.ListUpdater;
 import com.jns.orienteering.model.common.ListViewExtended;
+import com.jns.orienteering.model.dynamic.CityHolder;
 import com.jns.orienteering.model.persisted.City;
 import com.jns.orienteering.model.persisted.Mission;
 import com.jns.orienteering.model.persisted.Task;
@@ -353,7 +353,7 @@ public class MissionPresenter extends BasePresenter {
     }
 
     private void setListUpdater() {
-        service.setListUpdater(MISSION_TASKS_UPDATER, lviewMissionTasks.getListUpdater());
+        service.setListUpdater(MISSION_TASKS_UPDATER, lviewMissionTasks.getListUpdater(choiceAccess.getSelectionModel().getSelectedItem()));
     }
 
     private void onDelete() {

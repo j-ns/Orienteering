@@ -31,6 +31,8 @@ package com.jns.orienteering.model.persisted;
 import javax.xml.bind.annotation.XmlTransient;
 
 import com.jns.orienteering.model.common.BaseModel;
+import com.jns.orienteering.model.common.RepoAction;
+import com.jns.orienteering.model.common.Synchronizable;
 
 public class BaseSynchronizable extends BaseModel implements Synchronizable {
 

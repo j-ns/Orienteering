@@ -35,6 +35,7 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlTransient;
 
 import com.jns.orienteering.model.common.JsonDefaultConstructor;
+import com.jns.orienteering.model.common.Postable;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;

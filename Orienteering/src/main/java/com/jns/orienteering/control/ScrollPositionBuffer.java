@@ -28,12 +28,21 @@
  */
 package com.jns.orienteering.control;
 
+import com.gluonhq.charm.glisten.control.Dialog;
+
 import javafx.beans.value.ChangeListener;
 import javafx.event.EventHandler;
 import javafx.scene.Node;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.input.MouseEvent;
 
+/**
+ * Buffers the current vertical position of a ScrollPane and restores the buffered position,
+ * when the current position is set to '0' and <code>positionBuffer</code> > 0 .
+ * This is helpful when you show a {@link Dialog} on top of a ScrollPane, which would set the
+ * vertical position of the ScrollPane to '0' when the Dialog is dismissed.
+ *
+ */
 public class ScrollPositionBuffer implements ActivatableDeactivatable {
 
     private ScrollPane                           scrollPane;
@@ -41,31 +50,41 @@ public class ScrollPositionBuffer implements ActivatableDeactivatable {
     private boolean                              active              = false;
 
     private final ChangeListener<? super Number> positionListener    = (ov, t, t1) ->
-                                                                         {
-                                                                             if (Double.doubleToRawLongBits((double) t1) == 0 && positionBuffer > 0) {
-                                                                                 scrollPane.setVvalue(positionBuffer);
-                                                                                 positionBuffer = 0;
-                                                                             }
-                                                                         };
+                                                                     {
+                                                                         if (Double.doubleToRawLongBits((double) t1) == 0 && positionBuffer > 0) {
+                                                                             scrollPane.setVvalue(positionBuffer);
+                                                                             positionBuffer = 0;
+                                                                         }
+                                                                     };
 
     private final EventHandler<MouseEvent>       mouseClickedHandler = e ->
-                                                                         {
-                                                                             if (active) {
-                                                                                 buffer();
-                                                                             }
-                                                                         };
+                                                                     {
+                                                                         if (active) {
+                                                                             buffer();
+                                                                         }
+                                                                     };
 
+    /**
+     * @param scrollPane
+     *            the ScrollPane whose vertical position should be buffered and restored
+     */
     public ScrollPositionBuffer(ScrollPane scrollPane) {
         this.scrollPane = scrollPane;
     }
 
+    /**
+     * @param scrollPane
+     *            the ScrollPane whose vertical position should be buffered and restored
+     * @param triggerNode
+     *            Node which triggers the buffering of the vertical position of <code>scrollPane</code>
+     */
     public ScrollPositionBuffer(ScrollPane scrollPane, Node... triggerNode) {
         this.scrollPane = scrollPane;
         addTriggerNodes(triggerNode);
     }
 
     /**
-     * MouseEvent.MOUSE_CLICKED triggers buffering of scrollPosition
+     * Adds nodes which trigger the buffering of the ScrollPane position on {@link MouseEvent#MOUSE_CLICKED}
      *
      * @param node
      */
@@ -75,6 +94,9 @@ public class ScrollPositionBuffer implements ActivatableDeactivatable {
         }
     }
 
+    /**
+     * Buffers the current vertical position of the ScrollPane
+     */
     public void buffer() {
         positionBuffer = scrollPane.getVvalue();
     }

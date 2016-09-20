@@ -133,7 +133,7 @@ public class MapHelper {
         }
         map.setCenter(position.getLatitude() + .00001, position.getLongitude() + .00001);
         map.setCenter(position.getLatitude(), position.getLongitude());
-        map.setZoom(14);  // explizit aufrufen
+        map.setZoom(14);
     }
 
     public void updateCurrentLocation(Position position) {

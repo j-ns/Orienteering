@@ -33,7 +33,7 @@ import static com.jns.orienteering.locale.Localization.localize;
 import java.util.function.Consumer;
 
 import com.gluonhq.charm.glisten.visual.MaterialDesignIcon;
-import com.jns.orienteering.model.CityHolder;
+import com.jns.orienteering.model.dynamic.CityHolder;
 import com.jns.orienteering.model.persisted.Mission;
 
 import javafx.beans.property.BooleanProperty;

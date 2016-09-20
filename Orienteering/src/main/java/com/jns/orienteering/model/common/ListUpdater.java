@@ -38,7 +38,7 @@ public class ListUpdater<E> {
 
     private ObservableList<E> items;
     private Comparator<E>     comparator;
-    private AccessType            access;
+    private AccessType        accessType;
 
     public ListUpdater(ObservableList<E> items, Comparator<E> comparator) {
         Objects.requireNonNull(comparator, "comparator can't be null");
@@ -104,12 +104,12 @@ public class ListUpdater<E> {
         return -1;
     }
 
-    public AccessType getAccess() {
-        return access;
+    public AccessType getAccessType() {
+        return accessType;
     }
 
-    public void setAccess(AccessType accessType) {
-        this.access = accessType;
+    public void setAccessType(AccessType accessType) {
+        this.accessType = accessType;
     }
 
 }

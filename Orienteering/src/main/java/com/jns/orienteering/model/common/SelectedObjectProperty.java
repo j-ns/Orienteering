@@ -26,62 +26,41 @@
  *  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  *  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package com.jns.orienteering.model;
+package com.jns.orienteering.model.common;
 
-import com.jns.orienteering.model.persisted.MissionStat;
+import java.util.function.Consumer;
 
-public class Ranking implements Comparable<Ranking> {
+import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.value.ChangeListener;
 
-    private static int  referenceDuration;
+public class SelectedObjectProperty<T> extends SimpleObjectProperty<T>{
 
-    private MissionStat missionStat;
-    private int         timeDifference;
-    private int         place;
+    private Consumer<T> consumer;
 
-    public Ranking(MissionStat missionStats) {
-        missionStat = missionStats;
+    private ChangeListener<T> listener = (ov, t, t1) -> consumer.accept(t1);
+
+    public SelectedObjectProperty() {
     }
 
-    public void setReferenceDuration() {
-        referenceDuration = missionStat.getDuration();
+    public SelectedObjectProperty(Consumer<T> consumer) {
+        this.consumer = consumer;
     }
 
-    public void calculateTimeDifference() {
-        timeDifference = missionStat.getDuration() - referenceDuration;
+    public void setConsumer(Consumer<T> consumer) {
+        this.consumer = consumer;
     }
 
-    public int getTimeDifference() {
-        return timeDifference;
+    public void addListener() {
+        addListener(listener);
     }
 
-    public String getTimeDifferenceText() {
-        return "+" +  Long.toString(timeDifference);
+    public void removeListener() {
+        removeListener(listener);
     }
 
-    public MissionStat getMissionStat() {
-        return missionStat;
-    }
-
-    public int getPlace() {
-        return place;
-    }
-
-    public String getPlaceText() {
-        return Integer.toString(place);
-    }
-
-    public void setPlace(int place) {
-        this.place = place;
-    }
-
-    @Override
-    public int compareTo(Ranking other) {
-        int result = Integer.compare(missionStat.getDuration(), other.missionStat.getDuration());
-
-        if (result == 0) {
-            result = Double.compare(missionStat.getDistance(), other.missionStat.getDistance());
-        }
-        return result;
+    public void removeListenerAndClear() {
+        removeListener(listener);
+        set(null);
     }
 
 }

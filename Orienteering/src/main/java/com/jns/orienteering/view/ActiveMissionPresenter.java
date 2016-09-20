@@ -260,7 +260,7 @@ public class ActiveMissionPresenter extends BasePresenter {
             lviewStats.setItems(statsCollector.missionStat.getTaskStats());
 
             position.addListener(positionListener);
-            positionService.startLocationListener();
+            positionService.activate();
 
             btnScan.setVisible(!Validators.isNullOrEmpty(activeTask.getScanCode()));
             btnSkipTask.setVisible(true);
@@ -378,7 +378,7 @@ public class ActiveMissionPresenter extends BasePresenter {
         lviewStats.setItems(null);
 
         position.removeListener(positionListener);
-        positionService.stopLocationListener();
+        positionService.deactivate();
     }
 
     private class StatsCollector {

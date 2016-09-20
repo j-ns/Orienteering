@@ -30,15 +30,11 @@ package com.jns.orienteering.platform;
 
 import com.gluonhq.charm.down.common.Position;
 import com.gluonhq.charm.down.common.PositionService;
+import com.jns.orienteering.control.ActivatableDeactivatable;
 
-public interface PositionServiceExtended extends PositionService{
+public interface PositionServiceExtended extends PositionService, ActivatableDeactivatable{
 
     float getDistance(Position start, Position end);
 
     boolean isInRadius(Position currentPosition, Position targetPosition, double radius);
-
-    void startLocationListener();
-
-    void stopLocationListener();
-
 }

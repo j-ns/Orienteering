@@ -29,9 +29,7 @@
 package com.jns.orienteering.util;
 
 /**
- * Convenience interface that can be used in place of Consumer<Void>
- *
- * @author jns
+ * Convenience interface that can be used in place of {@link Consumer&ltVoid&gt}
  *
  */
 @FunctionalInterface
@@ -42,6 +40,9 @@ public interface Trigger {
     public class NullObject implements Trigger {
 
         public static final NullObject INSTANCE = new NullObject();
+
+        private NullObject() {
+        }
 
         @Override
         public void start() {

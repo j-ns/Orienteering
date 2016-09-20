@@ -37,7 +37,6 @@ import java.time.LocalTime;
 import javax.inject.Inject;
 
 import com.gluonhq.charm.down.common.JavaFXPlatform;
-import com.jns.orienteering.OrienteeringApp;
 import com.jns.orienteering.common.BaseService;
 import com.jns.orienteering.control.DurationDisplay;
 import com.jns.orienteering.model.persisted.Mission;
@@ -45,6 +44,7 @@ import com.jns.orienteering.model.persisted.MissionStat;
 import com.jns.orienteering.util.Dialogs;
 
 import javafx.beans.binding.When;
+import javafx.beans.value.ChangeListener;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -88,10 +88,6 @@ public class HomePresenter extends BasePresenter {
     protected void initialize() {
         super.initialize();
 
-        Navigation navigationDrawer = ViewRegistry.getNavigation();
-        navigationDrawer.aliasProperty().bind(service.aliasProperty());
-        navigationDrawer.profileImageProperty().bind(service.profileImageProperty());
-
         btnActiveMission.textProperty().bind(new When(service.activeMissionNameProperty().isNull())
                                                                                                    .then(localize("button.selectMission"))
                                                                                                    .otherwise(service.activeMissionNameProperty()));
@@ -99,13 +95,29 @@ public class HomePresenter extends BasePresenter {
         btnActiveMission.setOnAction(e -> onActiveMissionSelected());
 
         tglStartStop.setSelected(false);
-        tglStartStop.selectedProperty().addListener((obsValue, b, b1) ->
+        tglStartStop.selectedProperty().addListener(onStartStopSelected());
+
+        btnContinue.setOnAction(e -> showView(ViewRegistry.ACTIVE_MISSION));
+
+        // test:
+        if (JavaFXPlatform.isDesktop()) {
+            view.addEventHandler(KeyEvent.KEY_RELEASED, evt ->
+            {
+                if (evt.getCode() == KeyCode.ESCAPE) {
+                    showPreviousView();
+                }
+            });
+        }
+    }
+
+    private ChangeListener<? super Boolean> onStartStopSelected() {
+        return (obsValue, b, b1) ->
         {
             service.stopMissionProperty().set(!b1);
 
             if (b1) {
                 if (service.getActiveTasks().isEmpty()) {
-                    Dialogs.ok("view.home.error.loadingActiveTasks").showAndWait();
+                    Dialogs.ok("view.home.error.loadActiveTasks").showAndWait();
                     return;
                 }
                 tglStartStop.setText(localize("button.stop"));
@@ -122,19 +134,7 @@ public class HomePresenter extends BasePresenter {
                     lblDuration.stop();
                 }
             }
-        });
-
-        btnContinue.setOnAction(e -> showView(ViewRegistry.ACTIVE_MISSION));
-
-        // test:
-        if (JavaFXPlatform.isDesktop()) {
-            view.addEventHandler(KeyEvent.KEY_RELEASED, evt ->
-            {
-                if (evt.getCode() == KeyCode.ESCAPE) {
-                    showPreviousView();
-                }
-            });
-        }
+        };
     }
 
     @Override
@@ -145,7 +145,7 @@ public class HomePresenter extends BasePresenter {
             if (tglStartStop.isSelected()) {
                 showMissionIsActiveInfo();
             } else {
-                showLayer(OrienteeringApp.NAVIGATION_DRAWER);
+                showLayer(Navigation.NAVIGATION_DRAWER);
             }
         });
 
@@ -205,7 +205,7 @@ public class HomePresenter extends BasePresenter {
     }
 
     private void showMissionIsActiveInfo() {
-        Dialogs.ok("Navigation nicht möglich während Mission").showAndWait();
+        Dialogs.ok(localize("view.home.info.navigationUnavailable")).showAndWait();
     }
 
     private boolean confirmChangeMission() {

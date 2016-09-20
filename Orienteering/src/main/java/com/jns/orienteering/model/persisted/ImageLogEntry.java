@@ -29,6 +29,7 @@
 package com.jns.orienteering.model.persisted;
 
 import com.jns.orienteering.model.common.JsonDefaultConstructor;
+import com.jns.orienteering.model.common.RepoAction;
 
 public class ImageLogEntry extends ChangeLogEntry {
 

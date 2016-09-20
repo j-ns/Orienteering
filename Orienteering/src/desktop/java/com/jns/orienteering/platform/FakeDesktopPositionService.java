@@ -42,6 +42,12 @@ public class FakeDesktopPositionService implements PositionServiceExtended {
     private ObjectProperty<Position> positionProperty;
     private Timeline                 timeline;
 
+    private final Position           startPosition;
+
+    FakeDesktopPositionService(Position startPosition) {
+        this.startPosition = startPosition;
+    }
+
     @Override
     public Position getPosition() {
         return null;
@@ -50,7 +56,7 @@ public class FakeDesktopPositionService implements PositionServiceExtended {
     @Override
     public ReadOnlyObjectProperty<Position> positionProperty() {
         if (positionProperty == null) {
-            positionProperty = new SimpleObjectProperty<Position>(new Position(52.547495, 13.384301));
+            positionProperty = new SimpleObjectProperty<Position>(startPosition);
 
             timeline = new Timeline();
             timeline.getKeyFrames().add(new KeyFrame(Duration.seconds(1), e -> movePosition()));
@@ -75,20 +81,18 @@ public class FakeDesktopPositionService implements PositionServiceExtended {
     public boolean isInRadius(Position currentPosition, Position targetPosition, double radius) {
         double distanceX = currentPosition.getLatitude() - targetPosition.getLatitude();
         double distanceY = currentPosition.getLongitude() - targetPosition.getLongitude();
-        System.out.println("distance: " + distanceX + " " + distanceY);
         return distanceX < 0.0001 && distanceX > 0 && distanceY < 0.002 && distanceY > 0;
     }
 
     @Override
-    public void startLocationListener() {
+    public void activate() {
         timeline.play();
     }
 
     @Override
-    public void stopLocationListener() {
-        if (timeline != null) {
-            timeline.stop();
-        }
+    public void deactivate() {
+        timeline.stop();
     }
+
 
 }

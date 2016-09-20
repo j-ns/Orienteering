@@ -36,7 +36,6 @@ import com.gluonhq.charm.glisten.layout.MobileLayoutPane;
 import com.gluonhq.charm.glisten.layout.layer.FloatingActionButton;
 import com.gluonhq.connect.GluonObservableList;
 import com.jns.orienteering.control.cell.TaskCellSmall;
-import com.jns.orienteering.model.common.AccessType;
 import com.jns.orienteering.model.common.ListUpdater;
 import com.jns.orienteering.model.persisted.Mission;
 import com.jns.orienteering.model.persisted.Task;
@@ -184,6 +183,7 @@ public class TasksPresenter extends ListViewPresenter<Task> {
     private void onTaskSelected(Task task) {
         if (task != null) {
             service.setSelectedTask(task);
+            setListUpdater();
             onCreateTask();
         }
     }
@@ -194,8 +194,7 @@ public class TasksPresenter extends ListViewPresenter<Task> {
     }
 
     private void setListUpdater() {
-        ListUpdater<Task> listUpdater = lview.getListUpdater();
-        listUpdater.setAccess(isPrivateAccess() ? AccessType.PRIVATE : AccessType.PUBLIC);
+        ListUpdater<Task> listUpdater = lview.getListUpdater(getAccessType());
         service.setListUpdater(TASKS_UPDATER, listUpdater);
     }
 

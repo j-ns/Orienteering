@@ -42,10 +42,10 @@ import com.gluonhq.connect.GluonObservableList;
 import com.jns.orienteering.common.BaseService;
 import com.jns.orienteering.control.ScrollEventFilter;
 import com.jns.orienteering.control.cell.CityCell;
-import com.jns.orienteering.model.CityHolder;
 import com.jns.orienteering.model.common.AccessType;
 import com.jns.orienteering.model.common.ListUpdater;
 import com.jns.orienteering.model.common.ListViewExtended;
+import com.jns.orienteering.model.dynamic.CityHolder;
 import com.jns.orienteering.model.persisted.City;
 import com.jns.orienteering.model.repo.AsyncResultReceiver;
 import com.jns.orienteering.model.repo.CityFBRepo;
@@ -200,8 +200,7 @@ public class CitiesPresenter extends BasePresenter {
     }
 
     private void setListUpdater() {
-        ListUpdater<City> listUpdater = lview.getListUpdater();
-        listUpdater.setAccess(access);
+        ListUpdater<City> listUpdater = lview.getListUpdater(access);
         service.setListUpdater(CITIES_UPDATER, listUpdater);
     }
 

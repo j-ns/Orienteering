@@ -36,10 +36,10 @@ import org.slf4j.LoggerFactory;
 
 import com.gluonhq.connect.GluonObservableList;
 import com.gluonhq.connect.provider.DataProvider;
+import com.jns.orienteering.model.common.RepoAction;
 import com.jns.orienteering.model.persisted.CityTaskLookup;
 import com.jns.orienteering.model.persisted.ImageLogEntry;
 import com.jns.orienteering.model.persisted.MissionsByTaskLookup;
-import com.jns.orienteering.model.persisted.RepoAction;
 import com.jns.orienteering.model.persisted.Task;
 import com.jns.orienteering.model.persisted.TaskNameLookup;
 import com.jns.orienteering.model.persisted.TasksByMissionLookup;

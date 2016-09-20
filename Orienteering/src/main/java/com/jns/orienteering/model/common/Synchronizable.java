@@ -26,41 +26,16 @@
  *  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  *  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package com.jns.orienteering.control;
+package com.jns.orienteering.model.common;
 
-import java.util.function.Consumer;
+public interface Synchronizable extends Model{
 
-import javafx.beans.property.SimpleObjectProperty;
-import javafx.beans.value.ChangeListener;
+    long getTimeStamp();
 
-public class SelectedObjectProperty<T> extends SimpleObjectProperty<T> {
+    void setTimeStamp(long epochSeconds);
 
-    private Consumer<T> consumer;
+    void setRepoAction(RepoAction action);
 
-    private ChangeListener<T> listener = (ov, t, t1) -> consumer.accept(t1);
-
-    public SelectedObjectProperty() {
-    }
-
-    public SelectedObjectProperty(Consumer<T> consumer) {
-        this.consumer = consumer;
-    }
-
-    public void setConsumer(Consumer<T> consumer) {
-        this.consumer = consumer;
-    }
-
-    public void addListener() {
-        addListener(listener);
-    }
-
-    public void removeListener() {
-        removeListener(listener);
-    }
-
-    public void removeListenerAndClear() {
-        removeListener(listener);
-        set(null);
-    }
+    RepoAction getRepoAction();
 
 }

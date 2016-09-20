@@ -41,6 +41,7 @@ import com.jns.orienteering.model.common.AccessType;
 import com.jns.orienteering.model.common.CityAssignable;
 import com.jns.orienteering.model.common.JsonDefaultConstructor;
 import com.jns.orienteering.model.common.LookupSupplier;
+import com.jns.orienteering.model.common.Postable;
 
 public class Task extends BaseSynchronizable implements Postable, CityAssignable, LookupSupplier, Comparable<Task> {
 

@@ -32,6 +32,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 
+import com.gluonhq.charm.down.common.SettingService;
+
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.scene.Node;
@@ -41,6 +43,8 @@ import javafx.scene.image.Image;
 public interface PlatformService {
 
     Storage getStorage();
+
+    SettingService getSettingService();
 
     InfoService getInfoService();
 

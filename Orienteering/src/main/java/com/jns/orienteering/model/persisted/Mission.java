@@ -41,6 +41,7 @@ import javax.xml.bind.annotation.XmlTransient;
 import com.jns.orienteering.model.common.AccessType;
 import com.jns.orienteering.model.common.JsonDefaultConstructor;
 import com.jns.orienteering.model.common.LookupSupplier;
+import com.jns.orienteering.model.common.Postable;
 import com.jns.orienteering.model.common.UpdatableListItem;
 
 public class Mission extends BaseSynchronizable implements Postable, UpdatableListItem, LookupSupplier, Comparable<Mission> {

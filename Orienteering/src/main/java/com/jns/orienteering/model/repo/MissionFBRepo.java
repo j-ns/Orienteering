@@ -36,10 +36,10 @@ import org.slf4j.LoggerFactory;
 
 import com.gluonhq.connect.GluonObservableList;
 import com.gluonhq.connect.provider.DataProvider;
+import com.jns.orienteering.model.common.RepoAction;
 import com.jns.orienteering.model.persisted.Mission;
 import com.jns.orienteering.model.persisted.MissionNameLookup;
 import com.jns.orienteering.model.persisted.MissionsByCityLookup;
-import com.jns.orienteering.model.persisted.RepoAction;
 import com.jns.orienteering.model.persisted.Task;
 import com.jns.orienteering.model.persisted.TasksByMissionLookup;
 import com.jns.orienteering.model.repo.readerwriter.RestMapReader;

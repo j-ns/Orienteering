@@ -33,7 +33,6 @@ import com.gluonhq.charm.glisten.control.Avatar;
 import com.gluonhq.charm.glisten.control.NavigationDrawer;
 import com.gluonhq.charm.glisten.control.NavigationDrawer.Item;
 import com.gluonhq.charm.glisten.mvc.View;
-import com.jns.orienteering.OrienteeringApp;
 
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -45,6 +44,8 @@ import javafx.scene.image.Image;
 import javafx.scene.layout.HBox;
 
 public class Navigation {
+
+    public static final String NAVIGATION_DRAWER = "navigation_drawer";
 
     private NavigationDrawer     navigationDrawer;
     private Avatar               avatar;
@@ -65,7 +66,7 @@ public class Navigation {
 
         boxHeader.setOnMouseClicked(e ->
         {
-            MobileApplication.getInstance().hideLayer(OrienteeringApp.NAVIGATION_DRAWER);
+            MobileApplication.getInstance().hideLayer(NAVIGATION_DRAWER);
             MobileApplication.getInstance().switchView(ViewRegistry.USER.getViewName());
         });
 

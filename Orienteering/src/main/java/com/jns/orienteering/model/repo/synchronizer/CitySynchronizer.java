@@ -34,11 +34,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.gluonhq.connect.GluonObservableList;
-import com.jns.orienteering.model.CityHolder;
+import com.jns.orienteering.model.common.RepoAction;
+import com.jns.orienteering.model.dynamic.CityHolder;
 import com.jns.orienteering.model.persisted.ChangeLogEntry;
 import com.jns.orienteering.model.persisted.City;
 import com.jns.orienteering.model.persisted.LocalCityList;
-import com.jns.orienteering.model.persisted.RepoAction;
 import com.jns.orienteering.model.repo.AsyncResultReceiver;
 import com.jns.orienteering.model.repo.CityFBRepo;
 import com.jns.orienteering.model.repo.LocalRepo;

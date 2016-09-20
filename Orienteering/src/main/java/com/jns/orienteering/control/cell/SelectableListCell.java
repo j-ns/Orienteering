@@ -37,7 +37,7 @@ import javafx.scene.input.MouseEvent;
  * ListCell
  *
  * @param <T>
- *            The type of the item contained within the ListCell.
+ *             the type of the item contained within the ListCell.
  *
  */
 public class SelectableListCell<T> extends ListCell<T> {

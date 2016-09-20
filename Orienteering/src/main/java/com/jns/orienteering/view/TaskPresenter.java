@@ -37,7 +37,6 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.function.Consumer;
-import java.util.regex.Pattern;
 
 import javax.inject.Inject;
 
@@ -57,10 +56,10 @@ import com.jns.orienteering.control.ChoiceFloatingTextField;
 import com.jns.orienteering.control.FloatingTextField;
 import com.jns.orienteering.control.ScrollListener;
 import com.jns.orienteering.control.ScrollPositionBuffer;
-import com.jns.orienteering.model.CityHolder;
 import com.jns.orienteering.model.common.AccessType;
 import com.jns.orienteering.model.common.ListUpdater;
 import com.jns.orienteering.model.common.StorableImage;
+import com.jns.orienteering.model.dynamic.CityHolder;
 import com.jns.orienteering.model.persisted.City;
 import com.jns.orienteering.model.persisted.Task;
 import com.jns.orienteering.model.repo.AsyncResultReceiver;
@@ -93,8 +92,8 @@ public class TaskPresenter extends BasePresenter {
     private static final String                 TASKS_UPDATER         = "tasks_updater";
     private static final String                 MISSION_TASKS_UPDATER = "mission_tasks_updater";
 
-    private static final Pattern                GPS_PATTERN           = Pattern.compile(
-                                                                                        "^([-+]?)([\\d]{1,2})(((\\.)(\\d+\\s*)(,\\s*)))(([-+]?)([\\d]{1,3})((\\.)(\\d+))?)$");
+    // private static final Pattern GPS_PATTERN = Pattern.compile(
+    // "^([-+]?)([\\d]{1,2})(((\\.)(\\d+\\s*)(,\\s*)))(([-+]?)([\\d]{1,3})((\\.)(\\d+))?)$");
 
     private static final Image                  NO_PLACE_HOLDER       = null;
 
@@ -140,8 +139,6 @@ public class TaskPresenter extends BasePresenter {
     @Override
     protected void initialize() {
         super.initialize();
-        cloudRepo = service.getRepoService().getCloudRepo(Task.class);
-
         initActionBar();
 
         choiceCity.setStringConverter(City::getCityName);
@@ -159,7 +156,6 @@ public class TaskPresenter extends BasePresenter {
         {
             imgView.setImage(image.get());
             imageChanged = true;
-            LOGGER.debug("imageChanged == true");
         });
 
         btnTakePicture.setGraphic(Icon.CAMERA.icon(Icon.DEFAULT_ICON_SIZE));
@@ -175,27 +171,31 @@ public class TaskPresenter extends BasePresenter {
         imgView.fitWidthProperty().bind(scrollPane.widthProperty());
         imgView.setPreserveRatio(true);
 
-        choiceAccess.setStringConverter(t -> localize(t));
+        choiceAccess.setStringConverter(accessType -> localize(accessType));
         choiceAccess.setItems(FXCollections.observableArrayList(AccessType.values()));
 
         scrollListener = new ScrollListener(scrollPane);
         scrollPositionBuffer = new ScrollPositionBuffer(scrollPane, choiceAccess);
 
+        position = platformService().getPositionService().positionProperty();
+
+        initActivatorsDeactivators();
+
+        cloudRepo = service.getRepoService().getCloudRepo(Task.class);
+    }
+
+    private void initActivatorsDeactivators() {
         ActivatorDeactivatorService activatorDeactivatorService = service.getActivatorDeactivatorService();
-        activatorDeactivatorService.add(ViewRegistry.TASK.getViewName(), scrollListener);
-        activatorDeactivatorService.add(ViewRegistry.TASK.getViewName(), scrollPositionBuffer);
-        activatorDeactivatorService.addActivator(ViewRegistry.TASK.getViewName(), () -> platformService().getNodePositionAdjuster(scrollPane, view
-                                                                                                                                                  .getScene()
-                                                                                                                                                  .focusOwnerProperty()));
-        activatorDeactivatorService.addDeactivator(ViewRegistry.TASK.getViewName(),
-                                                   () ->
-                                                   {
-                                                       platformService().removeNodePositionAdjuster();
-                                                       platformService().getPositionService().stopLocationListener();
-                                                       if (position != null) {
-                                                           position.removeListener(postionListener);
-                                                       }
-                                                   });
+        String taskViewName = ViewRegistry.TASK.getViewName();
+
+        activatorDeactivatorService.add(taskViewName, scrollListener);
+        activatorDeactivatorService.add(taskViewName, scrollPositionBuffer);
+        activatorDeactivatorService.add(taskViewName, platformService().getPositionService());
+
+        activatorDeactivatorService.addActivator(taskViewName, () -> platformService().getNodePositionAdjuster(scrollPane, view
+                                                                                                                               .getScene()
+                                                                                                                               .focusOwnerProperty()));
+        activatorDeactivatorService.addDeactivator(taskViewName, platformService()::removeNodePositionAdjuster);
     }
 
     @Override
@@ -232,19 +232,18 @@ public class TaskPresenter extends BasePresenter {
         txtName.setText(task.getTaskName());
         txtPosition.setText(task.getPositionString());
         txtDescription.setText(task.getDescription());
+        txtScanCode.setText(task.getScanCode());
+        txtPoints.setText(Integer.toString(task.getPoints()));
+        choiceAccess.getSelectionModel().select(task.getAccessType());
+
         AsyncResultReceiver.create(ImageHandler.retrieveImageAsync(task.getImageUrl(), NO_PLACE_HOLDER))
                            .defaultProgressLayer()
                            .onSuccess(result ->
                            {
                                image.set(result.get());
                                imageChanged = false;
-                               LOGGER.debug("imageChanged == {}", imageChanged);
                            })
                            .start();
-
-        txtScanCode.setText(task.getScanCode());
-        txtPoints.setText(Integer.toString(task.getPoints()));
-        choiceAccess.getSelectionModel().select(task.getAccessType());
     }
 
     private void retrieveAndSetLocation() {
@@ -293,14 +292,15 @@ public class TaskPresenter extends BasePresenter {
             removePositionListener();
         });
 
-        PauseTransition pauseTransition = new PauseTransition(Duration.seconds(2));
+        PauseTransition pauseTransition = new PauseTransition(Duration.seconds(20));
         pauseTransition.setOnFinished(e ->
         {
-            lblTitle.setText(localize("view.task.info.couldNotGetGpsLocation"));
-            btnCancelOk.setText(localize("button.ok"));
-            progressBar.setProgress(0);
-            pauseTransition.stop();
-            removePositionListener();
+            if (position.get() == null) {
+                lblTitle.setText(localize("view.task.info.couldNotGetGpsLocation"));
+                btnCancelOk.setText(localize("button.ok"));
+                progressBar.setProgress(0);
+                removePositionListener();
+            }
         });
 
         gpsDialog.getButtons().setAll(btnCancelOk);
@@ -309,7 +309,8 @@ public class TaskPresenter extends BasePresenter {
 
     private void onSave() {
         if (validateTask()) {
-            saveResultReceiver().onSuccess(e -> showPreviousView()).start();
+            saveResultReceiver().onSuccess(e -> showPreviousView())
+                                .start();
         }
     }
 
@@ -322,6 +323,45 @@ public class TaskPresenter extends BasePresenter {
             task = new Task();
             setFields(task);
         }).start();
+    }
+
+    private boolean validateTask() {
+        Validator<String> nameDoesntExistValidator = new Validator<>(name -> !cloudRepo.checkIfTaskNameExists(name),
+                                                                     localize("view.task.info.taskNameAlreadyExists"));
+
+        MultiValidator<String> validator = new MultiValidator<>();
+        validator.addCheck(Validators::isNotNullOrEmpty, localize("view.task.info.taskNameCantBeEmpty"));
+        validator.addCheck(e -> service.getSelectedCity() != null, localize("view.task.info.noCitySelected"));
+        // validator.addCheck(e -> Validators.isNotNullOrEmpty(txtPosition.getText()) &&
+        // GPS_PATTERN.matcher(txtPosition.getText()).matches(), localize(
+        // "view.task.info.gpsDataInvalid"));
+        validator.addCheck(name ->
+        {
+            if (isEditorModus()) {
+                boolean nameChanged = !task.getTaskName().equals(name);
+                if (nameChanged) {
+                    return nameDoesntExistValidator.check(name);
+                }
+                return true;
+            } else {
+                return nameDoesntExistValidator.check(name);
+            }
+        });
+
+        return validator.check(txtName.getText());
+    }
+
+    private Executor getExecutor() {
+        if (executor == null) {
+            executor = Executors.newSingleThreadExecutor(runnable ->
+            {
+                Thread thread = Executors.defaultThreadFactory().newThread(runnable);
+                thread.setName("SaveTaskThread");
+                thread.setDaemon(true);
+                return thread;
+            });
+        }
+        return executor;
     }
 
     private AsyncResultReceiver<GluonObservableObject<Task>> saveResultReceiver() {
@@ -369,49 +409,11 @@ public class TaskPresenter extends BasePresenter {
                 GluonObservableHelper.setInitialized(obsTask, true);
 
             } catch (IOException e) {
-                LOGGER.error("Error saving task '{}'", newTask.getTaskName(), e);
+                LOGGER.error("Save task: '{}' failed", newTask.getTaskName(), e);
                 GluonObservableHelper.setException(obsTask, e);
             }
         });
         return obsTask;
-    }
-
-    private Image saveImage(Image image, String imageUrl, Consumer<StorableImage> imageHandler) {
-        try {
-            StorableImage storableImage = new StorableImage(platformService().getImageInputStream(), image, imageUrl);
-            imageHandler.accept(storableImage);
-            return image;
-
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-            return null;
-        }
-    }
-
-    private boolean validateTask() {
-        Validator<String> nameDoesntExistValidator = new Validator<>(name -> !cloudRepo.checkIfTaskNameExists(name),
-                                                                     localize("view.task.info.taskNameAlreadyExists"));
-
-        MultiValidator<String> validator = new MultiValidator<>();
-        validator.addCheck(Validators::isNotNullOrEmpty, localize("view.task.info.taskNameCantBeEmpty"));
-        validator.addCheck(e -> service.getSelectedCity() != null, localize("view.task.info.noCitySelected"));
-        // validator.addCheck(e -> Validators.isNotNullOrEmpty(txtPosition.getText()) &&
-        // GPS_PATTERN.matcher(txtPosition.getText()).matches(), localize(
-        // "view.task.info.gpsDataInvalid"));
-        validator.addCheck(name ->
-        {
-            if (isEditorModus()) {
-                boolean nameChanged = !task.getTaskName().equals(name);
-                if (nameChanged) {
-                    return nameDoesntExistValidator.check(name);
-                }
-                return true;
-            } else {
-                return nameDoesntExistValidator.check(name);
-            }
-        });
-
-        return validator.check(txtName.getText());
     }
 
     private Task createTask() {
@@ -451,47 +453,53 @@ public class TaskPresenter extends BasePresenter {
         return new Position(0, 0);
     }
 
-    private Executor getExecutor() {
-        if (executor == null) {
-            executor = Executors.newSingleThreadExecutor(runnable ->
-            {
-                Thread thread = Executors.defaultThreadFactory().newThread(runnable);
-                thread.setName("SaveTaskThread");
-                thread.setDaemon(true);
-                return thread;
-            });
+    private Image saveImage(Image image, String imageUrl, Consumer<StorableImage> imageHandler) {
+        try {
+            StorableImage storableImage = new StorableImage(platformService().getImageInputStream(), image, imageUrl);
+            imageHandler.accept(storableImage);
+            return image;
+
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+            return null;
         }
-        return executor;
     }
 
     private void updateTaskList(Task newTask, boolean taskNameChanged) {
         ListUpdater<Task> tasksUpdater = service.getListUpdater(TASKS_UPDATER);
-        boolean accessTypeMatchesList = tasksUpdater.getAccess() == newTask.getAccessType();
 
-        if (isEditorModus()) {
-            if (accessTypeMatchesList) {
-                if (taskNameChanged) {
-                    tasksUpdater.remove(task);
-                    tasksUpdater.add(newTask);
+        if (tasksUpdater != null) {
+            boolean accessTypeMatchesList = tasksUpdater.getAccessType() == newTask.getAccessType();
 
-                    if (isMissionEditorModus()) {
-                        ListUpdater<Object> missionTasksUpdater = service.getListUpdater(MISSION_TASKS_UPDATER);
-                        missionTasksUpdater.remove(task);
-                        missionTasksUpdater.add(newTask);
+            if (isEditorModus()) {
+                if (accessTypeMatchesList) {
+                    if (taskNameChanged) {
+                        tasksUpdater.remove(task);
+                        tasksUpdater.add(newTask);
+                    } else {
+                        tasksUpdater.update(newTask);
                     }
-
                 } else {
-                    tasksUpdater.update(newTask);
-                    if (isMissionEditorModus()) {
-                        service.getListUpdater(MISSION_TASKS_UPDATER).update(newTask);
-                    }
+                    tasksUpdater.remove(task);
                 }
             } else {
-                tasksUpdater.remove(task);
+                if (accessTypeMatchesList) {
+                    tasksUpdater.add(newTask);
+                }
             }
-        } else {
+        }
+
+        if (isEditorModus() && isMissionEditorModus()) {
+            ListUpdater<Object> missionTasksUpdater = service.getListUpdater(MISSION_TASKS_UPDATER);
+            boolean accessTypeMatchesList = missionTasksUpdater.getAccessType() == newTask.getAccessType();
+
             if (accessTypeMatchesList) {
-                tasksUpdater.add(newTask);
+                if (taskNameChanged) {
+                    missionTasksUpdater.remove(task);
+                    missionTasksUpdater.add(newTask);
+                } else {
+                    missionTasksUpdater.update(newTask);
+                }
             }
         }
     }
@@ -512,14 +520,20 @@ public class TaskPresenter extends BasePresenter {
         {
             try {
                 cloudRepo.deleteTask(task);
-                service.getListUpdater(TASKS_UPDATER).remove(task);
+
+                ListUpdater<Object> tasksListUpdater = service.getListUpdater(TASKS_UPDATER);
+                if (tasksListUpdater != null) {
+                    tasksListUpdater.remove(task);
+                }
+
                 if (isMissionEditorModus()) {
                     service.getListUpdater(MISSION_TASKS_UPDATER).remove(task);
                 }
+
                 GluonObservableHelper.setInitialized(obsTask, true);
 
             } catch (IOException ex) {
-                LOGGER.error("Error deleting task: {}", task.getTaskName(), ex);
+                LOGGER.error("Delete task: {} failed", task.getTaskName(), ex);
                 GluonObservableHelper.setException(obsTask, ex);
             }
         });

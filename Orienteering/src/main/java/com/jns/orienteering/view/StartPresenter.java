@@ -74,7 +74,7 @@ public class StartPresenter extends BasePresenter {
         pause.setOnFinished(e ->
         {
             if (service.isInitialized()) {
-                showView(ViewRegistry.HOME, ViewStackPolicy.CLEAR);
+                postInit();
             }
         });
         pause.play();
@@ -84,11 +84,20 @@ public class StartPresenter extends BasePresenter {
             {
                 if (b1) {
                     if (pause.getStatus() != Status.RUNNING) {
-                        showView(ViewRegistry.HOME, ViewStackPolicy.CLEAR);
+                        postInit();
                     }
                 }
             });
         }
+
+    }
+
+    private void postInit() {
+        showView(ViewRegistry.HOME, ViewStackPolicy.CLEAR);
+
+        Navigation navigationDrawer = ViewRegistry.getNavigation();
+        navigationDrawer.aliasProperty().bind(service.aliasProperty());
+        navigationDrawer.profileImageProperty().bind(service.profileImageProperty());
 
     }
 

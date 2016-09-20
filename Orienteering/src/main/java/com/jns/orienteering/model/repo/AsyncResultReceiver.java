@@ -98,7 +98,6 @@ public class AsyncResultReceiver<T extends GluonObservable> {
 
     public void start() {
         if (observable.isInitialized()) {
-            LOGGER.debug("observable already initialized");
             consumer.ifPresent(c -> c.accept(observable));
             startFinalizer();
         } else {

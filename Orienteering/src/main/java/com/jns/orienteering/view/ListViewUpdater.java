@@ -41,7 +41,7 @@ public class ListViewUpdater<T extends UpdatableListItem> {
     }
 
     public void update(T newItem, T previousItem, City selectedCity) {
-        boolean accessTypesMatches = listUpdater.getAccess() == newItem.getAccessType();
+        boolean accessTypesMatches = listUpdater.getAccessType() == newItem.getAccessType();
         boolean cityHasChanged = newItem.hasCityChanged();
         boolean nameHasChanged = newItem.hasNameChanged();
 
@@ -58,7 +58,7 @@ public class ListViewUpdater<T extends UpdatableListItem> {
     }
 
     public void add(T item) {
-        boolean accessTypesMatches = listUpdater.getAccess() == item.getAccessType();
+        boolean accessTypesMatches = listUpdater.getAccessType() == item.getAccessType();
         boolean cityHasChanged = item.hasCityChanged();
 
         if (accessTypesMatches && !cityHasChanged) {

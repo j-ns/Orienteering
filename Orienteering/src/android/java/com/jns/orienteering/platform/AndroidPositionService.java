@@ -46,8 +46,8 @@ import javafxports.android.FXActivity;
 
 public class AndroidPositionService implements PositionServiceExtended, LocationListener {
 
-    private static final long              MIN_TIME         = 1000;                                                                         // 1
-                                                                                                                                            // sec.
+    private static final long              MIN_TIME         = 1000;                                                                                                 // 1
+                                                                                                                                                                    // sec.
     private static final float             MIN_DISTANCE     = 5.0f;
 
     private final LocationManager          locationManager;
@@ -123,14 +123,14 @@ public class AndroidPositionService implements PositionServiceExtended, Location
     }
 
     @Override
-    public void startLocationListener() {
+    public void activate() {
         if (looperTask == null) {
             createLooperTask();
         }
     }
 
     @Override
-    public void stopLocationListener() {
+    public void deactivate() {
         if (looperTask != null) {
             locationManager.removeUpdates(this);
             looperTask.quitFromDifferentThread();

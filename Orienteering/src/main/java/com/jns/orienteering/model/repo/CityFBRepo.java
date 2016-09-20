@@ -32,11 +32,11 @@ import java.io.IOException;
 
 import com.gluonhq.connect.GluonObservableList;
 import com.gluonhq.connect.provider.DataProvider;
-import com.jns.orienteering.model.CityHolder;
+import com.jns.orienteering.model.common.RepoAction;
+import com.jns.orienteering.model.dynamic.CityHolder;
 import com.jns.orienteering.model.persisted.CitiesByUser;
 import com.jns.orienteering.model.persisted.City;
 import com.jns.orienteering.model.persisted.CityNameLookup;
-import com.jns.orienteering.model.persisted.RepoAction;
 import com.jns.orienteering.model.repo.readerwriter.RestMapReader;
 import com.jns.orienteering.util.GluonObservableHelper;
 
