@@ -39,43 +39,40 @@ import com.gluonhq.connect.provider.DataProvider;
 import com.jns.orienteering.model.common.RepoAction;
 import com.jns.orienteering.model.persisted.Mission;
 import com.jns.orienteering.model.persisted.MissionNameLookup;
+import com.jns.orienteering.model.persisted.MissionStat;
 import com.jns.orienteering.model.persisted.MissionsByCityLookup;
+import com.jns.orienteering.model.persisted.MissionsByTaskLookup;
 import com.jns.orienteering.model.persisted.Task;
 import com.jns.orienteering.model.persisted.TasksByMissionLookup;
 import com.jns.orienteering.model.repo.readerwriter.RestMapReader;
-import com.jns.orienteering.util.GluonObservableHelper;
 
 public class MissionFBRepo extends FireBaseRepo<Mission> {
 
-    private static final Logger                             LOGGER               = LoggerFactory.getLogger(MissionFBRepo.class);
+    private static final Logger                             LOGGER                   = LoggerFactory.getLogger(MissionFBRepo.class);
 
-    private static final String                             MISSIONS             = "missions";
-    private static final String                             MISSION_NAMES        = "mission_names";
-    private static final String                             MISSIONS_BY_CITY     = "missions_by_city";
+    private static final String                             MISSIONS                 = "missions";
+    private static final String                             MISSION_NAMES            = "mission_names";
+    private static final String                             MISSIONS_BY_CITY         = "missions_by_city";
 
-    private static final String                             TASKS                = "tasks";
-    private static final String                             TASKS_BY_MISSION     = "tasks_by_mission";
+    private static final String                             TASKS                    = "tasks";
+    private static final String                             TASKS_BY_MISSION         = "tasks_by_mission";
 
-    private NameLookupFBRepo<MissionNameLookup>             nameLookupRepo       = new NameLookupFBRepo<>(MissionNameLookup.class, MISSION_NAMES);
+    private NameLookupFBRepo<MissionNameLookup>             nameLookupRepo           = new NameLookupFBRepo<>(MissionNameLookup.class, MISSION_NAMES);
 
-    private CityLookupFBRepo<MissionsByCityLookup, Mission> cityLookupRepo       =
+    private CityLookupFBRepo<MissionsByCityLookup, Mission> cityLookupRepo           =
             new CityLookupFBRepo<>(MissionsByCityLookup.class, Mission.class, MISSIONS_BY_CITY, MISSIONS);
 
-    private MultiValueLookupRepo<TasksByMissionLookup>      tasksLookupRepo      =
+    private MultiValueLookupRepo<TasksByMissionLookup>      tasksLookupRepo          =
             new MultiValueLookupRepo<>(TasksByMissionLookup.class, TASKS_BY_MISSION);
 
-    private MissionsByTaskRepo                              missionsLookupRepo   = new MissionsByTaskRepo();
-
-    private MissionStatFBRepo                               missionStatCloudRepo = new MissionStatFBRepo();
+    private MissionsByTaskRepo                              missionsByTaskLookupRepo = RepoService.INSTANCE.getCloudRepo(MissionsByTaskLookup.class);
+    private MissionStatFBRepo                               missionStatCloudRepo     = RepoService.INSTANCE.getCloudRepo(MissionStat.class);
 
     public MissionFBRepo() {
         super(Mission.class, MISSIONS);
     }
 
     public GluonObservableList<Mission> getPrivateMissions(String cityId, String userId) {
-        if (userId == null) {
-            return GluonObservableHelper.newGluonObservableListInitialized();
-        }
         return cityLookupRepo.getPrivateListAsync(cityId, userId);
     }
 
@@ -98,16 +95,17 @@ public class MissionFBRepo extends FireBaseRepo<Mission> {
 
     public void createMission(Mission mission) throws IOException {
         mission.setTimeStamp(createTimeStamp());
+
         Mission result = addToList(mission);
         if (result != null) {
             try {
                 nameLookupRepo.createOrUpdate(mission.createNameLookup());
                 cityLookupRepo.createOrUpdate(mission.createCityLookup());
                 tasksLookupRepo.createOrUpdateLookup(mission.createTasksLookup());
-                missionsLookupRepo.createOrUpdateLookup(mission);
+                missionsByTaskLookupRepo.createOrUpdateLookup(mission);
 
             } catch (IOException e) {
-                LOGGER.error("Error storing mission '{}'", mission.getMissionName(), e);
+                LOGGER.error("Failed to store mission:. '{}'", mission.getMissionName(), e);
                 throw e;
             }
         }
@@ -115,6 +113,7 @@ public class MissionFBRepo extends FireBaseRepo<Mission> {
 
     public void updateMission(Mission mission, Mission previousMission, List<Task> tasks, List<Task> tasksBuffer) throws IOException {
         mission.setTimeStamp(createTimeStamp());
+
         createOrUpdate(mission, mission.getId());
 
         boolean tasksChanged = !tasksBuffer.containsAll(tasks) || !tasks.containsAll(tasksBuffer);
@@ -122,8 +121,7 @@ public class MissionFBRepo extends FireBaseRepo<Mission> {
             TasksByMissionLookup previousTasksByMission = tasksLookupRepo.retrieveObject(mission.getId());
 
             tasksLookupRepo.createOrUpdateLookup(new TasksByMissionLookup(mission.getId(), mission.getTasksMap()));
-            missionsLookupRepo.updateLookup(previousTasksByMission, mission);
-
+            missionsByTaskLookupRepo.updateLookup(previousTasksByMission, mission);
             missionStatCloudRepo.deleteAsync(mission.getId());
         }
 
@@ -145,7 +143,7 @@ public class MissionFBRepo extends FireBaseRepo<Mission> {
         nameLookupRepo.deleteLookup(mission.createNameLookup());
         cityLookupRepo.deleteLookup(mission.createCityLookup());
         tasksLookupRepo.deleteLookup(mission.createTasksByMissionLookup());
-        missionsLookupRepo.deleteLookup(mission);
+        missionsByTaskLookupRepo.deleteLookup(mission);
         missionStatCloudRepo.deleteAsync(mission.getId());
 
         writeLogEntry(mission, RepoAction.DELETE);

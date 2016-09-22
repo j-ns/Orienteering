@@ -103,7 +103,7 @@ public class FireBaseRepo<T extends Model> {
     protected RestClient createRestClient() {
         RestClient client = RestClient.create().host(APP_ID);
         client.queryParam(AUTH_PARAM_NAME, CREDENTIALS);
-        client.queryParam("print", "pretty");
+//        client.queryParam("print", "pretty");
         return client;
     }
 

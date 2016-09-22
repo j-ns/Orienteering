@@ -35,9 +35,10 @@ import javax.json.stream.JsonParsingException;
 import com.gluonhq.connect.GluonObservableList;
 import com.gluonhq.connect.provider.DataProvider;
 import com.jns.orienteering.model.common.AccessType;
-import com.jns.orienteering.model.common.CityLookup;
 import com.jns.orienteering.model.common.BaseModel;
+import com.jns.orienteering.model.common.CityLookup;
 import com.jns.orienteering.model.repo.readerwriter.RestMapReader;
+import com.jns.orienteering.util.GluonObservableHelper;
 
 public class CityLookupFBRepo<T extends CityLookup, LT extends BaseModel> extends FireBaseRepo<T> {
 
@@ -54,6 +55,9 @@ public class CityLookupFBRepo<T extends CityLookup, LT extends BaseModel> extend
     }
 
     public GluonObservableList<LT> getPrivateListAsync(String cityId, String userId) {
+        if (userId == null) {
+            return GluonObservableHelper.newGluonObservableListInitialized();
+        }
         String idsUrl = buildFullUrlFromRelativePath(PRIVATE, cityId, userId);
         return retrieveList(idsUrl);
     }

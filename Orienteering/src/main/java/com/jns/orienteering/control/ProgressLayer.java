@@ -53,11 +53,10 @@ public class ProgressLayer extends Layer {
     private GlassPane          glassPane     = MobileApplication.getInstance().getGlassPane();
 
     private StackPane          root;
-    private double             delay         = DEFAULT_DELAY;
-
-    private boolean            fadeLayer;
 
     private ShowHideTransition showHideTransition;
+    private double             delay         = DEFAULT_DELAY;
+    private boolean            fadeLayer;
 
     public ProgressLayer() {
         this(PauseFadeInFadeOut::new);

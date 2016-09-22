@@ -28,17 +28,15 @@
  */
 package com.jns.orienteering.model.repo;
 
+import static com.jns.orienteering.locale.Localization.localize;
+
 import java.util.Optional;
 import java.util.function.Consumer;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.gluonhq.connect.ConnectState;
 import com.gluonhq.connect.GluonObservable;
 import com.jns.orienteering.control.ProgressLayer;
 import com.jns.orienteering.control.ProgressLayer.PauseFadeInHide;
-import com.jns.orienteering.locale.Localization;
 import com.jns.orienteering.util.Dialogs;
 import com.jns.orienteering.util.Trigger;
 
@@ -46,17 +44,17 @@ import javafx.beans.value.ChangeListener;
 
 public class AsyncResultReceiver<T extends GluonObservable> {
 
-    private static final Logger        LOGGER                 = LoggerFactory.getLogger(AsyncResultReceiver.class);
+    private static final ProgressLayer                               DEFAULT_PROGRESS_LAYER = new ProgressLayer(PauseFadeInHide::new);
 
-    private static final ProgressLayer DEFAULT_PROGRESS_LAYER = new ProgressLayer(PauseFadeInHide::new);
+    private T                                                        observable;
+    private Optional<Consumer<T>>                                    consumer               = Optional.empty();
 
-    private T                          observable;
-    private Optional<Consumer<T>>      consumer               = Optional.empty();
+    private Optional<ProgressLayer>                                  progressLayer          = Optional.empty();
+    private Optional<Trigger>                                        onException            = Optional.empty();
+    private Optional<String>                                         exceptionMessage       = Optional.empty();
+    private Optional<Trigger>                                        finalizer              = Optional.empty();
 
-    private Optional<ProgressLayer>    progressLayer          = Optional.empty();
-    private Optional<Trigger>          onException            = Optional.empty();
-    private Optional<String>           exceptionMessage       = Optional.empty();
-    private Optional<Trigger>          finalizer              = Optional.empty();
+    private Optional<AsyncResultReceiver<? extends GluonObservable>> next                   = Optional.empty();
 
     private AsyncResultReceiver(T observable) {
         this.observable = observable;
@@ -66,11 +64,6 @@ public class AsyncResultReceiver<T extends GluonObservable> {
         return new AsyncResultReceiver<T>(observable);
     }
 
-    public AsyncResultReceiver<T> onSuccess(Consumer<T> consumer) {
-        this.consumer = Optional.of(consumer);
-        return this;
-    }
-
     public AsyncResultReceiver<T> defaultProgressLayer() {
         this.progressLayer = Optional.of(DEFAULT_PROGRESS_LAYER);
         return this;
@@ -78,6 +71,11 @@ public class AsyncResultReceiver<T extends GluonObservable> {
 
     public AsyncResultReceiver<T> progressLayer(ProgressLayer progressLayer) {
         this.progressLayer = Optional.of(progressLayer);
+        return this;
+    }
+
+    public AsyncResultReceiver<T> onSuccess(Consumer<T> consumer) {
+        this.consumer = Optional.of(consumer);
         return this;
     }
 
@@ -119,7 +117,7 @@ public class AsyncResultReceiver<T extends GluonObservable> {
                                                                                  break;
 
                                                                              case FAILED:
-                                                                                 Dialogs.ok(Localization.localize("dialog.error.connectionFailed"))
+                                                                                 Dialogs.ok(localize("dialog.error.connectionFailed"))
                                                                                         .showAndWait();
                                                                                  startFinalizer();
                                                                                  break;
@@ -147,9 +145,14 @@ public class AsyncResultReceiver<T extends GluonObservable> {
                                                                      };
 
     private void startFinalizer() {
-        progressLayer.ifPresent(ProgressLayer::hide);
         finalizer.ifPresent(Trigger::start);
         removeListeners();
+
+        if (!next.isPresent()) {
+            progressLayer.ifPresent(ProgressLayer::hide);
+        } else {
+            next.get().start();
+        }
     }
 
     private void removeListeners() {
@@ -158,7 +161,9 @@ public class AsyncResultReceiver<T extends GluonObservable> {
         observable.exceptionProperty().removeListener(exceptionListener);
     }
 
-    // public AsyncResultReceiver<GluonObservable> next() {
-    //
-    // }
+    public <U extends GluonObservable> AsyncResultReceiver<U> next(U observable) {
+        AsyncResultReceiver<U> receiver = new AsyncResultReceiver<U>(observable);
+        next = Optional.of(receiver);
+        return receiver;
+    }
 }

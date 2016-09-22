@@ -33,19 +33,19 @@ import java.util.Map;
 
 import com.jns.orienteering.model.common.Model;
 
-public class RepoService {
+public enum RepoService {
 
-    private static final int                                   INITIAL_CAPACITY = 10;
+    INSTANCE;
 
     private final RepoFactory                                  repoFactory;
 
     private final Map<Class<?>, FireBaseRepo<? extends Model>> cloudRepoCache;
     private final Map<Class<?>, LocalRepo<?, ?>>               localRepoCache;
 
-    public RepoService() {
+    RepoService() {
         repoFactory = new RepoFactory();
-        cloudRepoCache = new HashMap<>(INITIAL_CAPACITY);
-        localRepoCache = new HashMap<>(INITIAL_CAPACITY);
+        cloudRepoCache = new HashMap<>();
+        localRepoCache = new HashMap<>();
     }
 
     public <T extends Model, R extends FireBaseRepo<T>> R getCloudRepo(Class<T> dataClass) {

@@ -39,6 +39,7 @@ import com.gluonhq.connect.provider.DataProvider;
 import com.jns.orienteering.model.common.RepoAction;
 import com.jns.orienteering.model.persisted.CityTaskLookup;
 import com.jns.orienteering.model.persisted.ImageLogEntry;
+import com.jns.orienteering.model.persisted.MissionStat;
 import com.jns.orienteering.model.persisted.MissionsByTaskLookup;
 import com.jns.orienteering.model.persisted.Task;
 import com.jns.orienteering.model.persisted.TaskNameLookup;
@@ -47,24 +48,23 @@ import com.jns.orienteering.model.repo.readerwriter.RestMapReader;
 
 public class TaskFBRepo extends FireBaseRepo<Task> {
 
-    private static final Logger                        LOGGER               = LoggerFactory.getLogger(TaskFBRepo.class);
+    private static final Logger                        LOGGER                   = LoggerFactory.getLogger(TaskFBRepo.class);
 
-    private static final String                        TASKS                = "tasks";
-    private static final String                        TASK_NAMES_LOOKUP    = "task_names";
-    private static final String                        TASKS_BY_CITY        = "tasks_by_city";
-    private static final String                        TASKS_BY_MISSION     = "tasks_by_mission";
+    private static final String                        TASKS                    = "tasks";
+    private static final String                        TASK_NAMES_LOOKUP        = "task_names";
+    private static final String                        TASKS_BY_CITY            = "tasks_by_city";
+    private static final String                        TASKS_BY_MISSION         = "tasks_by_mission";
 
-    private NameLookupFBRepo<TaskNameLookup>           namelookupRepo       = new NameLookupFBRepo<>(TaskNameLookup.class, TASK_NAMES_LOOKUP);
+    private NameLookupFBRepo<TaskNameLookup>           namelookupRepo           = new NameLookupFBRepo<>(TaskNameLookup.class, TASK_NAMES_LOOKUP);
 
-    private CityLookupFBRepo<CityTaskLookup, Task>     cityLookupRepo       =
+    private CityLookupFBRepo<CityTaskLookup, Task>     cityLookupRepo           =
             new CityLookupFBRepo<>(CityTaskLookup.class, Task.class, TASKS_BY_CITY, TASKS);
 
-    private MultiValueLookupRepo<TasksByMissionLookup> tasksLookupRepo      =
+    private MultiValueLookupRepo<TasksByMissionLookup> tasksLookupRepo          =
             new MultiValueLookupRepo<>(TasksByMissionLookup.class, TASKS_BY_MISSION);
 
-    private MissionsByTaskRepo                         missionsLookupRepo   = new MissionsByTaskRepo();
-
-    private MissionStatFBRepo                          missionStatCloudRepo = new MissionStatFBRepo();
+    private MissionsByTaskRepo                         missionsByTaskLookupRepo = RepoService.INSTANCE.getCloudRepo(MissionsByTaskLookup.class);
+    private MissionStatFBRepo                          missionStatCloudRepo     = RepoService.INSTANCE.getCloudRepo(MissionStat.class);
 
     public TaskFBRepo() {
         super(Task.class, TASKS);
@@ -78,21 +78,26 @@ public class TaskFBRepo extends FireBaseRepo<Task> {
         return cityLookupRepo.getPublicListAsync(cityId);
     }
 
+    public GluonObservableList<Task> retrieveTasksAsync(String missionId) {
+        String sourceUrl = buildPath(TASKS_BY_MISSION, missionId);
+        return DataProvider.retrieveList(new RestMapReader<>(createRestClient(), TasksByMissionLookup.class, sourceUrl, Task.class, TASKS));
+    }
+
     public boolean checkIfTaskNameExists(String name) {
         return namelookupRepo.checkIfNameExists(name);
     }
 
     public void createTask(Task task) throws IOException {
         task.setTimeStamp(createTimeStamp());
-        Task result = addToList(task);
 
+        Task result = addToList(task);
         if (result != null) {
             try {
                 namelookupRepo.createOrUpdate(result.createNameLookup());
                 cityLookupRepo.createOrUpdate(result.createCityLookup());
 
             } catch (IOException e) {
-                LOGGER.error("Error storing mission '{}'", task.getTaskName(), e);
+                LOGGER.error("Failed to store task: '{}'", task.getTaskName(), e);
                 throw e;
             }
             writeLogEntry(result, RepoAction.ADD);
@@ -115,18 +120,19 @@ public class TaskFBRepo extends FireBaseRepo<Task> {
         if (task.hasAccessTypeChanged()) {
             cityLookupRepo.recreateCityLookup(new CityTaskLookup(task));
         }
-//        if (task.locationChanged) {
-//            MissionsByTaskLookup missionsLookup = missionsLookupRepo.retrieveObject(task.getId());
-//            if (missionsLookup != null) {
-//                Iterator<String> missionIds = missionsLookup.getValues().keySet().iterator();
-//                while (missionIds.hasNext()) {
-//                    String missionId = missionIds.next();
-//                    missionStatCloudRepo.deleteAsync(missionId);
-//                }
-//            }
-//        }
+        // if (task.locationChanged) {
+        // MissionsByTaskLookup missionsLookup = missionsLookupRepo.retrieveObject(task.getId());
+        // if (missionsLookup != null) {
+        // Iterator<String> missionIds = missionsLookup.getValues().keySet().iterator();
+        // while (missionIds.hasNext()) {
+        // String missionId = missionIds.next();
+        // missionStatCloudRepo.deleteAsync(missionId);
+        // }
+        // }
+        // }
 
         writeLogEntry(task, RepoAction.UPDATE);
+
         if (previousImageId != null) {
             writeLogEntry(new ImageLogEntry(previousImageId, task.getTimeStamp()), ChangeLogRepo::writeImageLogAsync);
         }
@@ -140,7 +146,7 @@ public class TaskFBRepo extends FireBaseRepo<Task> {
         namelookupRepo.deleteLookup(task.createNameLookup());
         cityLookupRepo.deleteLookup(task.createCityLookup());
 
-        MissionsByTaskLookup missionsLookup = missionsLookupRepo.retrieveObject(task.getId());
+        MissionsByTaskLookup missionsLookup = missionsByTaskLookupRepo.retrieveObject(task.getId());
         if (missionsLookup != null) {
             Iterator<String> missionIds = missionsLookup.getValues().keySet().iterator();
             while (missionIds.hasNext()) {
@@ -155,16 +161,11 @@ public class TaskFBRepo extends FireBaseRepo<Task> {
 
                 missionStatCloudRepo.deleteAsync(missionId);
             }
-            missionsLookupRepo.delete(task.getId());
+            missionsByTaskLookupRepo.delete(task.getId());
         }
 
         writeLogEntry(task, RepoAction.DELETE);
         writeLogEntry(new ImageLogEntry(task), ChangeLogRepo::writeImageLogAsync);
-    }
-
-    public GluonObservableList<Task> retrieveTasksAsync(String missionId) {
-        String taskIdsUrl = buildPath(TASKS_BY_MISSION, missionId);
-        return DataProvider.retrieveList(new RestMapReader<>(createRestClient(), TasksByMissionLookup.class, taskIdsUrl, Task.class, TASKS));
     }
 
     private void writeLogEntry(Task task, RepoAction action) {

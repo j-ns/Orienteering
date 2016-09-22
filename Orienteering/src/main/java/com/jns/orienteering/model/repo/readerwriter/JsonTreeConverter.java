@@ -46,11 +46,13 @@ public class JsonTreeConverter<T> extends InputStreamIterableInputConverter<T> i
 
     private static final Logger      LOGGER = LoggerFactory.getLogger(JsonTreeConverter.class);
 
+    private Class<T>                 targetClass;
     private JsonObject               tree;
     private Iterator<String>         iterator;
     private JsonConverterExtended<T> converter;
 
     public JsonTreeConverter(Class<T> targetClass) {
+        this.targetClass = targetClass;
         this.converter = new JsonConverterExtended<>(targetClass);
     }
 
@@ -60,7 +62,7 @@ public class JsonTreeConverter<T> extends InputStreamIterableInputConverter<T> i
             tree = reader.readObject();
 
         } catch (JsonParsingException e) {
-            LOGGER.error("Error parsing json", e);
+            LOGGER.error("Failed  to parse json for class: {}", targetClass, e);
             return Collections.emptyIterator();
         }
         iterator = tree.keySet().iterator();

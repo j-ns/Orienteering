@@ -57,9 +57,9 @@ public abstract class ListViewPresenter<T> extends BasePresenter {
 
     @Inject
     protected BaseService              service;
+
     protected City                     cityFilter;
     private AccessType                 accessType              = AccessType.PRIVATE;
-
     private boolean                    accessTypeListenerMuted = false;;
 
     @Override

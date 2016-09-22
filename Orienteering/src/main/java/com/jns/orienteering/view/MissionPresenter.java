@@ -128,7 +128,7 @@ public class MissionPresenter extends BasePresenter {
         choiceAccess.setItems(FXCollections.observableArrayList(AccessType.values()));
 
         lviewMissionTasks.setSelectableCellFactory(listView -> new TaskCellSmall(lviewMissionTasks.selectedItemProperty(), this::onRemoveTask,
-                                                                       scrollEventFiler.slidingProperty()));
+                                                                                 scrollEventFiler.slidingProperty()));
         lviewMissionTasks.setComparator(Task::compareTo);
         lviewMissionTasks.setOnSelection(this::onSelectTask);
         scrollEventFiler = new ScrollEventFilter(lviewMissionTasks);
@@ -225,7 +225,9 @@ public class MissionPresenter extends BasePresenter {
     private void onSelectTask(Task task) {
         if (task != null) {
             service.setSelectedTask(task);
-            service.setSelectedMission(createMission());
+            if (isEditorModus() && mission.getOwnerId().equals(service.getUserId())) {
+                service.setSelectedMission(createMission());
+            }
             service.setTempCity(new CityTempBuffer(getSelectedCityId(), mission.getCityId()));
             setListUpdater();
             showView(ViewRegistry.TASK);
@@ -233,7 +235,9 @@ public class MissionPresenter extends BasePresenter {
     }
 
     private void onSelectTasks() {
-        service.setSelectedMission(createMission());
+        if (isEditorModus() && mission.getOwnerId().equals(service.getUserId())) {
+            service.setSelectedMission(createMission());
+        }
         service.setTempCity(new CityTempBuffer(getSelectedCityId(), mission.getCityId()));
         setListUpdater();
         showView(ViewRegistry.TASKS);

@@ -95,7 +95,7 @@ public class CitySynchronizer extends BaseSynchronizer<City, City, LocalCityList
                                        String cityId = logEntry.getTargetId();
 
                                        if (logEntry.getAction() == RepoAction.DELETE) {
-                                           LOGGER.debug("removed locallay {}: {}", listIdentifier, CityHolder.get(cityId));
+                                           LOGGER.debug("removed locally {}: {}", listIdentifier, CityHolder.get(cityId));
                                            localDataNeedsUpdate = CityHolder.remove(cityId) != null;
 
                                        } else {
@@ -106,7 +106,7 @@ public class CitySynchronizer extends BaseSynchronizer<City, City, LocalCityList
                                                    CityHolder.put(cityFromCloud);
                                                    localDataNeedsUpdate = true;
 
-                                                   LOGGER.debug("added / udpated locally {}: {}", listIdentifier, cityFromCloud);
+                                                   LOGGER.debug("added/udpated locally {}: {}", listIdentifier, cityFromCloud);
 
                                                } catch (IOException e) {
                                                    // consume

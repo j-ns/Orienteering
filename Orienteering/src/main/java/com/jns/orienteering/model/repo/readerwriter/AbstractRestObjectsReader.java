@@ -47,6 +47,7 @@ public abstract class AbstractRestObjectsReader<T, E> implements ListDataReader<
     protected static final String          JSON_SUFFIX = ".json";
 
     protected RestClient                   client;
+    private RestClient                     targetClient;
     protected Class<T>                     sourceClass;
     protected Class<E>                     targetClass;
     protected String                       targetUrl;
@@ -54,12 +55,10 @@ public abstract class AbstractRestObjectsReader<T, E> implements ListDataReader<
     protected InputStreamInputConverter<E> converter;
     protected Iterator<String>             keysIterator;
 
-    private RestClient                     clientTarget;
-
-    public AbstractRestObjectsReader(RestClient clientSource, RestClient clientTarget, Class<T> sourceClass, String sourceUrl, Class<E> targetClass,
+    public AbstractRestObjectsReader(RestClient sourceClient, RestClient targetClient, Class<T> sourceClass, String sourceUrl, Class<E> targetClass,
                                      String targetUrl) {
-        this(clientSource, sourceClass, sourceUrl, targetClass, targetUrl);
-        this.clientTarget = clientTarget;
+        this(sourceClient, sourceClass, sourceUrl, targetClass, targetUrl);
+        this.targetClient = targetClient;
     }
 
     public AbstractRestObjectsReader(RestClient client, Class<T> sourceClass, String sourceUrl, Class<E> targetClass, String targetUrl) {
@@ -105,22 +104,19 @@ public abstract class AbstractRestObjectsReader<T, E> implements ListDataReader<
 
         InputStream inputStream;
         try {
-            if (clientTarget == null) {
+            if (targetClient == null) {
                 client.path(url);
                 inputStream = client.createRestDataSource().getInputStream();
             } else {
-                clientTarget.path(url);
-                inputStream = clientTarget.createRestDataSource().getInputStream();
+                targetClient.path(url);
+                inputStream = targetClient.createRestDataSource().getInputStream();
             }
             converter.setInputStream(inputStream);
 
         } catch (IOException e) {
-            LOGGER.error("Error getting object: '{}'", url, e);
+            LOGGER.error("Failed to retrieve: '{}'", url, e);
         }
-
-        E result = converter.read();
-        LOGGER.debug("iterator next: {}", result);
-        return result;
+        return converter.read();
     }
 
 }

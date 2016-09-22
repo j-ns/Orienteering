@@ -144,7 +144,7 @@ public class BaseService {
         });
 
         activatorDeactivatorService = new ActivatorDeactivatorService();
-        repoService = new RepoService();
+        repoService = RepoService.INSTANCE;
 
         initRepos();
         initSynchronizers();

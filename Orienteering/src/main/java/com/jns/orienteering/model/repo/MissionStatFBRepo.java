@@ -52,8 +52,8 @@ public class MissionStatFBRepo extends FireBaseRepo<MissionStat> {
     private static final String         STATS_BY_MISSION  = "stats_by_mission";
     private static final String         STATS_BY_USER     = "stats_by_user";
 
-    private FireBaseRepo<StatByUser>    statByUserRepo    = new FireBaseRepo<>(StatByUser.class, STATS_BY_USER);
     private FireBaseRepo<StatByMission> statByMissionRepo = new FireBaseRepo<>(StatByMission.class, STATS_BY_MISSION);
+    private FireBaseRepo<StatByUser>    statByUserRepo    = new FireBaseRepo<>(StatByUser.class, STATS_BY_USER);
 
     public MissionStatFBRepo() {
         super(MissionStat.class, MISSION_STATS);
@@ -76,8 +76,8 @@ public class MissionStatFBRepo extends FireBaseRepo<MissionStat> {
             }
 
         } catch (IOException ex) {
-            LOGGER.error("Error saving missionStat", ex);
-            Dialogs.ok(localize("error.savingMissionStat")).showAndWait();
+            LOGGER.error("Failed to save mission stat", ex);
+            Dialogs.ok(localize("view.activeMission.error.saveStat")).showAndWait();
         }
     }
 

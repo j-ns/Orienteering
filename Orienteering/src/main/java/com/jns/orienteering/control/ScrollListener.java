@@ -37,7 +37,7 @@ import javafx.scene.input.MouseEvent;
 
 /**
  * Consumes {@link MouseEvent#MOUSE_CLICKED} which occurs when a Node was dragged.
- * This is usefull in combination with a ListView, where scrolling the ListView would be interpreted as a MOUSE_CLICKED Event
+ * This is useful in combination with a ListView, where scrolling the ListView would be interpreted as a MOUSE_CLICKED Event
  * which would select the ListCell under the mouse position otherwise.
  *
  */

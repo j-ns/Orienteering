@@ -28,6 +28,8 @@
  */
 package com.jns.orienteering.view;
 
+import static com.jns.orienteering.util.Dialogs.confirmDeleteAnswer;
+
 import java.io.IOException;
 
 import com.gluonhq.charm.glisten.layout.layer.FloatingActionButton;
@@ -142,7 +144,7 @@ public class MissionsPresenter extends ListViewPresenter<Mission> {
                 return;
             }
 
-            if (confirmDeleteMission()) {
+            if (confirmDeleteAnswer(localize("view.mission.question.delete")).isYesOrOk()) {
                 try {
                     cloudRepo.deleteMission(mission);
                     lview.getListUpdater().remove(mission);
@@ -155,10 +157,6 @@ public class MissionsPresenter extends ListViewPresenter<Mission> {
                 }
             }
         });
-    }
-
-    private boolean confirmDeleteMission() {
-        return Dialogs.confirmDeleteAnswer(localize("view.mission.question.delete")).isYesOrOk();
     }
 
 }

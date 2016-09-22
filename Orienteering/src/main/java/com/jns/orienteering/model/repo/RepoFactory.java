@@ -38,6 +38,7 @@ import com.jns.orienteering.model.persisted.City;
 import com.jns.orienteering.model.persisted.LocalCityList;
 import com.jns.orienteering.model.persisted.Mission;
 import com.jns.orienteering.model.persisted.MissionStat;
+import com.jns.orienteering.model.persisted.MissionsByTaskLookup;
 import com.jns.orienteering.model.persisted.Task;
 import com.jns.orienteering.model.persisted.User;
 
@@ -57,6 +58,7 @@ public class RepoFactory {
         cloudRepoSuppliers.put(Mission.class, MissionFBRepo::new);
         cloudRepoSuppliers.put(Task.class, TaskFBRepo::new);
         cloudRepoSuppliers.put(MissionStat.class, MissionStatFBRepo::new);
+        cloudRepoSuppliers.put(MissionsByTaskLookup.class, MissionsByTaskRepo::new);
 
         localRepoSuppliers.put(User.class, () -> new LocalRepo<>(User.class, User.class, "user.json"));
         localRepoSuppliers.put(City.class, () -> new LocalRepo<>(City.class, LocalCityList.class, "cities.json"));

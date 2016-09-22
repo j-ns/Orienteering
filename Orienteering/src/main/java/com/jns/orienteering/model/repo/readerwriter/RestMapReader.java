@@ -36,16 +36,16 @@ import com.gluonhq.connect.provider.ObjectDataReader;
 import com.gluonhq.connect.provider.RestClient;
 import com.jns.orienteering.model.common.MultiValueLookup;
 
-public class RestMapReader<S extends MultiValueLookup, T> extends AbstractRestObjectsReader<S, T> {
+public class RestMapReader<T extends MultiValueLookup, E> extends AbstractRestObjectsReader<T, E> {
 
-    public RestMapReader(RestClient client, Class<S> sourceClass, String sourceUrl, Class<T> targetClass, String targetUrl) {
+    public RestMapReader(RestClient client, Class<T> sourceClass, String sourceUrl, Class<E> targetClass, String targetUrl) {
         super(client, sourceClass, sourceUrl, targetClass, targetUrl);
     }
 
     @Override
     protected void initKeysIterator(RestClient client) throws IOException {
-        ObjectDataReader<S> reader = client.createObjectDataReader(new JsonInputConverterExtended<>(sourceClass));
-        S lookup = reader.readObject();
+        ObjectDataReader<T> reader = client.createObjectDataReader(new JsonInputConverterExtended<>(sourceClass));
+        T lookup = reader.readObject();
 
         if (lookup == null) {
             keysIterator = Collections.emptyIterator();

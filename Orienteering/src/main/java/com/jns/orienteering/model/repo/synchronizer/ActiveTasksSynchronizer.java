@@ -102,7 +102,6 @@ public class ActiveTasksSynchronizer extends BaseSynchronizer<Task, Task, Active
         AsyncResultReceiver.create(obsLocalData)
                            .onSuccess(result ->
                            {
-
                                // async laufen lassen
                                List<Task> localTasksCopy = new ArrayList<>(result);
 
@@ -135,8 +134,8 @@ public class ActiveTasksSynchronizer extends BaseSynchronizer<Task, Task, Active
                                        }
 
                                    } catch (IOException e) {
-                                       LOGGER.error("Error reading changeLog for active tasks", e);
-                                       Dialogs.ok(localize("changeLog.error.readingLog")).showAndWait();
+                                       LOGGER.error("Failed to read changeLog for active tasks", e);
+                                       Dialogs.ok(localize("changeLog.error.readLog")).showAndWait();
                                        setFailed();
                                        return;
                                    }
@@ -153,6 +152,7 @@ public class ActiveTasksSynchronizer extends BaseSynchronizer<Task, Task, Active
 
     private boolean removeTask(List<Task> localTasksCopy, String taskId) {
         Iterator<Task> it = localTasksCopy.iterator();
+
         while (it.hasNext()) {
             Task task = it.next();
             if (task.getId() == taskId) {
@@ -166,7 +166,7 @@ public class ActiveTasksSynchronizer extends BaseSynchronizer<Task, Task, Active
 
     @Override
     protected void syncLocalData(GluonObservableList<ChangeLogEntry> log) {
-        // no-op
+        // no op
     }
 
 }

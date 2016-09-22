@@ -45,6 +45,7 @@ import com.jns.orienteering.util.Dialogs;
 import com.jns.orienteering.util.Icon;
 
 import javafx.application.Platform;
+import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -53,6 +54,7 @@ public class TasksPresenter extends ListViewPresenter<Task> {
 
     private static final String  TASKS_UPDATER         = "tasks_updater";
     private static final String  MISSION_TASKS_UPDATER = "mission_tasks_updater";
+
     @FXML
     private MobileLayoutPane     innerView;
 
@@ -94,7 +96,7 @@ public class TasksPresenter extends ListViewPresenter<Task> {
     @Override
     protected void initAppBar() {
         Button btnBack = isMissionEditorModus() ? createBackButton() : createGoHomeButton();
-        if (ViewRegistry.MISSION.getViewName().equals(service.getPreviousView())) {
+        if (ViewRegistry.MISSION.equals(service.getPreviousView())) {
             setAppBar(btnBack, getTitle(), tglAccessType);
         } else {
             setAppBar(btnBack, getTitle(), tglAccessType, choiceCityFilter);
@@ -105,13 +107,14 @@ public class TasksPresenter extends ListViewPresenter<Task> {
         Button btnSave = Icon.Buttons.save(e -> onUpdateMissionTasks());
         Button btnRemoveAllTasks = Icon.MAP_MARKER_OFF.button(e -> onRemoveMissionTasks());
         setActionBar(btnSave, btnRemoveAllTasks);
+        setActionBarVisible(false);
     }
 
     @Override
     protected void onShown() {
         super.onShown();
 
-        if (ViewRegistry.TASK.getViewName().equals(service.getPreviousView())) {
+        if (ViewRegistry.TASK.equals(service.getPreviousView())) {
             lview.refresh();
             service.setSelectedTask(null);
         } else {
@@ -131,7 +134,7 @@ public class TasksPresenter extends ListViewPresenter<Task> {
         String cityId = isMissionEditorModus() ? service.getTempCity() == null ? null : service.getTempCity().getTempCityId()
                 : service.getSelectedCityId();
         if (cityId == null) {
-            lview.getItems().clear();
+            lview.setItems(FXCollections.emptyObservableList());
             return;
         }
 
@@ -201,7 +204,12 @@ public class TasksPresenter extends ListViewPresenter<Task> {
     private void onDeleteTask(Task task) {
         Platform.runLater(() ->
         {
-            if (confirmDeleteAnswer("view.tasks.question.deleteTask").isYesOrOk()) {
+            if (!task.getOwnerId().equals(service.getUserId())) {
+                Dialogs.ok(localize("view.tasks.info.taskCanOnlyBeDeletedByOwner")).showAndWait();
+                return;
+            }
+
+            if (confirmDeleteAnswer(localize("view.tasks.question.deleteTask")).isYesOrOk()) {
                 try {
                     taskRepo.deleteTask(task);
                     lview.getListUpdater().remove(task);
@@ -215,7 +223,7 @@ public class TasksPresenter extends ListViewPresenter<Task> {
                     }
 
                 } catch (IOException e) {
-                    Dialogs.ok(localize("view.missions.error.deletingMissing")).showAndWait();
+                    Dialogs.ok(localize("view.tasks.error.deleteTask")).showAndWait();
                 }
             }
         });
