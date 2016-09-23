@@ -53,21 +53,26 @@ public class RepoSynchronizer {
     private SettingService                            settingService       = PlatformFactory.getPlatform().getSettingService();
 
     private Map<String, BaseSynchronizer<?, ?, ?>>    synchronizers        = new HashMap<>();
-    private CountProperty                             pendingSynchronizers = new CountProperty();
+    private SyncMetaData                              syncMetaData;
 
+    private CountProperty                             pendingSynchronizers = new CountProperty();
     private ObjectProperty<ConnectState>              syncState            = new SimpleObjectProperty<>(ConnectState.READY);
     private Map<String, ChangeListener<ConnectState>> syncStateListeners   = new HashMap<>();
 
-    private SyncMetaData                              syncMetaData;
+    private int                                       activeSynchronizers  = 0;
 
     public RepoSynchronizer() {
         pendingSynchronizers.addListener(l ->
         {
             LOGGER.debug("pendingSynchronizers: {}", pendingSynchronizers.get());
+
             if (pendingSynchronizers.get() > 0) {
                 syncState.set(ConnectState.RUNNING);
 
             } else if (pendingSynchronizers.get() == 0) {
+                if (activeSynchronizers > 0) {
+                    return;
+                }
                 if (pendingSynchronizers.succeeded()) {
                     syncState.set(ConnectState.SUCCEEDED);
                     storeLastSyncedTimeStamp(syncMetaData.getCurrentTimeStamp());
@@ -93,10 +98,6 @@ public class RepoSynchronizer {
         synchronizers.put(synchronizer.getName(), synchronizer);
     }
 
-    public BaseSynchronizer<?, ?, ?> getSynchronizer(String name) {
-        return synchronizers.get(name);
-    }
-
     public void syncNow(String synchronizerName, SyncMetaData syncMetaData) {
         this.syncMetaData = syncMetaData;
         setTimeStamps(syncMetaData);
@@ -107,11 +108,13 @@ public class RepoSynchronizer {
     }
 
     public void syncNow(SyncMetaData syncMetaData) {
+        this.syncMetaData = syncMetaData;
         setTimeStamps(syncMetaData);
 
         LOGGER.debug("lastSyncTimeStamp: {}", syncMetaData.getLastSynced());
 
         for (BaseSynchronizer<?, ?, ?> synchronizer : synchronizers.values()) {
+            activeSynchronizers++;
             synchronizer.syncStateProperty().addListener(getStateListener(synchronizer.getName()));
             synchronizer.syncNow(syncMetaData);
         }
@@ -129,18 +132,20 @@ public class RepoSynchronizer {
         {
             switch (st1) {
                 case RUNNING:
-                    LOGGER.debug("increment pendingSynchronizers, trigger: {}", synchronizerName);
+                    LOGGER.debug("increment pendingSynchronizers: {}", synchronizerName);
                     pendingSynchronizers.increment();
                     break;
 
                 case SUCCEEDED:
-                    LOGGER.debug("decrement pendingSynchronizers, trigger: {}", synchronizerName);
+                    LOGGER.debug("decrement pendingSynchronizers: {}", synchronizerName);
+                    activeSynchronizers--;
                     pendingSynchronizers.decrement();
                     removeStateListener(synchronizerName);
                     break;
 
                 case FAILED:
-                    LOGGER.debug("decrement exceptionally pendingSynchronizers, trigger: {}", synchronizerName);
+                    LOGGER.debug("decrement exceptionally pendingSynchronizers: {}", synchronizerName);
+                    activeSynchronizers--;
                     pendingSynchronizers.decrementExceptionally();
                     removeStateListener(synchronizerName);
                     break;

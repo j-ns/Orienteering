@@ -38,9 +38,7 @@ public class ImageLogEntry extends ChangeLogEntry {
     }
 
     public ImageLogEntry(Task task) {
-        setId(normalizeImageId(task.getImageId()));
-        setAction(RepoAction.DELETE);
-        setTimeStamp(task.getTimeStamp());
+        this(task.getImageId(), task.getTimeStamp());
     }
 
     public ImageLogEntry(String imageId, long timeStamp) {

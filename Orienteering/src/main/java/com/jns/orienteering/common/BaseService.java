@@ -44,7 +44,6 @@ import com.gluonhq.connect.GluonObservableObject;
 import com.jns.orienteering.model.common.ListUpdater;
 import com.jns.orienteering.model.common.StorableImage;
 import com.jns.orienteering.model.dynamic.CityHolder;
-import com.jns.orienteering.model.dynamic.CountProperty;
 import com.jns.orienteering.model.persisted.ActiveTaskList;
 import com.jns.orienteering.model.persisted.City;
 import com.jns.orienteering.model.persisted.Mission;
@@ -57,7 +56,6 @@ import com.jns.orienteering.model.repo.MissionFBRepo;
 import com.jns.orienteering.model.repo.RepoService;
 import com.jns.orienteering.model.repo.UserFBRepo;
 import com.jns.orienteering.model.repo.synchronizer.ActiveMissionSynchronizer;
-import com.jns.orienteering.model.repo.synchronizer.ActiveTasksSynchronizer;
 import com.jns.orienteering.model.repo.synchronizer.CitySynchronizer;
 import com.jns.orienteering.model.repo.synchronizer.ImageSynchronizer;
 import com.jns.orienteering.model.repo.synchronizer.RepoSynchronizer;
@@ -82,13 +80,12 @@ import javafx.scene.image.Image;
 
 public class BaseService {
 
-    private static final Logger             LOGGER             = LoggerFactory.getLogger(BaseService.class);
+    private static final Logger             LOGGER            = LoggerFactory.getLogger(BaseService.class);
 
     private RepoService                     repoService;
     private ActivatorDeactivatorService     activatorDeactivatorService;
 
-    private RepoSynchronizer                repoSynchronizer   = new RepoSynchronizer();
-    private CountProperty                   pendingResultCount = new CountProperty();
+    private RepoSynchronizer                repoSynchronizer  = new RepoSynchronizer();
 
     private UserFBRepo                      userCloudRepo;
     private LocalRepo<User, User>           userLocalRepo;
@@ -96,30 +93,30 @@ public class BaseService {
     private MissionFBRepo                   missionCloudRepo;
     private LocalRepo<Task, ActiveTaskList> activeTasksLocalRepo;
 
-    private ObjectProperty<User>            user               = new SimpleObjectProperty<>();
-    private StringProperty                  alias              = new SimpleStringProperty();
-    private ObjectProperty<Image>           profileImage       = new SimpleObjectProperty<>();
+    private ObjectProperty<User>            user              = new SimpleObjectProperty<>();
+    private StringProperty                  alias             = new SimpleStringProperty();
+    private ObjectProperty<Image>           profileImage      = new SimpleObjectProperty<>();
 
-    private GluonObservableList<City>       cities             = new GluonObservableList<>();
-    private ObjectProperty<City>            defaultCity        = new SimpleObjectProperty<>();
-    private ObjectProperty<City>            selectedCity       = new SimpleObjectProperty<>();
+    private GluonObservableList<City>       cities            = new GluonObservableList<>();
+    private ObjectProperty<City>            defaultCity       = new SimpleObjectProperty<>();
+    private ObjectProperty<City>            selectedCity      = new SimpleObjectProperty<>();
     private CityTempBuffer                  cityTempBuffer;
 
-    private ObjectProperty<Mission>         activeMission      = new SimpleObjectProperty<>();
-    private StringProperty                  activeMissionName  = new SimpleStringProperty();
-    private ObjectProperty<Mission>         selectedMission    = new SimpleObjectProperty<>();
+    private ObjectProperty<Mission>         activeMission     = new SimpleObjectProperty<>();
+    private StringProperty                  activeMissionName = new SimpleStringProperty();
+    private ObjectProperty<Mission>         selectedMission   = new SimpleObjectProperty<>();
 
-    private ObservableList<Task>            activeTasks        = FXCollections.observableArrayList();
+    private ObservableList<Task>            activeTasks       = FXCollections.observableArrayList();
     private Task                            selectedTask;
 
     private MissionStat                     activeMissionStats;
     private BooleanProperty                 stopMission;
 
-    private Map<String, ListUpdater<?>>     listUpdaters       = new HashMap<>();
+    private Map<String, ListUpdater<?>>     listUpdaters      = new HashMap<>();
 
     private String                          previousView;
 
-    private BooleanProperty                 initialized        = new SimpleBooleanProperty(false);
+    private BooleanProperty                 initialized       = new SimpleBooleanProperty(false);
 
     public BaseService() {
         MobileApplication.getInstance().viewProperty().addListener((obsValue, v, v1) ->
@@ -164,36 +161,22 @@ public class BaseService {
         citySynchronizer.setOnSynced(cities::setAll);
 
         ActiveMissionSynchronizer missionSynchronizer = new ActiveMissionSynchronizer(this);
-
         ImageSynchronizer imageSynchronizer = new ImageSynchronizer();
-        ActiveTasksSynchronizer activeTasksSynchronizer = new ActiveTasksSynchronizer(repoService.getCloudRepo(Task.class),
-                                                                                      repoService.getLocalRepo(Task.class));
-        activeTasksSynchronizer.setOnSynced(activeTasks::setAll);
 
         repoSynchronizer.addSynchronizer(citySynchronizer);
-        repoSynchronizer.addSynchronizer(activeTasksSynchronizer);
         repoSynchronizer.addSynchronizer(missionSynchronizer);
         repoSynchronizer.addSynchronizer(imageSynchronizer);
     }
 
     private void initUser() {
-        pendingResultCount.increment();
         user.addListener(userListener);
 
         boolean userExists = userLocalRepo.fileExists();
         if (!userExists) {
-            defaultCity.addListener(defaultCityListener);
-            activeMission.addListener(activeMissionListener);
-
-            initCities();
-            syncImageCache();
-            syncActiveMission();
-            initActiveTasks();
+            postUserInit();
 
             alias.set(localize("navigationdrawer.login"));
             setProfileImage(ImageHandler.AVATAR_PLACE_HOLDER);
-
-            pendingResultCount.decrement();
 
         } else {
             GluonObservableObject<User> obsUser = userLocalRepo.retrieveObjectAsync();
@@ -207,37 +190,24 @@ public class BaseService {
                                                                                     ImageHandler.AVATAR_PLACE_HOLDER);
 
                                    setProfileImage(image.get());
+                                   if (_user.getActiveMission() != null) {
+                                       updateActiveTasksFromCloud(_user.getActiveMission());
+                                   }
                                })
-                               .exceptionMessage(localize("baseService.error.loadingUser"))
-                               .finalize(() ->
-                               {
-                                   defaultCity.addListener(defaultCityListener);
-                                   activeMission.addListener(activeMissionListener);
-                                   pendingResultCount.decrement();
-
-                                   initCities();
-                                   syncImageCache();
-                                   syncActiveMission();
-                                   initActiveTasks();
-                               })
+                               .exceptionMessage(localize("baseService.error.loadUser"))
+                               .finalize(this::postUserInit)
                                .start();
         }
     }
 
-    private void initCities() {
-        repoSynchronizer.syncNow(CitySynchronizer.NAME, new SyncMetaData().userId(getUserId()));
-    }
+    private void postUserInit() {
+        defaultCity.addListener(defaultCityListener);
+        activeMission.addListener(activeMissionListener);
 
-    private void initActiveTasks() {
-        repoSynchronizer.syncNow(ActiveTasksSynchronizer.NAME, new SyncMetaData().activeMission(getActiveMission()));
-    }
+        SyncMetaData syncMetaData = new SyncMetaData().userId(getUserId())
+                                                      .activeMission(getActiveMission());
 
-    private void syncActiveMission() {
-        repoSynchronizer.syncNow(ActiveMissionSynchronizer.NAME, new SyncMetaData());
-    }
-
-    private void syncImageCache() {
-        repoSynchronizer.syncNow(ImageSynchronizer.NAME, new SyncMetaData());
+        repoSynchronizer.syncNow(syncMetaData);
     }
 
     private boolean                         userListenerActive;
@@ -280,20 +250,18 @@ public class BaseService {
 
     private ChangeListener<? super Mission> activeMissionListener = (ov, m, m1) ->
                                                                   {
-                                                                      if (userListenerActive) {
-                                                                          return;
+                                                                      if (!userListenerActive) {
+                                                                          User _user = getUser();
+                                                                          _user.setActiveMission(m1);
+                                                                          _user.setTimeStamp(userCloudRepo.createTimeStamp());
+
+                                                                          AsyncResultReceiver.create(userCloudRepo.createOrUpdateAsync(_user,
+                                                                                                                                       _user.getId()))
+                                                                          .defaultProgressLayer()
+                                                                          .start();
+
+                                                                          userLocalRepo.createOrUpdateAsync(_user);
                                                                       }
-
-                                                                      User _user = getUser();
-                                                                      _user.setActiveMission(m1);
-                                                                      _user.setTimeStamp(userCloudRepo.createTimeStamp());
-
-                                                                      AsyncResultReceiver.create(userCloudRepo.createOrUpdateAsync(_user,
-                                                                                                                                   _user.getId()))
-                                                                                         .defaultProgressLayer()
-                                                                                         .start();
-
-                                                                      userLocalRepo.createOrUpdateAsync(_user);
 
                                                                       activeMissionName.set(m1 == null ? null : m1.getMissionName());
 
@@ -306,7 +274,11 @@ public class BaseService {
                                                                       }
                                                                   };
 
-    private void updateActiveTasksFromCloud(Mission mission) {
+    public void updateActiveTasksFromCloud(Mission mission) {
+        if (mission == null) {
+            return;
+        }
+
         GluonObservableList<Task> obsActiveTasks = missionCloudRepo.retrieveTasksAsync(mission.getId());
 
         AsyncResultReceiver.create(obsActiveTasks)

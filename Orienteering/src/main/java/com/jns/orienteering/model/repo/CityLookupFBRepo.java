@@ -88,7 +88,7 @@ public class CityLookupFBRepo<T extends CityLookup, LT extends BaseModel> extend
     public void createOrUpdate(T lookup) throws IOException {
         try {
             String lookupPath = buildLookupPath(lookup);
-            updateRestClientPath(GET, lookupPath);
+            updateRestClientFromRelativePath(GET, lookupPath);
 
             T existingLookup = retrieveObject(lookupPath);
             if (existingLookup != null) {
@@ -106,7 +106,7 @@ public class CityLookupFBRepo<T extends CityLookup, LT extends BaseModel> extend
 
     public void deleteLookup(T lookup) throws IOException {
         String lookupPath = buildLookupPath(lookup) + "/" + lookupTargetUrl + "/" + lookup.getTargetId();
-        updateRestClientPath(GET, lookupPath);
+        updateRestClientFromRelativePath(GET, lookupPath);
 
         boolean urlExists = checkIfUrlExists(baseUrl, lookupPath);
         if (urlExists) {

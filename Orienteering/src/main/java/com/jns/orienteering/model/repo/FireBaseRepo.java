@@ -34,13 +34,9 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.BiConsumer;
-
-import javax.json.stream.JsonParsingException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -103,28 +99,22 @@ public class FireBaseRepo<T extends Model> {
     protected RestClient createRestClient() {
         RestClient client = RestClient.create().host(APP_ID);
         client.queryParam(AUTH_PARAM_NAME, CREDENTIALS);
-//        client.queryParam("print", "pretty");
+        // client.queryParam("print", "pretty");
         return client;
-    }
-
-    protected void recreateRestClient() {
-        restClient = createRestClient();
     }
 
     protected void updateRestClientUrl(String method, String... urlParts) {
         updateRestClient(method, buildFullUrl(urlParts));
     }
 
-    protected void updateRestClientPath(String method, String... urlParts) {
+    protected void updateRestClientFromRelativePath(String method, String... urlParts) {
         String url = buildFullUrlFromRelativePath(urlParts);
         updateRestClient(method, url);
-
-        LOGGER.debug("rest URL:  {} {}", method, url);
     }
 
     protected void updateRestClient(String method, String path) {
         if (Validators.isNullOrEmpty(path)) {
-            throw new IllegalArgumentException("restClient path must not be null or empty");
+            throw new IllegalArgumentException("restclient path must not be null or empty");
         }
         restClient.method(method);
         restClient.path(path);
@@ -162,10 +152,13 @@ public class FireBaseRepo<T extends Model> {
         String string = null;
 
         try {
-            updateRestClientUrl(GET, urlParts);
-            restClient.queryParam("shallow", "true");
+            RestClient client = createRestClient();
 
-            RestDataSource createRestDataSource = restClient.createRestDataSource();
+            client.method(GET);
+            client.path(buildFullUrl(urlParts));
+            client.queryParam("shallow", "true");
+
+            RestDataSource createRestDataSource = client.createRestDataSource();
             InputStream input = createRestDataSource.getInputStream();
 
             try (BufferedReader reader = new BufferedReader(new InputStreamReader(input, "UTF-8"))) {
@@ -175,17 +168,17 @@ public class FireBaseRepo<T extends Model> {
                     stringBuilder.append(line);
                 }
                 string = stringBuilder.toString();
-                LOGGER.debug("json: {}", string);
+                LOGGER.debug("payload: {}", string);
             }
         } catch (IOException e) {
-            LOGGER.error("Error on checkIfExists: '{}'", buildPath(urlParts), e);
+            LOGGER.error("Failed to checkIfExists: '{}'", buildPath(urlParts), e);
         }
         return string != null && !"null".equals(string);
     }
 
     public void createOrUpdate(T obj, String... urlParts) throws IOException {
         try {
-            updateRestClientPath(PUT, urlParts);
+            updateRestClientFromRelativePath(PUT, urlParts);
             writer().writeObject(obj);
 
         } catch (IOException e) {
@@ -195,51 +188,53 @@ public class FireBaseRepo<T extends Model> {
     }
 
     public GluonObservableObject<T> createOrUpdateAsync(T obj, String... urlParts) {
-        updateRestClientPath(PUT, urlParts);
+        updateRestClientFromRelativePath(PUT, urlParts);
         return DataProvider.storeObject(obj, writer());
     }
 
     public GluonObservableObject<RemoveObject> delete(String... urlParts) throws IOException {
         GluonObservableObject<RemoveObject> obs = RemoveObject.observableInstance(buildPath(urlParts));
+
         try {
-            updateRestClientPath(POST, urlParts);
-            restClient.queryParam(OVERRIDE_PARAMETER, "Delete");
-            remover().removeObject(obs);
+            RestClient client = createRestClient();
+            client.method(POST);
+            client.path(buildFullUrlFromRelativePath(urlParts));
+            client.queryParam(OVERRIDE_PARAMETER, "Delete");
+
+            remover(client).removeObject(obs);
 
         } catch (IOException e) {
-            LOGGER.error("Error deleting object: ''{}", urlParts, e);
-            restClient = createRestClient();
+            LOGGER.error("Failed to delete: '{}'", urlParts, e);
             throw e;
-        } catch (JsonParsingException e2) {
-            LOGGER.error("JsonParcingException on delete: '{}'", urlParts, e2);
         }
-        restClient = createRestClient();
         return obs;
     }
 
     public GluonObservableObject<RemoveObject> deleteAsync(String... urlParts) {
         GluonObservableObject<RemoveObject> obs = RemoveObject.observableInstance(buildPath(urlParts));
 
-        updateRestClientPath(POST, urlParts);
-        restClient.queryParam(OVERRIDE_PARAMETER, "Delete");
-        DataProvider.removeObject(obs, remover());
+        RestClient client = createRestClient();
+        client.method(POST);
+        client.path(buildFullUrlFromRelativePath(urlParts));
+        client.queryParam(OVERRIDE_PARAMETER, "Delete");
 
+        DataProvider.removeObject(obs, remover(client));
         return obs;
     }
 
     public T retrieveObject(String... urlParts) throws IOException {
         try {
-            updateRestClientPath(GET, urlParts);
+            updateRestClientFromRelativePath(GET, urlParts);
             return reader().readObject();
 
         } catch (IOException e) {
-            LOGGER.error("Error writing obj: {}", urlParts, e);
+            LOGGER.error("Failed to read: {}", urlParts, e);
             throw e;
         }
     }
 
     public GluonObservableObject<T> retrieveObjectAsync(String... urlParts) {
-        updateRestClientPath(GET, urlParts);
+        updateRestClientFromRelativePath(GET, urlParts);
         return DataProvider.retrieveObject(reader());
     }
 
@@ -252,7 +247,7 @@ public class FireBaseRepo<T extends Model> {
             }
 
         } catch (IOException e) {
-            LOGGER.error("Error adding item: '{}'", obj, e);
+            LOGGER.error("POST failed: '{}'", obj, e);
             throw e;
         }
         return obj;
@@ -264,39 +259,17 @@ public class FireBaseRepo<T extends Model> {
                 Postable p = (Postable) result;
                 obj.setId(p.getPostId());
             }
-            updateRestClientPath(PUT, obj.getId());
+            updateRestClientFromRelativePath(PUT, obj.getId());
             writer().writeObject(obj);
 
         } catch (IOException e) {
-            LOGGER.error("Error writing object: '{}'", obj, e);
+            LOGGER.error("Failed to write: '{}'", obj, e);
             throw e;
         }
-    }
-
-    public List<T> retrieveList(String... urlParts) throws IOException {
-        return retrieveList(listReader(), urlParts);
-    }
-
-    public List<T> retrieveList(ListDataReader<T> listReader, String... urlParts) throws IOException {
-        updateRestClientPath(GET, urlParts);
-
-        List<T> result = new ArrayList<>();
-        try {
-            for (Iterator<T> it = listReader().iterator(); it.hasNext();) {
-                T e = it.next();
-                if (e != null) {
-                    result.add(e);
-                }
-            }
-        } catch (IOException e) {
-            LOGGER.error("Error retrieving list", e);
-            throw e;
-        }
-        return result;
     }
 
     public GluonObservableList<T> retrieveListAsync(String... urlParts) {
-        updateRestClientPath(GET, urlParts);
+        updateRestClientFromRelativePath(GET, urlParts);
         return DataProvider.retrieveList(listReader());
     }
 
@@ -305,39 +278,48 @@ public class FireBaseRepo<T extends Model> {
     }
 
     public GluonObservableList<T> retrieveListFilteredAsync(String orderBy, Pair<String, String> filter, String... urlParts) {
-        updateRestClientPath(GET, urlParts);
-        restClient.queryParam("orderBy", "\"" + orderBy + "\"");
-        restClient.queryParam(filter.getKey(), filter.getValue());
-        GluonObservableList<T> result = DataProvider.retrieveList(listReader());
-        recreateRestClient();
+        RestClient client = createRestClient();
+        client.method(GET);
+        client.path(buildFullUrlFromRelativePath(urlParts));
+        client.queryParam("orderBy", "\"" + orderBy + "\"");
+        client.queryParam(filter.getKey(), filter.getValue());
+
+        GluonObservableList<T> result = DataProvider.retrieveList(listReader(client));
         return result;
     }
 
     public GluonObservableList<T> retrieveListFilteredAsync(String orderBy, List<Pair<String, String>> filters, String... urlParts) {
-        updateRestClientPath(GET, urlParts);
-        restClient.queryParam("orderBy", "\"" + orderBy + "\"");
+        RestClient client = createRestClient();
+        client.method(GET);
+        client.path(buildFullUrlFromRelativePath(urlParts));
+        client.queryParam("orderBy", "\"" + orderBy + "\"");
 
         for (Pair<String, String> filter : filters) {
-            restClient.queryParam(filter.getKey(), filter.getValue());
+            client.queryParam(filter.getKey(), filter.getValue());
         }
 
-        GluonObservableList<T> result = DataProvider.retrieveList(listReader());
-        recreateRestClient();
+        GluonObservableList<T> result = DataProvider.retrieveList(listReader(client));
         return result;
     }
 
     public GluonObservableObject<T> retrieveObjectFilteredAsync(String orderBy, Pair<String, String> filter, String... urlParts) {
-        updateRestClientPath(GET, urlParts);
-        restClient.queryParam("orderBy", "\"" + orderBy + "\"");
-        restClient.queryParam(filter.getKey(), filter.getValue());
-        return DataProvider.retrieveObject(reader());
+        RestClient client = createRestClient();
+        client.method(GET);
+        client.path(buildFullUrlFromRelativePath(urlParts));
+        client.queryParam("orderBy", "\"" + orderBy + "\"");
+        client.queryParam(filter.getKey(), filter.getValue());
+
+        return DataProvider.retrieveObject(reader(client));
     }
 
     public T retrieveObjectFiltered(String orderBy, Pair<String, String> filter, String... urlParts) throws IOException {
-        updateRestClientPath(GET, urlParts);
-        restClient.queryParam("orderBy", "\"" + orderBy + "\"");
-        restClient.queryParam(filter.getKey(), filter.getValue());
-        return reader().readObject();
+        RestClient client = createRestClient();
+        client.method(GET);
+        client.path(buildFullUrlFromRelativePath(urlParts));
+        client.queryParam("orderBy", "\"" + orderBy + "\"");
+        client.queryParam(filter.getKey(), filter.getValue());
+
+        return reader(client).readObject();
     }
 
     protected ObjectDataWriter<T> writer() {
@@ -345,11 +327,19 @@ public class FireBaseRepo<T extends Model> {
     }
 
     protected ObjectDataReader<T> reader() {
-        return restClient.createObjectDataReader(inputConverter);
+        return reader(restClient);
+    }
+
+    protected ObjectDataReader<T> reader(RestClient client) {
+        return client.createObjectDataReader(inputConverter);
     }
 
     protected ListDataReader<T> listReader() {
-        return restClient.createListDataReader(listInputConverter());
+        return listReader(restClient);
+    }
+
+    protected ListDataReader<T> listReader(RestClient client) {
+        return client.createListDataReader(listInputConverter());
     }
 
     protected InputStreamIterableInputConverter<T> listInputConverter() {
@@ -360,8 +350,12 @@ public class FireBaseRepo<T extends Model> {
     }
 
     protected ObjectDataRemover<RemoveObject> remover() {
-        return restClient.createObjectDataRemover(new JsonOutputConverterExtended<>(RemoveObject.class), new JsonInputConverterExtended<>(
-                                                                                                                                          RemoveObject.class));
+        return remover(restClient);
+    }
+
+    protected ObjectDataRemover<RemoveObject> remover(RestClient client) {
+        return client.createObjectDataRemover(new JsonOutputConverterExtended<>(RemoveObject.class), new JsonInputConverterExtended<>(
+                                                                                                                                      RemoveObject.class));
     }
 
     public long createTimeStamp() {

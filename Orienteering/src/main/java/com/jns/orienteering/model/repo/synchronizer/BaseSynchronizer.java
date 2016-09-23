@@ -52,6 +52,14 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 
+/**
+ * @param <CR>
+ *            type of the cloudRepo
+ * @param <LR>
+ *            type of the localRepo
+ * @param <L>
+ *            type of the locally stored data
+ */
 public abstract class BaseSynchronizer<CR extends Synchronizable, LR, L> {
 
     private static final Logger             LOGGER    = LoggerFactory.getLogger(BaseSynchronizer.class);
@@ -64,10 +72,9 @@ public abstract class BaseSynchronizer<CR extends Synchronizable, LR, L> {
     protected BiFunction<List<CR>, Long, L> cloudToLocalMapper;
     protected String                        listIdentifier;
 
+    private SyncMetaData                    syncMetaData;
     private ObjectProperty<ConnectState>    syncState = new SimpleObjectProperty<>(ConnectState.READY);
     private Consumer<List<CR>>              onSynced;
-
-    private SyncMetaData                    syncMetaData;
 
     public BaseSynchronizer(String listIdentifier) {
         this.listIdentifier = listIdentifier;
@@ -139,7 +146,7 @@ public abstract class BaseSynchronizer<CR extends Synchronizable, LR, L> {
                                setSucceeded();
                                LOGGER.debug("stored local data {}: {}", listIdentifier, result);
                            })
-                           .exceptionMessage(localize("baseService.error.storingDataLocally"))
+                           .exceptionMessage(localize("baseService.error.storeDataLocally"))
                            .onException(this::setFailed)
                            .start();
     }

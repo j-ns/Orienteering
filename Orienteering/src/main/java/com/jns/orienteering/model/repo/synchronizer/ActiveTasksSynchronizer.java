@@ -76,11 +76,12 @@ public class ActiveTasksSynchronizer extends BaseSynchronizer<Task, Task, Active
     private void syncActiveTasks() {
         boolean fileExists = localRepo.fileExists();
         if (!fileExists) {
-            if (getSyncMetaData().getActiveMission() != null) {
+            if (getSyncMetaData().getActiveMission() == null) {
+                getOnSynced().accept(FXCollections.observableArrayList());
+                setSucceeded();
+            } else {
                 retrieveCloudDataAndStoreLocally();
             }
-            getOnSynced().accept(FXCollections.emptyObservableList());
-            setSucceeded();
         } else {
             readChangeLogAndSyncLocalData();
         }
@@ -98,11 +99,11 @@ public class ActiveTasksSynchronizer extends BaseSynchronizer<Task, Task, Active
 
     @Override
     protected void readChangeLogAndSyncLocalData() {
-        GluonObservableList<Task> obsLocalData = localRepo.retrieveListAsync(TASK_LIST_IDENTIFIER);
-        AsyncResultReceiver.create(obsLocalData)
+        GluonObservableList<Task> obsLocalTasks = localRepo.retrieveListAsync(TASK_LIST_IDENTIFIER);
+        AsyncResultReceiver.create(obsLocalTasks)
                            .onSuccess(result ->
                            {
-                               // async laufen lassen
+                               // async?
                                List<Task> localTasksCopy = new ArrayList<>(result);
 
                                boolean localDataNeedsUpdate = false;
@@ -127,7 +128,7 @@ public class ActiveTasksSynchronizer extends BaseSynchronizer<Task, Task, Active
                                                    Task taskFromCloud = cloudRepo.retrieveObject(taskId);
                                                    localTasksCopy.add(taskFromCloud);
                                                    localDataNeedsUpdate = true;
-                                                   LOGGER.debug("task added / updated: {}, lastSynced: {}", taskFromCloud.getTaskName(), taskFromCloud
+                                                   LOGGER.debug("task added/updated: {}, lastSynced: {}", taskFromCloud.getTaskName(), taskFromCloud
                                                                                                                                                       .getTimeStamp());
                                                }
                                            }

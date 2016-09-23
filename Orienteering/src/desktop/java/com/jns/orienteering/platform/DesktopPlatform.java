@@ -32,9 +32,8 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.net.MalformedURLException;
 
+import com.gluonhq.charm.down.common.PlatformFactory;
 import com.gluonhq.charm.down.common.Position;
-import com.gluonhq.charm.down.common.SettingService;
-import com.gluonhq.charm.down.desktop.DesktopSettingService;
 
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -48,7 +47,6 @@ public class DesktopPlatform implements PlatformService {
 
     private static final String         DEFAULT_POSITION_KEY = "default_position";
 
-    private DesktopSettingService       settingService;
     private Storage                     storage;
     private DesktopInfoService          infoService;
     private FakeDesktopPositionService  positionService;
@@ -58,14 +56,6 @@ public class DesktopPlatform implements PlatformService {
 
     public DesktopPlatform() {
         super();
-    }
-
-    @Override
-    public SettingService getSettingService() {
-        if (settingService == null) {
-            settingService = new DesktopSettingService(getStorage().getPrivate().getAbsolutePath());
-        }
-        return settingService;
     }
 
     @Override
@@ -87,7 +77,7 @@ public class DesktopPlatform implements PlatformService {
     @Override
     public PositionServiceExtended getPositionService() {
         if (positionService == null) {
-            String defaultPosition = getSettingService().retrieve(DEFAULT_POSITION_KEY);
+            String defaultPosition = PlatformFactory.getPlatform().getSettingService().retrieve(DEFAULT_POSITION_KEY);
             if (defaultPosition == null) {
                 throw new IllegalArgumentException("startPosition for FakeDesktopPositionService is missing");
             }

@@ -89,7 +89,9 @@ public class UserPresenter extends BasePresenter {
 
         txtPassword.maskInput();
 
-        btnLogInOrLogOff.setOnAction(e -> onLoginOrLogOff());
+        btnLogInOrLogOff.setOnAction(e ->
+
+        onLoginOrLogOff());
         btnLogInOrLogOff.textProperty().bind(
                                              new When(service.userProperty().isNull()).then(localize("view.user.button.login"))
                                                                                       .otherwise(localize("view.user.button.logoff")));
@@ -193,7 +195,6 @@ public class UserPresenter extends BasePresenter {
 
         service.setUser(null);
         service.setProfileImage(ImageHandler.AVATAR_PLACE_HOLDER);
-
         setFields(new User());
     }
 

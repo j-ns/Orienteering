@@ -27,27 +27,43 @@
  */
 package com.jns.orienteering.model.repo.synchronizer;
 
+import com.gluonhq.connect.ConnectState;
 import com.gluonhq.connect.GluonObservableList;
 import com.gluonhq.connect.GluonObservableObject;
 import com.jns.orienteering.common.BaseService;
 import com.jns.orienteering.model.common.AccessType;
 import com.jns.orienteering.model.persisted.ChangeLogEntry;
 import com.jns.orienteering.model.persisted.Mission;
+import com.jns.orienteering.model.persisted.Task;
 import com.jns.orienteering.model.persisted.User;
 import com.jns.orienteering.model.repo.AsyncResultReceiver;
 import com.jns.orienteering.model.repo.FireBaseRepo;
 import com.jns.orienteering.util.Dialogs;
 
+import javafx.beans.property.SimpleObjectProperty;
+
 public class ActiveMissionSynchronizer extends BaseSynchronizer<User, User, User> {
 
-    public static final String  NAME                     = "mission_synchronizer";
-    private static final String MISSIONS_LIST_IDENTIFIER = "missions";
+    public static final String      NAME                     = "mission_synchronizer";
+    private static final String     MISSIONS_LIST_IDENTIFIER = "missions";
 
-    private BaseService         service;
+    private ActiveTasksSynchronizer activeTasksSynchronizer;
+
+    private BaseService             service;
 
     public ActiveMissionSynchronizer(BaseService service) {
         super(service.getRepoService().getCloudRepo(User.class), service.getRepoService().getLocalRepo(User.class));
         this.service = service;
+
+        activeTasksSynchronizer = new ActiveTasksSynchronizer(service.getRepoService().getCloudRepo(Task.class),
+                                                              service.getRepoService().getLocalRepo(Task.class));
+        activeTasksSynchronizer.setOnSynced(result -> service.getActiveTasks().setAll(result));
+        activeTasksSynchronizer.syncStateProperty().addListener((obsValue, st, st1) ->
+        {
+            if (st1 == ConnectState.SUCCEEDED || st1 == ConnectState.FAILED) {
+                ((SimpleObjectProperty<ConnectState>) syncStateProperty()).set(st1);
+            }
+        });
     }
 
     @Override
@@ -58,11 +74,7 @@ public class ActiveMissionSynchronizer extends BaseSynchronizer<User, User, User
     @Override
     public void syncNow(SyncMetaData syncMetaData) {
         setRunning();
-        setSyncMetaData(syncMetaData);
-        syncActiveMission();
-    }
 
-    private void syncActiveMission() {
         User user = service.getUser();
         if (user == null) {
             setSucceeded();
@@ -75,24 +87,31 @@ public class ActiveMissionSynchronizer extends BaseSynchronizer<User, User, User
             return;
         }
 
-        FireBaseRepo<Mission> missionCloudRepo = service.getRepoService().getCloudRepo(Mission.class);
+        setSyncMetaData(syncMetaData);
+        syncActiveMission(activeMission.getId(), user.getId());
+    }
 
-        AsyncResultReceiver.create(retrieveChangeLogEntryAsync(MISSIONS_LIST_IDENTIFIER, activeMission.getId()))
+    private void syncActiveMission(String activeMissionId, String userId) {
+
+        GluonObservableObject<ChangeLogEntry> obsMissionLogEntry = retrieveChangeLogEntryAsync(MISSIONS_LIST_IDENTIFIER, activeMissionId);
+        AsyncResultReceiver.create(obsMissionLogEntry)
                            .onSuccess(result ->
                            {
                                ChangeLogEntry logEntry = result.get();
                                if (logEntry == null || logEntry.getTimeStamp() < getSyncMetaData().getLastSynced()) {
-                                   setSucceeded();
+                                   activeTasksSynchronizer.syncNow(getSyncMetaData());
                                    return;
                                }
 
                                switch (logEntry.getAction()) {
                                    case DELETE:
                                        service.setActiveMission(null);
+                                       setSucceeded();
                                        Dialogs.ok("missionSynchronizer.info.activeMissionDeletedByOwner").showAndWait();
                                        break;
 
                                    case UPDATE:
+                                       FireBaseRepo<Mission> missionCloudRepo = service.getRepoService().getCloudRepo(Mission.class);
                                        GluonObservableObject<Mission> obsActiveMission = missionCloudRepo.retrieveObjectAsync(logEntry
                                                                                                                                       .getTargetId());
                                        AsyncResultReceiver.create(obsActiveMission)
@@ -101,11 +120,12 @@ public class ActiveMissionSynchronizer extends BaseSynchronizer<User, User, User
                                                               Mission _activeMission = resultActiveMission.get();
                                                               if (_activeMission.getAccessType() == AccessType.PRIVATE && !_activeMission
                                                                                                                                          .getOwnerId()
-                                                                                                                                         .equals(user.getId())) {
+                                                                                                                                         .equals(userId)) {
                                                                   service.setActiveMission(null);
+                                                                  setSucceeded();
                                                               } else {
                                                                   service.setActiveMission(resultActiveMission.get());
-
+                                                                  activeTasksSynchronizer.syncNow(getSyncMetaData());
                                                               }
                                                           })
                                                           .start();
@@ -114,7 +134,6 @@ public class ActiveMissionSynchronizer extends BaseSynchronizer<User, User, User
                                    default:
                                        break;
                                }
-                               setSucceeded();
                            })
                            .onException(this::setFailed)
                            .start();
@@ -122,7 +141,7 @@ public class ActiveMissionSynchronizer extends BaseSynchronizer<User, User, User
 
     @Override
     protected void syncLocalData(GluonObservableList<ChangeLogEntry> log) {
-        // noop
+        // no op
     }
 
 }

@@ -53,13 +53,14 @@ public class ImageSynchronizer extends BaseSynchronizer<Task, Task, ActiveTaskLi
 
     @Override
     public void syncNow(SyncMetaData syncMetaData) {
+        setRunning();
         LocalDate firstOfMonth = LocalDate.now().withDayOfMonth(1);
 
         if (!syncMetaData.isLastSyncedBefore(firstOfMonth)) {
+            setSucceeded();
             return;
         }
 
-        setRunning();
         setSyncMetaData(syncMetaData);
 
         AsyncResultReceiver.create(retrieveChangeLog(IMAGE_LIST_IDENTIFIER))

@@ -38,7 +38,6 @@ import java.io.InputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.gluonhq.charm.down.common.SettingService;
 import com.jns.orienteering.util.DateTimeFormatters;
 
 import android.content.Context;
@@ -90,11 +89,6 @@ public class AndroidPlatform implements PlatformService {
             storage = new AndroidStorage();
         }
         return storage;
-    }
-
-    @Override
-    public SettingService getSettingService() {
-        return new AndroidPlatform().getSettingService();
     }
 
     @Override
