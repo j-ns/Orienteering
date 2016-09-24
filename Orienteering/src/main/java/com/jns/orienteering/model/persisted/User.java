@@ -32,11 +32,7 @@ import static com.jns.orienteering.util.DateTimeFormatters.createTimeStamp;
 
 import java.util.Objects;
 
-import javax.xml.bind.annotation.XmlTransient;
-
 import com.jns.orienteering.model.common.JsonDefaultConstructor;
-
-import javafx.scene.image.Image;
 
 public class User extends BaseSynchronizable {
 
@@ -46,8 +42,6 @@ public class User extends BaseSynchronizable {
     private String  imageId;
     private Mission activeMission;
     private City    defaultCity;
-
-    private Image   image;
 
     @JsonDefaultConstructor
     public User() {
@@ -60,19 +54,6 @@ public class User extends BaseSynchronizable {
         this.password = password;
         imageId = createImageId();
         this.defaultCity = defaultCity;
-    }
-
-    private String createImageId() {
-        return id + "_" + createTimeStamp() + ".jpg";
-    }
-
-    @XmlTransient
-    public Image getImage() {
-        return image;
-    }
-
-    public void setImage(Image image) {
-        this.image = image;
     }
 
     public String getAlias() {
@@ -97,6 +78,10 @@ public class User extends BaseSynchronizable {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    private String createImageId() {
+        return id + "_" + createTimeStamp() + ".jpg";
     }
 
     public String getImageId() {

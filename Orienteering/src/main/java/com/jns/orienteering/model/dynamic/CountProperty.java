@@ -56,8 +56,8 @@ public class CountProperty extends SimpleIntegerProperty {
     }
 
     public void reset() {
-        exceptionCount = 0;
         set(0);
+        exceptionCount = 0;
     }
 
     public boolean succeeded() {

@@ -67,6 +67,15 @@
 	-fx-effect: null;
 }
 
+.app-bar > .nav-area > .icon-toggle:hover{
+	-fx-background-color: null;
+}
+
+.app-bar > .nav-area > .icon-toggle:pressed{
+	-fx-background-color: -color-accent;
+}
+
+.app-bar > .nav-area > .icon-toggle,
 .app-bar > .action-items > .toggle-button,
 .app-bar > .action-items .button {
 	-fx-background-color: null;

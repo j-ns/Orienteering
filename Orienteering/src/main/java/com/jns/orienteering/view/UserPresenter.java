@@ -42,7 +42,6 @@ import com.jns.orienteering.control.FloatingTextField;
 import com.jns.orienteering.model.persisted.User;
 import com.jns.orienteering.model.repo.AsyncResultReceiver;
 import com.jns.orienteering.model.repo.FireBaseRepo.RemoveObject;
-import com.jns.orienteering.model.repo.LocalRepo;
 import com.jns.orienteering.model.repo.UserFBRepo;
 import com.jns.orienteering.util.Dialogs;
 
@@ -57,41 +56,35 @@ import javafx.scene.layout.VBox;
 public class UserPresenter extends BasePresenter {
 
     @FXML
-    private Avatar                avatar;
+    private Avatar            avatar;
     @FXML
-    private VBox                  boxTextFields;
+    private VBox              boxTextFields;
     @FXML
-    private FloatingTextField     txtUserName;
+    private FloatingTextField txtUserName;
     @FXML
-    private FloatingTextField     txtPassword;
+    private FloatingTextField txtPassword;
     @FXML
-    private Button                btnLogInOrLogOff;
+    private Button            btnLogInOrLogOff;
     @FXML
-    private Button                btnSignUpOrUpdate;
+    private Button            btnSignUpOrUpdate;
     @FXML
-    private Button                btnDeleteUser;
+    private Button            btnDeleteUser;
 
     @Inject
-    private BaseService           service;
+    private BaseService       service;
 
-    private UserFBRepo            userCloudRepo;
-    private LocalRepo<User, User> userLocalRepo;
+    private UserFBRepo        userCloudRepo;
 
     @Override
     protected void initialize() {
         super.initialize();
-
-        userCloudRepo = service.getRepoService().getCloudRepo(User.class);
-        userLocalRepo = service.getRepoService().getLocalRepo(User.class);
 
         avatar.setRadius(38);
         avatar.imageProperty().bind(service.profileImageProperty());
 
         txtPassword.maskInput();
 
-        btnLogInOrLogOff.setOnAction(e ->
-
-        onLoginOrLogOff());
+        btnLogInOrLogOff.setOnAction(e -> onLoginOrLogOff());
         btnLogInOrLogOff.textProperty().bind(
                                              new When(service.userProperty().isNull()).then(localize("view.user.button.login"))
                                                                                       .otherwise(localize("view.user.button.logoff")));
@@ -103,6 +96,8 @@ public class UserPresenter extends BasePresenter {
 
         btnDeleteUser.setOnAction(e -> onDeleteUser());
         btnDeleteUser.visibleProperty().bind(service.userProperty().isNotNull());
+
+        userCloudRepo = service.getRepoService().getCloudRepo(User.class);
 
         // test:
         if (JavaFXPlatform.isDesktop()) {
@@ -136,63 +131,61 @@ public class UserPresenter extends BasePresenter {
 
     private void onLoginOrLogOff() {
         if (service.getUser() == null) {
+            if (isNullOrEmpty(txtUserName.getText())) {
+                Dialogs.ok(localize("view.user.info.enterName")).showAndWait();
+                return;
+            }
+            if (isNullOrEmpty(txtPassword.getText())) {
+                Dialogs.ok(localize("view.user.info.enterPassword")).showAndWait();
+                return;
+            }
             login();
+
         } else {
             logoff();
         }
     }
 
     private void login() {
-        if (isNullOrEmpty(txtUserName.getText())) {
-            Dialogs.ok(localize("view.user.info.enterName")).showAndWait();
-            return;
-        }
-
-        if (isNullOrEmpty(txtPassword.getText())) {
-            Dialogs.ok(localize("view.user.info.enterPassword")).showAndWait();
-            return;
-        }
-
         GluonObservableObject<User> obsUser = userCloudRepo.retrieveObjectAsync(txtUserName.getText());
         AsyncResultReceiver.create(obsUser)
                            .defaultProgressLayer()
                            .onSuccess(resultUser ->
                            {
-                               if (resultUser.get() == null) {
+                               User user = resultUser.get();
+                               if (user == null) {
                                    Dialogs.ok(localize("view.user.info.userDoesntExist")).showAndWait();
-
-                               } else {
-                                   String enteredPassword = txtPassword.getText();
-                                   String storedPassword = resultUser.get().getPassword();
-
-                                   if (enteredPassword.compareTo(storedPassword) != 0) {
-                                       Dialogs.ok(localize("view.user.info.wrongPassword")).showAndWait();
-
-                                   } else {
-                                       userLocalRepo.createOrUpdateAsync(resultUser.get());
-
-                                       GluonObservableObject<Image> obsImage = ImageHandler.retrieveImageAsync(resultUser.get().getImageUrl(),
-                                                                                                               ImageHandler.AVATAR_PLACE_HOLDER);
-                                       AsyncResultReceiver.create(obsImage)
-                                                          .defaultProgressLayer()
-                                                          .onSuccess(resultImage -> service.setProfileImage(resultImage.get()))
-                                                          .finalize(() ->
-                                                          {
-                                                              service.setUser(resultUser.get());
-
-                                                              showHomeView();
-                                                              platformService().getInfoService().showToast(localize("view.user.info.userLoggedIn"));
-                                                          })
-                                                          .start();
-                                   }
+                                   return;
                                }
-                           })
-                           .start();
+                               if (!validatePassword(user.getPassword(), txtPassword.getText())) {
+                                   return;
+                               }
+
+                               GluonObservableObject<Image> obsImage = ImageHandler.retrieveImageAsync(user.getImageUrl(),
+                                                                                                       ImageHandler.AVATAR_PLACE_HOLDER);
+                               AsyncResultReceiver.create(obsImage)
+                                                  .defaultProgressLayer()
+                                                  .onSuccess(resultImage -> service.setProfileImage(resultImage.get()))
+                                                  .finalize(() ->
+                                                  {
+                                                      service.setUser(resultUser.get());
+                                                      showHomeView();
+                                                      platformService().getInfoService().showToast(localize("view.user.info.userLoggedIn"));
+                                                  })
+                                                  .start();
+                           }).start();
+
+    }
+
+    private boolean validatePassword(String storedPassword, String enteredPassword) {
+        if (!enteredPassword.equals(storedPassword)) {
+            Dialogs.ok(localize("view.user.info.wrongPassword")).showAndWait();
+            return false;
+        }
+        return true;
     }
 
     private void logoff() {
-        userLocalRepo.deleteAsync();
-
         service.setUser(null);
         service.setProfileImage(ImageHandler.AVATAR_PLACE_HOLDER);
         setFields(new User());
@@ -200,7 +193,6 @@ public class UserPresenter extends BasePresenter {
 
     private void onDeleteUser() {
         if (confirmDeleteAnswer(localize("view.user.question.delete")).isYesOrOk()) {
-            userLocalRepo.deleteAsync();
             GluonObservableObject<RemoveObject> obsResult = userCloudRepo.deleteAsync(txtUserName.getText());
             AsyncResultReceiver.create(obsResult)
                                .onSuccess(e -> logoff())

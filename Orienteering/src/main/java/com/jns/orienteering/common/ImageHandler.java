@@ -118,7 +118,7 @@ public class ImageHandler {
             storage.create(storableImage.getContent(), targetUrl);
 
         } catch (StorageException e) {
-            LOGGER.error("Error uploading image: {}", targetUrl, e);
+            LOGGER.error("Failed to upload image: {}", targetUrl, e);
             imageCache.remove(targetUrl);
             throw e;
         }
@@ -136,70 +136,6 @@ public class ImageHandler {
         if (oldUrl != null) {
             deleteImage(oldUrl);
         }
-    }
-
-    public static GluonObservableObject<Image> deleteImageAsync(String url) {
-        return executeAsync(() -> deleteImage(url), obsImage -> GluonObservableHelper.setInitialized(obsImage, true));
-    }
-
-    public static void deleteImage(String url) {
-        imageCache.remove(url);
-
-        boolean deleted = storage.delete(url);
-        if (deleted) {
-            LOGGER.debug("deleted image: {}", url);
-        } else {
-            LOGGER.debug("delete image failed: {}", url);
-        }
-    }
-
-    public static void cacheImageAsync(String targetUrl) { // async?
-        executor.execute(() ->
-        {
-            Image localImage = imageCache.getImage(targetUrl);
-            if (localImage == null) {
-                imageCache.add(retrieveImageFromCloud(targetUrl));
-            }
-        });
-    }
-
-    private static GluonObservableObject<Image> executeAsync(Trigger action, Consumer<GluonObservableObject<Image>> onSuccess) {
-        GluonObservableObject<Image> obsImage = new GluonObservableObject<>();
-
-        executor.execute(() ->
-        {
-            try {
-                action.start();
-                onSuccess.accept(obsImage);
-            } catch (StorageException ex) {
-                GluonObservableHelper.setException(obsImage, ex);
-            }
-        });
-        return obsImage;
-    }
-
-    public static void loadInto(ImageView imageView, String url, boolean showDefaultPlaceHolder) {
-        loadInto(imageView, url, showDefaultPlaceHolder ? IMAGE_PLACE_HOLDER : null);
-    }
-
-    public static void loadInto(ImageView imageView, String url, Image placeHolder) {
-        if (isNullOrEmpty(url)) {
-            imageView.setImage(placeHolder);
-            return;
-        }
-
-        executor.execute(() ->
-        {
-            Image localImage = imageCache.getImage(url);
-            if (localImage != null) {
-                imageView.setImage(localImage);
-
-            } else {
-                StorableImage cloudImage = retrieveImageFromCloud(url);
-                imageView.setImage(cloudImage.get());
-                imageCache.add(cloudImage);
-            }
-        });
     }
 
     public static GluonObservableObject<Image> retrieveImageAsync(String url, Image placeHolder) {
@@ -252,6 +188,31 @@ public class ImageHandler {
         return StorableImage.emptyInstance();
     }
 
+    public static GluonObservableObject<Image> deleteImageAsync(String url) {
+        return executeAsync(() -> deleteImage(url), obsImage -> GluonObservableHelper.setInitialized(obsImage, true));
+    }
+
+    public static void deleteImage(String url) {
+        imageCache.remove(url);
+
+        boolean deleted = storage.delete(url);
+        if (deleted) {
+            LOGGER.debug("image deleted: {}", url);
+        } else {
+            LOGGER.debug("failed to delete image: {}", url);
+        }
+    }
+
+    public static void cacheImageAsync(String targetUrl) {
+        executor.execute(() ->
+        {
+            Image localImage = imageCache.getImage(targetUrl);
+            if (localImage == null) {
+                imageCache.add(retrieveImageFromCloud(targetUrl));
+            }
+        });
+    }
+
     public static void removeFromCacheAsync(GluonObservableList<ChangeLogEntry> changeLog) {
         if (isNullOrEmpty(changeLog)) {
             return;
@@ -264,6 +225,45 @@ public class ImageHandler {
         });
     }
 
+    public static void loadInto(ImageView imageView, String url, boolean showDefaultPlaceHolder) {
+        loadInto(imageView, url, showDefaultPlaceHolder ? IMAGE_PLACE_HOLDER : null);
+    }
+
+    public static void loadInto(ImageView imageView, String url, Image placeHolder) {
+        if (isNullOrEmpty(url)) {
+            imageView.setImage(placeHolder);
+            return;
+        }
+
+        executor.execute(() ->
+        {
+            Image localImage = imageCache.getImage(url);
+            if (localImage != null) {
+                imageView.setImage(localImage);
+
+            } else {
+                StorableImage cloudImage = retrieveImageFromCloud(url);
+                imageView.setImage(cloudImage.get());
+                imageCache.add(cloudImage);
+            }
+        });
+    }
+
+    private static GluonObservableObject<Image> executeAsync(Trigger action, Consumer<GluonObservableObject<Image>> onSuccess) {
+        GluonObservableObject<Image> obsImage = new GluonObservableObject<>();
+
+        executor.execute(() ->
+        {
+            try {
+                action.start();
+                onSuccess.accept(obsImage);
+            } catch (StorageException ex) {
+                GluonObservableHelper.setException(obsImage, ex);
+            }
+        });
+        return obsImage;
+    }
+
     // public static void shutdownExecutor() {
     // if (executor != null) {
     // executor.shutdown();
@@ -274,24 +274,25 @@ public class ImageHandler {
     private static class ImageCache {
 
         private static final String  IMAGES_DIR = "images";
-        private final File           iamgeStore;
+        private final File           imageStore;
 
         private Cache<String, Image> cache;
 
         private ImageCache() {
-            iamgeStore = PlatformProvider.getPlatform().getStorage().getPrivateFile(IMAGES_DIR);
+            imageStore = PlatformProvider.getPlatform().getStorage().getPrivateFile(IMAGES_DIR);
             cache = PlatformFactory.getPlatform().getCacheManager().createCache("image_cache");
 
-            LOGGER.debug("imageStore: {}", iamgeStore);
+            LOGGER.debug("imageStore: {}", imageStore);
         }
 
         public boolean add(StorableImage storableImage) {
-            if (storableImage.get() == null || isNullOrEmpty(storableImage.getTargetUrl())) {
-                return false;
-            }
             String targetUrl = storableImage.getTargetUrl();
 
-            File target = new File(iamgeStore, targetUrl);
+            if (storableImage.get() == null || isNullOrEmpty(targetUrl)) {
+                return false;
+            }
+
+            File target = new File(imageStore, targetUrl);
             if (target.exists()) {
                 LOGGER.debug("image already exists: {}", target);
                 return true;
@@ -302,9 +303,9 @@ public class ImageHandler {
                 storeImageLocal(storableImage, target);
                 cache.put(targetUrl, storableImage.get());
 
-                LOGGER.debug("cached image {}", targetUrl);
+                LOGGER.debug("image cached {}", targetUrl);
             } catch (IOException e) {
-                LOGGER.error("cache image failed: {}", targetUrl, e);
+                LOGGER.error("failed to cache image: {}", targetUrl, e);
                 return false;
             }
             return true;
@@ -325,7 +326,7 @@ public class ImageHandler {
 
                 } else {
                     cache.put(url, storedImage);
-                    LOGGER.debug("image loaded from disk into cache {}", url);
+                    LOGGER.debug("image found on disk, and cached {}", url);
                     return storedImage;
                 }
             }
@@ -338,16 +339,16 @@ public class ImageHandler {
             }
             cache.remove(url);
 
-            File storedFile = new File(iamgeStore, url);
+            File storedFile = new File(imageStore, url);
             if (storedFile.isFile()) {
                 boolean deleted = storedFile.delete();
                 if (deleted) {
-                    LOGGER.debug("image removed from cache and disk: {}", url);
+                    LOGGER.debug("image removed from disk and cache: {}", url);
                 } else {
                     LOGGER.debug("failed to delete file: {}", url);
                 }
             } else {
-                LOGGER.info("failed to delete url: {} (file does not exist, or is not a file)", url);
+                LOGGER.info("failed to delete file: {} (file does not exist, or is not a file)", url);
             }
         }
 
@@ -358,7 +359,7 @@ public class ImageHandler {
         }
 
         private Image loadLocalImage(String url) {
-            File file = new File(iamgeStore, url);
+            File file = new File(imageStore, url);
             return file.exists() ? new Image(file.toURI().toString()) : null;
         }
 

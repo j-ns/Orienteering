@@ -145,7 +145,7 @@ public class BaseService {
 
         initRepos();
         initSynchronizers();
-        initUser();
+        initData();
     }
 
     private void initRepos() {
@@ -168,13 +168,10 @@ public class BaseService {
         repoSynchronizer.addSynchronizer(imageSynchronizer);
     }
 
-    private void initUser() {
-        user.addListener(userListener);
-
+    private void initData() {
         boolean userExists = userLocalRepo.fileExists();
         if (!userExists) {
             postUserInit();
-
             alias.set(localize("navigationdrawer.login"));
             setProfileImage(ImageHandler.AVATAR_PLACE_HOLDER);
 
@@ -185,14 +182,17 @@ public class BaseService {
                                {
                                    User _user = result.get();
                                    setUser(_user);
+                                   alias.set(_user.getAlias());
+                                   setDefaultCity(_user.getDefaultCity());
+                                   setActiveMission(_user.getActiveMission());
 
                                    StorableImage image = ImageHandler.retrieveImage(_user.getImageUrl(),
                                                                                     ImageHandler.AVATAR_PLACE_HOLDER);
 
                                    setProfileImage(image.get());
-                                   if (_user.getActiveMission() != null) {
-                                       updateActiveTasksFromCloud(_user.getActiveMission());
-                                   }
+                                   // if (_user.getActiveMission() != null) {
+                                   // updateActiveTasksFromCloud(_user.getActiveMission());
+                                   // }
                                })
                                .exceptionMessage(localize("baseService.error.loadUser"))
                                .finalize(this::postUserInit)
@@ -201,13 +201,14 @@ public class BaseService {
     }
 
     private void postUserInit() {
-        defaultCity.addListener(defaultCityListener);
+        user.addListener(userListener);
         activeMission.addListener(activeMissionListener);
+        defaultCity.addListener(defaultCityListener);
 
         SyncMetaData syncMetaData = new SyncMetaData().userId(getUserId())
                                                       .activeMission(getActiveMission());
-
         repoSynchronizer.syncNow(syncMetaData);
+
     }
 
     private boolean                         userListenerActive;
@@ -215,9 +216,10 @@ public class BaseService {
                                                                   {
                                                                       userListenerActive = true;
                                                                       if (u1 != null) {
-                                                                          if (u1.getDefaultCity() != null) {
-                                                                              setDefaultCity(u1.getDefaultCity());
-                                                                          } else {
+                                                                          userLocalRepo.createOrUpdateAsync(u1);
+
+                                                                          setDefaultCity(u1.getDefaultCity());
+                                                                          if (u1.getDefaultCity() == null) {
                                                                               Platform.runLater(() -> Dialogs.ok("baseService.info.selectDefaultCity")
                                                                                                              .showAndWait());
                                                                           }
@@ -227,6 +229,7 @@ public class BaseService {
                                                                           LOGGER.debug("user logged in: {}", u1.getAlias());
 
                                                                       } else {
+                                                                          userLocalRepo.deleteAsync();
                                                                           alias.set(localize("navigationdrawer.login"));
                                                                           setDefaultCity(null);
                                                                           setActiveMission(null);
@@ -257,30 +260,29 @@ public class BaseService {
 
                                                                           AsyncResultReceiver.create(userCloudRepo.createOrUpdateAsync(_user,
                                                                                                                                        _user.getId()))
-                                                                          .defaultProgressLayer()
-                                                                          .start();
+                                                                                             .defaultProgressLayer()
+                                                                                             .start();
 
                                                                           userLocalRepo.createOrUpdateAsync(_user);
                                                                       }
 
-                                                                      activeMissionName.set(m1 == null ? null : m1.getMissionName());
-
                                                                       if (m1 != null) {
+                                                                          activeMissionName.set(m1.getMissionName());
                                                                           updateActiveTasksFromCloud(m1);
                                                                           LOGGER.debug("activeMission set to: {}", m1.getMissionName());
 
                                                                       } else {
+                                                                          activeMissionName.set(null);
                                                                           activeTasksLocalRepo.deleteAsync();
                                                                       }
                                                                   };
 
-    public void updateActiveTasksFromCloud(Mission mission) {
+    private void updateActiveTasksFromCloud(Mission mission) {
         if (mission == null) {
             return;
         }
 
         GluonObservableList<Task> obsActiveTasks = missionCloudRepo.retrieveTasksAsync(mission.getId());
-
         AsyncResultReceiver.create(obsActiveTasks)
                            .onSuccess(result ->
                            {

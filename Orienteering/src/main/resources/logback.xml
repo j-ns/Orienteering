@@ -14,7 +14,7 @@
 <!-- 	<logger name="com.jns.orienteering.control.cell" level="OFF" /> -->
 	<logger name="com.jns.orienteering.control.skin" level="OFF" />
 
-	<root level="DEBUG">
+	<root level="INFO">
 		<appender-ref ref="STDOUT" />
 	</root>
 

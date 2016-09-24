@@ -64,7 +64,7 @@ public class FireBaseStorage {
                                     .build()
                                     .service();
         } catch (IOException e) {
-            LOGGER.error("Initialize FireBaseStorage failed", e);
+            LOGGER.error("Failed to initialize FireBaseStorage", e);
         }
     }
 

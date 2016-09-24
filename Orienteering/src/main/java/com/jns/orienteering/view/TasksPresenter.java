@@ -71,7 +71,7 @@ public class TasksPresenter extends ListViewPresenter<Task> {
         fab.visibleProperty().bind(service.userProperty().isNotNull());
 
         lview.setOnSelection(this::onTaskSelected);
-        lview.setComparator((t, t1) -> t.getTaskName().compareTo(t1.getTaskName()));
+        lview.setComparator(Task::compareTo);
 
         initActionBar();
 

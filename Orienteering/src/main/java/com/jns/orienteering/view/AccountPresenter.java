@@ -47,7 +47,6 @@ import com.jns.orienteering.model.common.StorableImage;
 import com.jns.orienteering.model.persisted.City;
 import com.jns.orienteering.model.persisted.User;
 import com.jns.orienteering.model.repo.AsyncResultReceiver;
-import com.jns.orienteering.model.repo.LocalRepo;
 import com.jns.orienteering.model.repo.UserFBRepo;
 import com.jns.orienteering.util.Dialogs;
 import com.jns.orienteering.util.Icon;
@@ -97,7 +96,6 @@ public class AccountPresenter extends BasePresenter {
     @Inject
     private BaseService                   service;
     private UserFBRepo                    userCloudRepo;
-    private LocalRepo<User, User>         userLocalRepo;
 
     private ObjectProperty<Image>         image = new SimpleObjectProperty<>();
     private boolean                       imageChanged;
@@ -106,9 +104,6 @@ public class AccountPresenter extends BasePresenter {
     @Override
     protected void initialize() {
         super.initialize();
-
-        userCloudRepo = service.getRepoService().getCloudRepo(User.class);
-        userLocalRepo = service.getRepoService().getLocalRepo(User.class);
 
         avatar.setRadius(38);
 
@@ -137,6 +132,8 @@ public class AccountPresenter extends BasePresenter {
         choiceDefaultCity.setStringConverter(City::getCityName);
         choiceDefaultCity.setItems(service.getCities());
 
+        userCloudRepo = service.getRepoService().getCloudRepo(User.class);
+
         // test:
         if (JavaFXPlatform.isDesktop()) {
             view.addEventHandler(KeyEvent.KEY_RELEASED, evt ->
@@ -157,6 +154,7 @@ public class AccountPresenter extends BasePresenter {
     protected void onShowing() {
         super.onShowing();
         platformService().getNodePositionAdjuster(scrollPane, scrollPane.getScene().focusOwnerProperty());
+
         imageChanged = false;
 
         if (service.getUser() != null) {
@@ -184,10 +182,10 @@ public class AccountPresenter extends BasePresenter {
         txtUserName.setText(user.getId());
         txtAlias.setText(user.getAlias());
         txtEmailAdress.setText(user.getEmailAdress());
+        choiceDefaultCity.getSelectionModel().select(user.getDefaultCity());
         txtPassword.setText("");
         txtPasswordNew.setText("");
         txtPasswordConfirmation.setText("");
-        choiceDefaultCity.getSelectionModel().select(user.getDefaultCity());
     }
 
     private void onSignUpOrUpdate() {
@@ -203,23 +201,21 @@ public class AccountPresenter extends BasePresenter {
 
     private void update() {
         User updatedUser = createUser();
+        updatedUser.setActiveMission(service.getActiveMission());
 
         GluonObservableObject<User> obsUser = userCloudRepo.createOrUpdateAsync(updatedUser, updatedUser.getId());
         AsyncResultReceiver.create(obsUser)
                            .defaultProgressLayer()
                            .onSuccess(result ->
                            {
-                               userLocalRepo.createOrUpdateAsync(updatedUser);
-
                                if (imageChanged) {
                                    Image savedImage = saveImage(getImage(), updatedUser.getImageUrl(), sImage -> ImageHandler
                                                                                                                              .updateImageAsync(sImage,
                                                                                                                                                service.getUser()
                                                                                                                                                       .getImageUrl()));
-                                   if (savedImage != null) {
-                                       service.setProfileImage(savedImage);
-                                   }
+                                   service.setProfileImage(savedImage);
                                }
+
                                service.setUser(result.get());
                                showPreviousView();
                                platformService().getInfoService().showToast(localize("view.account.info.userUpdated"));
@@ -239,8 +235,6 @@ public class AccountPresenter extends BasePresenter {
                            .defaultProgressLayer()
                            .onSuccess(result ->
                            {
-                               userLocalRepo.createOrUpdateAsync(newUser);
-
                                Image savedImage = saveImage(getImage(), newUser.getImageUrl(), ImageHandler::storeImageAsync);
                                if (savedImage != null) {
                                    service.setProfileImage(getImage());
@@ -248,12 +242,10 @@ public class AccountPresenter extends BasePresenter {
 
                                service.setUser(result.get());
                                showView(ViewRegistry.HOME);
-
                                platformService().getInfoService().showToast(localize("view.account.info.userSignedUp"));
                            })
                            .exceptionMessage(localize("view.account.error.signupUser"))
                            .start();
-
     }
 
     private Image saveImage(Image image, String imageUrl, Consumer<StorableImage> imageHandler) {
@@ -277,23 +269,6 @@ public class AccountPresenter extends BasePresenter {
         return true;
     }
 
-    private User createUser() {
-        String password = isUpdateModus() ? storedPassword : txtPassword.getText();
-
-        User newUser = new User(txtUserName.getText(),
-                                txtAlias.getText(),
-                                txtEmailAdress.getText(),
-                                password,
-                                service.getDefaultCity());
-        // defaultCity als inputField
-
-        if (!imageChanged) {
-            newUser.setImageId(service.getUser().getImageId());
-        }
-
-        return newUser;
-    }
-
     private boolean validatePassword() {
         String password = txtPassword.getText();
         String passwordNew = txtPasswordNew.getText();
@@ -309,12 +284,12 @@ public class AccountPresenter extends BasePresenter {
                 User user = userCloudRepo.retrieveObject(service.getUserId());
                 storedPassword = user.getPassword();
 
-                if (password.compareTo(storedPassword) != 0) {
+                if (!password.equals(storedPassword)) {
                     Dialogs.ok(localize("view.account.info.wrongPassword")).showAndWait();
                     return false;
                 }
             } catch (IOException e) {
-                Dialogs.ok("view.account.error.retrieveUser").showAndWait();
+                Dialogs.ok(localize("view.account.error.retrieveUser")).showAndWait();
                 return false;
             }
 
@@ -341,6 +316,21 @@ public class AccountPresenter extends BasePresenter {
 
         }
         return true;
+    }
+
+    private User createUser() {
+        String password = isUpdateModus() ? storedPassword : txtPassword.getText();
+
+        User newUser = new User(txtUserName.getText(),
+                                txtAlias.getText(),
+                                txtEmailAdress.getText(),
+                                password,
+                                choiceDefaultCity.getSelectionModel().getSelectedItem());
+
+        if (!imageChanged) {
+            newUser.setImageId(service.getUser().getImageId());
+        }
+        return newUser;
     }
 
     private boolean isUpdateModus() {

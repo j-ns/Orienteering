@@ -68,9 +68,9 @@ public abstract class BaseSynchronizer<CR extends Synchronizable, LR, L> {
 
     protected FireBaseRepo<CR>              cloudRepo;
     protected LocalRepo<LR, L>              localRepo;
+    protected String                        listIdentifier;
 
     protected BiFunction<List<CR>, Long, L> cloudToLocalMapper;
-    protected String                        listIdentifier;
 
     private SyncMetaData                    syncMetaData;
     private ObjectProperty<ConnectState>    syncState = new SimpleObjectProperty<>(ConnectState.READY);

@@ -51,7 +51,6 @@ public class MissionsPresenter extends ListViewPresenter<Mission> {
     @Override
     protected void initialize() {
         super.initialize();
-        cloudRepo = service.getRepoService().getCloudRepo(Mission.class);
 
         FloatingActionButton fab = addFab(view, e -> onCreateMission());
         fab.visibleProperty().bind(service.userProperty().isNotNull());
@@ -60,6 +59,8 @@ public class MissionsPresenter extends ListViewPresenter<Mission> {
                                                          scrollEventFiler.slidingProperty()));
         lview.setComparator(Mission::compareTo);
         lview.setOnSelection(this::onSelectMission);
+
+        cloudRepo = service.getRepoService().getCloudRepo(Mission.class);
     }
 
     @Override

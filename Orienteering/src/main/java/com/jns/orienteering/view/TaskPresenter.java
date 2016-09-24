@@ -505,7 +505,7 @@ public class TaskPresenter extends BasePresenter {
     }
 
     private void onDelete() {
-        if (!confirmDeleteAnswer("view.tasks.question.deleteTask").isYesOrOk()) {
+        if (!confirmDeleteAnswer(localize("view.tasks.question.deleteTask")).isYesOrOk()) {
             return;
         }
 

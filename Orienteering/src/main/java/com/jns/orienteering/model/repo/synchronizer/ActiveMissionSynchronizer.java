@@ -27,6 +27,8 @@
  */
 package com.jns.orienteering.model.repo.synchronizer;
 
+import static com.jns.orienteering.locale.Localization.localize;
+
 import com.gluonhq.connect.ConnectState;
 import com.gluonhq.connect.GluonObservableList;
 import com.gluonhq.connect.GluonObservableObject;
@@ -57,10 +59,11 @@ public class ActiveMissionSynchronizer extends BaseSynchronizer<User, User, User
 
         activeTasksSynchronizer = new ActiveTasksSynchronizer(service.getRepoService().getCloudRepo(Task.class),
                                                               service.getRepoService().getLocalRepo(Task.class));
+
         activeTasksSynchronizer.setOnSynced(result -> service.getActiveTasks().setAll(result));
         activeTasksSynchronizer.syncStateProperty().addListener((obsValue, st, st1) ->
         {
-            if (st1 == ConnectState.SUCCEEDED || st1 == ConnectState.FAILED) {
+            if (st1 != ConnectState.RUNNING) {
                 ((SimpleObjectProperty<ConnectState>) syncStateProperty()).set(st1);
             }
         });
@@ -92,7 +95,6 @@ public class ActiveMissionSynchronizer extends BaseSynchronizer<User, User, User
     }
 
     private void syncActiveMission(String activeMissionId, String userId) {
-
         GluonObservableObject<ChangeLogEntry> obsMissionLogEntry = retrieveChangeLogEntryAsync(MISSIONS_LIST_IDENTIFIER, activeMissionId);
         AsyncResultReceiver.create(obsMissionLogEntry)
                            .onSuccess(result ->
@@ -107,13 +109,13 @@ public class ActiveMissionSynchronizer extends BaseSynchronizer<User, User, User
                                    case DELETE:
                                        service.setActiveMission(null);
                                        setSucceeded();
-                                       Dialogs.ok("missionSynchronizer.info.activeMissionDeletedByOwner").showAndWait();
+                                       Dialogs.ok(localize("missionSynchronizer.info.activeMissionDeletedByOwner")).showAndWait();
                                        break;
 
                                    case UPDATE:
                                        FireBaseRepo<Mission> missionCloudRepo = service.getRepoService().getCloudRepo(Mission.class);
-                                       GluonObservableObject<Mission> obsActiveMission = missionCloudRepo.retrieveObjectAsync(logEntry
-                                                                                                                                      .getTargetId());
+
+                                       GluonObservableObject<Mission> obsActiveMission = missionCloudRepo.retrieveObjectAsync(logEntry.getTargetId());
                                        AsyncResultReceiver.create(obsActiveMission)
                                                           .onSuccess(resultActiveMission ->
                                                           {

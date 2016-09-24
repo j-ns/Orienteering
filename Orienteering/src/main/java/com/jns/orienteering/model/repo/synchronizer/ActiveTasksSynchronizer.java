@@ -75,6 +75,7 @@ public class ActiveTasksSynchronizer extends BaseSynchronizer<Task, Task, Active
 
     private void syncActiveTasks() {
         boolean fileExists = localRepo.fileExists();
+
         if (!fileExists) {
             if (getSyncMetaData().getActiveMission() == null) {
                 getOnSynced().accept(FXCollections.observableArrayList());
@@ -129,7 +130,7 @@ public class ActiveTasksSynchronizer extends BaseSynchronizer<Task, Task, Active
                                                    localTasksCopy.add(taskFromCloud);
                                                    localDataNeedsUpdate = true;
                                                    LOGGER.debug("task added/updated: {}, lastSynced: {}", taskFromCloud.getTaskName(), taskFromCloud
-                                                                                                                                                      .getTimeStamp());
+                                                                                                                                                    .getTimeStamp());
                                                }
                                            }
                                        }
@@ -153,16 +154,17 @@ public class ActiveTasksSynchronizer extends BaseSynchronizer<Task, Task, Active
 
     private boolean removeTask(List<Task> localTasksCopy, String taskId) {
         Iterator<Task> it = localTasksCopy.iterator();
+        boolean removed = false;
 
         while (it.hasNext()) {
             Task task = it.next();
             if (task.getId() == taskId) {
                 it.remove();
                 LOGGER.debug("removed activeTask: {}, lastSynced: {}", task.getTaskName(), task.getTimeStamp());
-                return true;
+                removed = true;
             }
         }
-        return false;
+        return removed;
     }
 
     @Override

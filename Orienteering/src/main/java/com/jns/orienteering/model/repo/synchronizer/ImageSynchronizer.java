@@ -64,18 +64,15 @@ public class ImageSynchronizer extends BaseSynchronizer<Task, Task, ActiveTaskLi
         setSyncMetaData(syncMetaData);
 
         AsyncResultReceiver.create(retrieveChangeLog(IMAGE_LIST_IDENTIFIER))
-                           .onSuccess(result ->
-                           {
-                               ImageHandler.removeFromCacheAsync(result);
-                               setSucceeded();
-                           })
+                           .onSuccess(this::syncLocalData)
                            .onException(this::setFailed)
                            .start();
     }
 
     @Override
     protected void syncLocalData(GluonObservableList<ChangeLogEntry> log) {
-        // no op
+        ImageHandler.removeFromCacheAsync(log);
+        setSucceeded();
     }
 
 }
