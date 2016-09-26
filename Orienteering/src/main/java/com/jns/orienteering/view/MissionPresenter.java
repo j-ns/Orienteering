@@ -119,7 +119,6 @@ public class MissionPresenter extends BasePresenter {
     private FloatingActionButton                fab;
 
     private ToggleButton                        tglSort;
-
     private Task                                sortSource;
 
     @Override
@@ -204,8 +203,6 @@ public class MissionPresenter extends BasePresenter {
                                    .defaultProgressLayer()
                                    .onSuccess(result ->
                                    {
-                                       LOGGER.debug("items updater: {}", lviewMissionTasks.getListUpdater().getItems());
-                                       LOGGER.debug("items lview: {}", lviewMissionTasks.getItems());
                                        lviewMissionTasks.setItems(result);
                                        mapHelper.setMarkers(result);
                                        tasksBuffer = new ArrayList<>(result);
@@ -213,8 +210,6 @@ public class MissionPresenter extends BasePresenter {
                                    })
                                    .start();
             } else {
-                LOGGER.debug("items updater: {}", lviewMissionTasks.getListUpdater().getItems());
-                LOGGER.debug("items lview: {}", lviewMissionTasks.getItems());
                 lviewMissionTasks.refresh();
                 mapHelper.setMarkers(tasks);
                 service.setSelectedMission(null);
@@ -252,8 +247,6 @@ public class MissionPresenter extends BasePresenter {
                 } else {
                     int idxSource = tasks.indexOf(sortSource);
                     int idxTarget = tasks.indexOf(task);
-                    LOGGER.debug("idxSource: {}, idxTarget: {}", idxSource, idxTarget);
-
                     if (idxSource != idxTarget) {
                         tasks.remove(sortSource);
                         tasks.add(idxTarget, sortSource);
@@ -404,8 +397,6 @@ public class MissionPresenter extends BasePresenter {
 
     private void setListUpdater() {
         service.setListUpdater(MISSION_TASKS_UPDATER, lviewMissionTasks.getListUpdater(choiceAccess.getSelectionModel().getSelectedItem()));
-        LOGGER.debug("items updater: {}", lviewMissionTasks.getListUpdater().getItems());
-        LOGGER.debug("items lview: {}", lviewMissionTasks.getItems());
     }
 
     private void onDelete() {
