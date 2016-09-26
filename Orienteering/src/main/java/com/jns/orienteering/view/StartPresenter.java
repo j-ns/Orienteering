@@ -98,7 +98,6 @@ public class StartPresenter extends BasePresenter {
         Navigation navigationDrawer = ViewRegistry.getNavigation();
         navigationDrawer.aliasProperty().bind(service.aliasProperty());
         navigationDrawer.profileImageProperty().bind(service.profileImageProperty());
-
-    }
+     }
 
 }

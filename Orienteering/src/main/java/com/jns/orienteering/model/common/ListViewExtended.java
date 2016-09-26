@@ -88,9 +88,10 @@ public class ListViewExtended<T> extends ListView<T> implements ActivatableDeact
 
     public ListUpdater<T> getListUpdater() {
         if (listUpdater == null) {
-            listUpdater = new ListUpdater<>(backing != null ? backing : getItems(), comparator);
+            listUpdater = new ListUpdater<>(comparator);
             listUpdaterInitialized = true;
         }
+        listUpdater.setItems(backing != null ? backing : getItems());
         return listUpdater;
     }
 

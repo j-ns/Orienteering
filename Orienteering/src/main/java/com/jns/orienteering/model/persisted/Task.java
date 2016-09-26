@@ -64,6 +64,8 @@ public class Task extends BaseSynchronizable implements Postable, CityAssignable
 
     private Task       previousTask;
 
+    private int        orderNumber;
+
     @JsonDefaultConstructor
     public Task() {
         accessType = AccessType.PRIVATE;
@@ -235,6 +237,15 @@ public class Task extends BaseSynchronizable implements Postable, CityAssignable
 
     public boolean isCompleted() {
         return completed;
+    }
+
+    @XmlTransient
+    public int getOrderNumber() {
+        return orderNumber;
+    }
+
+    public void setOrderNumber(int orderNumber) {
+        this.orderNumber = orderNumber;
     }
 
     @Override

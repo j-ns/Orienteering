@@ -31,6 +31,7 @@ package com.jns.orienteering.model.persisted;
 import static com.jns.orienteering.util.Validators.isNullOrEmpty;
 
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -53,7 +54,7 @@ public class Mission extends BaseSynchronizable implements Postable, UpdatableLi
     private String               ownerId;
     private AccessType           accessType = AccessType.PRIVATE;
 
-    private Map<String, Boolean> tasksMap;
+    private Map<String, Integer> tasksMap;
     private Set<String>          taskIds;
 
     private double               distance;
@@ -188,22 +189,20 @@ public class Mission extends BaseSynchronizable implements Postable, UpdatableLi
     }
 
     @XmlTransient
-    public Map<String, Boolean> getTasksMap() {
+    public Map<String, Integer> getTasksMap() {
         if (tasksMap == null) {
             tasksMap = new HashMap<>();
         }
         return tasksMap;
     }
 
-    public void setTasksMap(Map<String, Boolean> tasksMap) {
-        this.tasksMap = tasksMap;
-    }
-
     public void updateTasksMap(List<Task> tasks) {
-        tasksMap = new HashMap<>();
+        tasksMap = new LinkedHashMap<>();
+
         if (!isNullOrEmpty(tasks)) {
+            int idx = 0;
             for (Task task : tasks) {
-                tasksMap.put(task.getId(), true);
+                tasksMap.put(task.getId(), idx++);
             }
         }
     }
@@ -251,10 +250,6 @@ public class Mission extends BaseSynchronizable implements Postable, UpdatableLi
         return new TasksByMissionLookup(this);
     }
 
-    public MissionsByTaskLookup createMissionsLookup() {
-        return new MissionsByTaskLookup(this);
-    }
-
     public TasksByMissionLookup createTasksByMissionLookup() {
         return new TasksByMissionLookup(this);
     }
@@ -281,7 +276,7 @@ public class Mission extends BaseSynchronizable implements Postable, UpdatableLi
         if (result == 0) {
             result = Integer.compare(maxPoints, other.maxPoints);
         }
-        return false;
+        return result == 0;
     }
 
     @Override

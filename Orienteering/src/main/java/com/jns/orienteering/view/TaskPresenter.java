@@ -533,7 +533,7 @@ public class TaskPresenter extends BasePresenter {
                 GluonObservableHelper.setInitialized(obsTask, true);
 
             } catch (IOException ex) {
-                LOGGER.error("Delete task: {} failed", task.getTaskName(), ex);
+                LOGGER.error("Failed to delete task: {}", task.getTaskName(), ex);
                 GluonObservableHelper.setException(obsTask, ex);
             }
         });

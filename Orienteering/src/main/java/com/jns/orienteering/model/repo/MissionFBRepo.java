@@ -29,12 +29,15 @@
 package com.jns.orienteering.model.repo;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.gluonhq.connect.GluonObservableList;
+import com.gluonhq.connect.GluonObservableObject;
 import com.gluonhq.connect.provider.DataProvider;
 import com.jns.orienteering.model.common.RepoAction;
 import com.jns.orienteering.model.persisted.Mission;
@@ -45,6 +48,10 @@ import com.jns.orienteering.model.persisted.MissionsByTaskLookup;
 import com.jns.orienteering.model.persisted.Task;
 import com.jns.orienteering.model.persisted.TasksByMissionLookup;
 import com.jns.orienteering.model.repo.readerwriter.RestMapReader;
+import com.jns.orienteering.util.GluonObservableHelper;
+
+import javafx.collections.FXCollections;
+import javafx.collections.transformation.SortedList;
 
 public class MissionFBRepo extends FireBaseRepo<Mission> {
 
@@ -88,6 +95,45 @@ public class MissionFBRepo extends FireBaseRepo<Mission> {
         return tasksLookupRepo.checkIfUrlExists(TASKS_BY_MISSION, missionId);
     }
 
+    public GluonObservableList<Task> retrieveOrderedTasksAsync(String missionId) {
+        String sourceUrl = buildPath(TASKS_BY_MISSION, missionId);
+
+        GluonObservableList<Task> obsTasks = new GluonObservableList<>();
+
+        RestMapReader<TasksByMissionLookup, Task> mapReader = new RestMapReader<>(createRestClient(), TasksByMissionLookup.class, sourceUrl,
+                                                                                  Task.class, TASKS);
+
+        GluonObservableList<Task> obsLookup = DataProvider.retrieveList(mapReader);
+        AsyncResultReceiver.create(obsLookup)
+                           .onSuccess(result ->
+                           {
+                               if (result == null) {
+                                   GluonObservableHelper.setInitialized(obsTasks, true);
+                               } else {
+                                   try {
+                                       @SuppressWarnings("unchecked")
+                                       Map<String, Integer> lookupMap = (Map<String, Integer>) mapReader.getMap();
+
+                                       for (Task task : result) {
+                                           task.setOrderNumber(lookupMap.get(task.getId()));
+                                       }
+
+                                       SortedList<Task> sortedList = new SortedList<>(result, (Task t, Task t1) -> Integer.compare(t.getOrderNumber(),
+                                                                                                                                   t1.getOrderNumber()));
+                                       obsTasks.setAll(FXCollections.observableArrayList(sortedList));
+                                       GluonObservableHelper.setInitialized(obsTasks, true);
+
+                                   } catch (IOException e) {
+                                       e.printStackTrace();
+                                       GluonObservableHelper.setException(obsTasks, e);
+                                   }
+                               }
+                           })
+                           .start();
+
+        return obsTasks;
+    }
+
     public GluonObservableList<Task> retrieveTasksAsync(String missionId) {
         String sourceUrl = buildPath(TASKS_BY_MISSION, missionId);
         return DataProvider.retrieveList(new RestMapReader<>(createRestClient(), TasksByMissionLookup.class, sourceUrl, Task.class, TASKS));
@@ -116,8 +162,8 @@ public class MissionFBRepo extends FireBaseRepo<Mission> {
 
         createOrUpdate(mission, mission.getId());
 
-        boolean tasksChanged = !tasksBuffer.containsAll(tasks) || !tasks.containsAll(tasksBuffer);
-        if (tasksChanged) {
+        // boolean tasksChanged = !tasksBuffer.containsAll(tasks) || !tasks.containsAll(tasksBuffer);
+        if (true) {
             TasksByMissionLookup previousTasksByMission = tasksLookupRepo.retrieveObject(mission.getId());
 
             tasksLookupRepo.createOrUpdateLookup(new TasksByMissionLookup(mission.getId(), mission.getTasksMap()));

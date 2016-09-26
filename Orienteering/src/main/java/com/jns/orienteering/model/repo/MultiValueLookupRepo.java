@@ -48,8 +48,6 @@ public class MultiValueLookupRepo<T extends MultiValueLookup> extends FireBaseRe
 
     public void deleteLookup(T lookup) throws IOException {
         delete(lookup.getId());
-
     }
-
 
 }

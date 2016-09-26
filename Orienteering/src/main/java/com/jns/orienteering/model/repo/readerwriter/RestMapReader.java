@@ -36,7 +36,9 @@ import com.gluonhq.connect.provider.ObjectDataReader;
 import com.gluonhq.connect.provider.RestClient;
 import com.jns.orienteering.model.common.MultiValueLookup;
 
-public class RestMapReader<T extends MultiValueLookup, E> extends AbstractRestObjectsReader<T, E> {
+public class RestMapReader<T extends MultiValueLookup<?>, E> extends AbstractRestObjectsReader<T, E> {
+
+    private Map<String, ?> map;
 
     public RestMapReader(RestClient client, Class<T> sourceClass, String sourceUrl, Class<E> targetClass, String targetUrl) {
         super(client, sourceClass, sourceUrl, targetClass, targetUrl);
@@ -44,6 +46,10 @@ public class RestMapReader<T extends MultiValueLookup, E> extends AbstractRestOb
 
     @Override
     protected void initKeysIterator(RestClient client) throws IOException {
+        if (keysIterator != null) {
+            return;
+        }
+
         ObjectDataReader<T> reader = client.createObjectDataReader(new JsonInputConverterExtended<>(sourceClass));
         T lookup = reader.readObject();
 
@@ -52,12 +58,19 @@ public class RestMapReader<T extends MultiValueLookup, E> extends AbstractRestOb
             return;
         }
 
-        Map<String, Boolean> keysMap = lookup.getValues();
-        if (keysMap != null) {
-            keysIterator = keysMap.keySet().iterator();
+        map = lookup.getValues();
+        if (map != null) {
+            keysIterator = map.keySet().iterator();
         } else {
             keysIterator = Collections.emptyIterator();
         }
+    }
+
+    public Map<String, ?> getMap() throws IOException {
+        if (keysIterator == null) {
+            initKeysIterator(client);
+        }
+        return map;
     }
 
 }

@@ -34,15 +34,15 @@ import java.util.Set;
 
 import javax.xml.bind.annotation.XmlTransient;
 
-public class MultiValueLookup extends BaseModel {
+public abstract class MultiValueLookup<V> extends BaseModel {
 
-    private Map<String, Boolean> values;
+    private Map<String, V> values;
 
     @JsonDefaultConstructor
     public MultiValueLookup() {
     }
 
-    public MultiValueLookup(String id, Map<String, Boolean> values) {
+    public MultiValueLookup(String id, Map<String, V> values) {
         this.id = id;
         this.values = values;
     }
@@ -53,25 +53,19 @@ public class MultiValueLookup extends BaseModel {
         return super.getId();
     }
 
-    public Map<String, Boolean> getValues() {
+    public Map<String, V> getValues() {
         if (values == null) {
             values = new HashMap<>();
         }
         return values;
     }
 
-    public void setValues(Map<String, Boolean> values) {
+    public void setValues(Map<String, V> values) {
         this.values = values;
     }
 
-    public void addValue(String id) {
-        getValues().put(id, true);
-    }
-
-    public void addValues(Set<String> targetIds) {
-        for (String id : targetIds) {
-            getValues().put(id, true);
-        }
+    public void addValue(String id, V value) {
+        getValues().put(id, value);
     }
 
     public void removeValue(String id) {
@@ -82,5 +76,26 @@ public class MultiValueLookup extends BaseModel {
 
     public boolean containsValue(String targetId) {
         return values != null && values.containsKey(targetId);
+    }
+
+    public static class MultiIdLookup extends MultiValueLookup<Boolean> {
+
+        @JsonDefaultConstructor
+        public MultiIdLookup() {
+        }
+
+        public MultiIdLookup(String parentId, Map<String, Boolean> values) {
+            super(parentId, values);
+        }
+
+        public void addValue(String id) {
+            getValues().put(id, true);
+        }
+
+        public void addValues(Set<String> targetIds) {
+            for (String id : targetIds) {
+                getValues().put(id, true);
+            }
+        }
     }
 }

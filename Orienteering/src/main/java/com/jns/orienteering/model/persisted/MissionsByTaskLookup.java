@@ -34,26 +34,18 @@ import java.util.Set;
 import javax.xml.bind.annotation.XmlElement;
 
 import com.jns.orienteering.model.common.JsonDefaultConstructor;
-import com.jns.orienteering.model.common.MultiValueLookup;
+import com.jns.orienteering.model.common.MultiValueLookup.MultiIdLookup;
 
-public class MissionsByTaskLookup extends MultiValueLookup {
+public class MissionsByTaskLookup extends MultiIdLookup {
 
     @JsonDefaultConstructor
     public MissionsByTaskLookup() {
         super();
     }
 
-    public MissionsByTaskLookup(Mission mission) {
-        this(mission.getId(), mission.getTasksMap());
-    }
-
-    public MissionsByTaskLookup(Set<String> ids) {
+    public MissionsByTaskLookup(Set<String> missionIds) {
         super();
-        addValues(ids);
-    }
-
-    public MissionsByTaskLookup(String key, Map<String, Boolean> values) {
-        super(key, values);
+        addValues(missionIds);
     }
 
     @Override

@@ -81,6 +81,7 @@ public enum Icon {
     INFO(FontAwesomeIcon.INFO),
     LINE_CHART(FontAwesomeIcon.LINE_CHART),
     LIST(FontAwesomeIcon.LIST_UL),
+    LIST_NUMBERED(FontAwesomeIcon.LIST_OL),
     LOCK(FontAwesomeIcon.LOCK),
     UNLOCK(FontAwesomeIcon.UNLOCK),
     MAP(FontAwesomeIcon.MAP_ALT),
@@ -190,6 +191,7 @@ public enum Icon {
             });
             return button;
         }
+
     }
 
 }

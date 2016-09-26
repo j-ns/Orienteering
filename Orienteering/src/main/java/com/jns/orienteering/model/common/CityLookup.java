@@ -30,7 +30,9 @@ package com.jns.orienteering.model.common;
 
 import javax.xml.bind.annotation.XmlTransient;
 
-public class CityLookup extends MultiValueLookup {
+import com.jns.orienteering.model.common.MultiValueLookup.MultiIdLookup;
+
+public class CityLookup extends MultiIdLookup {
 
     private CityAssignable assignable;
     private AccessType     accessType;

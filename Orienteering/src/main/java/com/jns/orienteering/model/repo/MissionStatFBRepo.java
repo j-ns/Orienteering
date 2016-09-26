@@ -102,6 +102,10 @@ public class MissionStatFBRepo extends FireBaseRepo<MissionStat> {
     }
 
     public void deleteAsync(String missionId) {
+        if (!checkIfUrlExists(missionId)) {
+            return;
+        }
+
         GluonObservableList<MissionStat> obsMissionStats = DataProvider.retrieveList(new RestObjectsReader<>(createRestClient(), StatByMission.class,
                                                                                                              STATS_BY_MISSION + "/" + missionId,
                                                                                                              MissionStat.class,

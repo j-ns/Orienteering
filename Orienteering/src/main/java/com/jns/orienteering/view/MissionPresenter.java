@@ -48,8 +48,8 @@ import com.gluonhq.charm.glisten.visual.MaterialDesignIcon;
 import com.gluonhq.connect.GluonObservableList;
 import com.gluonhq.maps.MapView;
 import com.jns.orienteering.common.BaseService;
-import com.jns.orienteering.common.Validator;
 import com.jns.orienteering.common.BaseService.CityTempBuffer;
+import com.jns.orienteering.common.Validator;
 import com.jns.orienteering.control.ChoiceFloatingTextField;
 import com.jns.orienteering.control.FloatingTextField;
 import com.jns.orienteering.control.ScrollEventFilter;
@@ -58,17 +58,21 @@ import com.jns.orienteering.model.common.AccessType;
 import com.jns.orienteering.model.common.ListUpdater;
 import com.jns.orienteering.model.common.ListViewExtended;
 import com.jns.orienteering.model.dynamic.CityHolder;
+import com.jns.orienteering.model.persisted.ActiveTaskList;
 import com.jns.orienteering.model.persisted.City;
 import com.jns.orienteering.model.persisted.Mission;
 import com.jns.orienteering.model.persisted.Task;
 import com.jns.orienteering.model.repo.AsyncResultReceiver;
+import com.jns.orienteering.model.repo.LocalRepo;
 import com.jns.orienteering.model.repo.MissionFBRepo;
 import com.jns.orienteering.util.Dialogs;
 import com.jns.orienteering.util.Icon;
 
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
+import javafx.scene.Node;
 import javafx.scene.control.Button;
+import javafx.scene.control.ToggleButton;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 
@@ -114,6 +118,10 @@ public class MissionPresenter extends BasePresenter {
 
     private FloatingActionButton                fab;
 
+    private ToggleButton                        tglSort;
+
+    private Task                                sortSource;
+
     @Override
     protected void initialize() {
         super.initialize();
@@ -142,7 +150,17 @@ public class MissionPresenter extends BasePresenter {
 
     @Override
     protected void initAppBar() {
-        setAppBar(createBackButton(), localize("view.mission.title"));
+        Node icon = Icon.LIST_NUMBERED.icon("22");
+        tglSort = new ToggleButton("", icon);
+        tglSort.setId("sortIcon");
+        tglSort.selectedProperty().addListener((obsValue, b, b1) ->
+        {
+            if (b1) {
+                sortSource = null;
+            }
+        });
+
+        setAppBar(createBackButton(), localize("view.mission.title"), tglSort);
     }
 
     private void initMap() {
@@ -172,7 +190,7 @@ public class MissionPresenter extends BasePresenter {
             mission.setCityId(service.getSelectedCity().getId());
             tasks = new GluonObservableList<>();
             tasksBuffer = Collections.emptyList();
-            lviewMissionTasks.setSortableItems(tasks);
+            lviewMissionTasks.setItems(tasks);
             mapHelper.setMarkers(null);
             setFields(mission);
 
@@ -181,23 +199,27 @@ public class MissionPresenter extends BasePresenter {
 
         } else {
             if (ViewRegistry.MISSIONS.equals(service.getPreviousView()) || ViewRegistry.HOME.equals(service.getPreviousView())) {
-                tasks = cloudRepo.retrieveTasksAsync(mission.getId());
+                tasks = cloudRepo.retrieveOrderedTasksAsync(mission.getId());
                 AsyncResultReceiver.create(tasks)
                                    .defaultProgressLayer()
                                    .onSuccess(result ->
                                    {
-                                       lviewMissionTasks.setSortableItems(result);
+                                       LOGGER.debug("items updater: {}", lviewMissionTasks.getListUpdater().getItems());
+                                       LOGGER.debug("items lview: {}", lviewMissionTasks.getItems());
+                                       lviewMissionTasks.setItems(result);
                                        mapHelper.setMarkers(result);
                                        tasksBuffer = new ArrayList<>(result);
                                        setFields(mission);
                                    })
                                    .start();
             } else {
+                LOGGER.debug("items updater: {}", lviewMissionTasks.getListUpdater().getItems());
+                LOGGER.debug("items lview: {}", lviewMissionTasks.getItems());
                 lviewMissionTasks.refresh();
                 mapHelper.setMarkers(tasks);
                 service.setSelectedMission(null);
-
             }
+
             boolean userIsOwnerOfMission = service.getUserId() == null ? false : service.getUserId().equals(mission.getOwnerId());
             fab.setVisible(userIsOwnerOfMission);
             setActionBarVisible(userIsOwnerOfMission);
@@ -224,6 +246,22 @@ public class MissionPresenter extends BasePresenter {
 
     private void onSelectTask(Task task) {
         if (task != null) {
+            if (isSortModus()) {
+                if (sortSource == null) {
+                    sortSource = task;
+                } else {
+                    int idxSource = tasks.indexOf(sortSource);
+                    int idxTarget = tasks.indexOf(task);
+                    LOGGER.debug("idxSource: {}, idxTarget: {}", idxSource, idxTarget);
+
+                    if (idxSource != idxTarget) {
+                        tasks.remove(sortSource);
+                        tasks.add(idxTarget, sortSource);
+                        sortSource = null;
+                    }
+                }
+                return;
+            }
             service.setSelectedTask(task);
             if (isEditorModus() && mission.getOwnerId().equals(service.getUserId())) {
                 service.setSelectedMission(createMission());
@@ -258,7 +296,7 @@ public class MissionPresenter extends BasePresenter {
         if (saveMission()) {
             mission = new Mission();
             tasks = new GluonObservableList<>();
-            lviewMissionTasks.setSortableItems(tasks);
+            lviewMissionTasks.setItems(tasks);
             tasksBuffer = new ArrayList<>(tasks);
             setFields(mission);
         }
@@ -277,11 +315,15 @@ public class MissionPresenter extends BasePresenter {
                 Mission activeMission = service.getActiveMission();
                 if (activeMission != null && activeMission.getId().equals(newMission.getId())) {
                     service.setActiveMission(newMission);
+                    service.getActiveTasks().setAll(tasks);
+
+                    LocalRepo<Task, ActiveTaskList> localTasksRepo = service.getRepoService().getLocalRepo(Task.class);
+                    localTasksRepo.createOrUpdateListAsync(new ActiveTaskList(tasks));
                 }
             } else {
                 cloudRepo.createMission(newMission);
             }
-            // hideProgressLayer
+
             updateMissionsList(newMission);
             return true;
 
@@ -352,12 +394,18 @@ public class MissionPresenter extends BasePresenter {
         return mission.getId() != null;
     }
 
+    private boolean isSortModus() {
+        return tglSort.isSelected();
+    }
+
     private String getSelectedCityId() {
         return choiceCity.getSelectionModel().getSelectedItem().getId();
     }
 
     private void setListUpdater() {
         service.setListUpdater(MISSION_TASKS_UPDATER, lviewMissionTasks.getListUpdater(choiceAccess.getSelectionModel().getSelectedItem()));
+        LOGGER.debug("items updater: {}", lviewMissionTasks.getListUpdater().getItems());
+        LOGGER.debug("items lview: {}", lviewMissionTasks.getItems());
     }
 
     private void onDelete() {

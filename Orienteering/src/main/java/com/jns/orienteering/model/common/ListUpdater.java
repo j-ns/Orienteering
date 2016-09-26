@@ -40,9 +40,8 @@ public class ListUpdater<E> {
     private Comparator<E>     comparator;
     private AccessType        accessType;
 
-    public ListUpdater(ObservableList<E> items, Comparator<E> comparator) {
+    public ListUpdater(Comparator<E> comparator) {
         Objects.requireNonNull(comparator, "comparator can't be null");
-        this.items = items;
         this.comparator = comparator;
     }
 
@@ -64,6 +63,10 @@ public class ListUpdater<E> {
 
     public void add(E item) {
         items.add(item);
+    }
+
+    public void add(int idx, E item) {
+        items.add(idx, item);
     }
 
     public void update(E item) {

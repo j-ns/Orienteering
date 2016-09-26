@@ -86,6 +86,18 @@ jfxmobile {
     }
 }
 
+eclipse {
+    classpath {
+        downloadSources = true
+        downloadJavadoc = true
+    }
+}
+
+retrolambda {
+    oldJdk System.getenv("JAVA7_HOME")
+    jdk System.getenv("JAVA_HOME") 
+}
+
 tasks.withType(Test).each { task ->
     task.enabled = false
 }

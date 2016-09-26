@@ -91,6 +91,11 @@
 	-fx-fill: -text-dark;
 }
 
+.app-bar > .action-items> #sortIcon:selected{
+	-fx-background-color: -color-orange;	
+	-fx-background-radius: 25;
+}
+
 .action-bar {
 	-fx-background-color: -color-primary;
 	-fx-min-height: 48.0;

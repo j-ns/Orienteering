@@ -33,9 +33,9 @@ import java.util.Map;
 import javax.xml.bind.annotation.XmlElement;
 
 import com.jns.orienteering.model.common.JsonDefaultConstructor;
-import com.jns.orienteering.model.common.MultiValueLookup;
+import com.jns.orienteering.model.common.MultiValueLookup.MultiIdLookup;
 
-public class StatsByMission extends MultiValueLookup {
+public class StatsByMission extends MultiIdLookup {
 
     @JsonDefaultConstructor
     public StatsByMission() {

@@ -35,7 +35,7 @@ import javax.xml.bind.annotation.XmlElement;
 import com.jns.orienteering.model.common.JsonDefaultConstructor;
 import com.jns.orienteering.model.common.MultiValueLookup;
 
-public class TasksByMissionLookup extends MultiValueLookup {
+public class TasksByMissionLookup extends MultiValueLookup<Integer> {
 
     @JsonDefaultConstructor
     public TasksByMissionLookup() {
@@ -46,14 +46,15 @@ public class TasksByMissionLookup extends MultiValueLookup {
         this(mission.getId(), mission.getTasksMap());
     }
 
-    public TasksByMissionLookup(String key, Map<String, Boolean> values) {
+    public TasksByMissionLookup(String key, Map<String, Integer> values) {
         super(key, values);
     }
 
     @Override
     @XmlElement(name = "tasks")
-    public Map<String, Boolean> getValues() {
+    public Map<String, Integer> getValues() {
         return super.getValues();
     }
+
 
 }

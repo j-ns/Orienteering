@@ -35,7 +35,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -244,12 +243,16 @@ public class JsonConverterExtended<T> {
                                     args[0] = jsonConverter.readFromJson((JsonObject) jsonValue);
                                     break;
                                 } else {
-                                    Map<String, Boolean> map = new HashMap<>();
-                                    JsonObject nestedJsonObject = json.getJsonObject(property);
+                                    Map<String, Object> map = new HashMap<>();
+                                    JsonObject jsonMap = json.getJsonObject(property);
 
-                                    Set<String> keys = nestedJsonObject.keySet();
+                                    Method method = inspector.getGetters().get(property);
+                                    ParameterizedType type = (ParameterizedType) method.getGenericReturnType();
+                                    Class<?> valueClass = (Class<?>) type.getActualTypeArguments()[1];
+
+                                    Set<String> keys = jsonMap.keySet();
                                     for (String key : keys) {
-                                        map.put(key, nestedJsonObject.getBoolean(key));
+                                        map.put(key, readObject(jsonMap, key, valueClass));
                                     }
                                     args[0] = map;
                                     break;
@@ -269,6 +272,24 @@ public class JsonConverterExtended<T> {
         }
 
         return t;
+    }
+
+    public Object readObject(JsonObject json, String key, Class<?> fieldType) {
+        Object obj = null;
+        if (boolean.class.equals(fieldType) || Boolean.class.equals(fieldType)) {
+            obj = json.getBoolean(key);
+        } else if (double.class.equals(fieldType) || Double.class.equals(fieldType)) {
+            obj = json.getJsonNumber(key).doubleValue();
+        } else if (float.class.equals(fieldType) || Float.class.equals(fieldType)) {
+            obj = new Double(json.getJsonNumber(key).doubleValue()).floatValue();
+        } else if (int.class.equals(fieldType) || Integer.class.equals(fieldType)) {
+            obj = json.getInt(key);
+        } else if (long.class.equals(fieldType) || Long.class.equals(fieldType)) {
+            obj = json.getJsonNumber(key).longValue();
+        } else if (String.class.equals(fieldType)) {
+            obj = json.getString(key);
+        }
+        return obj;
     }
 
     /**
@@ -359,10 +380,20 @@ public class JsonConverterExtended<T> {
         } else if (Map.class.equals(method.getReturnType())) {
             JsonObjectBuilder nestedObjectBuilder = builderFactory.createObjectBuilder();
 
-            Map<String, Boolean> map = (Map<String, Boolean>) value;
-            for (Entry<String, Boolean> entry : map.entrySet()) {
-                nestedObjectBuilder.add(entry.getKey(), entry.getValue());
+            ParameterizedType type = (ParameterizedType) method.getGenericReturnType();
+            Class<?> valueClass = (Class<?>) type.getActualTypeArguments()[1];
+
+            Map<String, Object> map = (Map<String, Object>) value;
+
+            for (Object key : map.keySet()) {
+                writeMapEntry(nestedObjectBuilder, key.toString(), map.get(key));
+                // nestedObjectBuilder.add(key.toString(), valueClass.cast(map.get(key)));
             }
+
+            // for (Entry<String, Object> entry : map.entrySet()) {
+            // nestedObjectBuilder.add(entry.getKey(), entry.getValue());
+            // }
+
             jsonObjectBuilder.add(property, nestedObjectBuilder);
 
         } else if (BooleanProperty.class.equals(method.getReturnType())) {
@@ -413,6 +444,22 @@ public class JsonConverterExtended<T> {
             } else {
                 jsonObjectBuilder.addNull(property);
             }
+        }
+    }
+
+    public static void writeMapEntry(JsonObjectBuilder jsonObjectBuilder, String key, Object value) {
+        if (value instanceof Boolean) {
+            jsonObjectBuilder.add(key, (Boolean) value);
+        } else if (value instanceof Double) {
+            jsonObjectBuilder.add(key, (Double) value);
+        } else if (value instanceof Float) {
+            jsonObjectBuilder.add(key, (Float) value);
+        } else if (value instanceof Integer) {
+            jsonObjectBuilder.add(key, (Integer) value);
+        } else if (value instanceof Long) {
+            jsonObjectBuilder.add(key, (Long) value);
+        } else if (value instanceof String) {
+            jsonObjectBuilder.add(key, (String) value);
         }
     }
 
