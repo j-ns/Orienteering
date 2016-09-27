@@ -38,10 +38,8 @@ import com.jns.orienteering.control.ActivatableDeactivatable;
 import com.jns.orienteering.util.Trigger;
 import com.jns.orienteering.view.ViewRegistry;
 
-
-
 /**
- * Service to activate  {@link ActivatableDeactivatable} targets, when the corresponding view is shown.
+ * Service to activate {@link ActivatableDeactivatable} targets, when the corresponding view is shown.
  * When the current showing view changes to {@link ViewRegistry#HOME}, all active targets will be deactivated.
  */
 public class ActivatorDeactivatorService {
@@ -58,11 +56,11 @@ public class ActivatorDeactivatorService {
     }
 
     public void addActivator(String viewName, Trigger activator) {
-        add(viewName, activator, null);
+        add(viewName, activator, Trigger.NullObject.INSTANCE);
     }
 
     public void addDeactivator(String viewName, Trigger deactivator) {
-        add(viewName, null, deactivator);
+        add(viewName, Trigger.NullObject.INSTANCE, deactivator);
     }
 
     public void add(String viewName, Trigger activator, Trigger deactivator) {
@@ -110,8 +108,8 @@ public class ActivatorDeactivatorService {
         private Trigger deactivator;
 
         private ActivatorDeactivatorConsumer(Trigger activator, Trigger deactivator) {
-            this.activator = activator != null ? activator : Trigger.NullObject.INSTANCE;
-            this.deactivator = deactivator != null ? deactivator : Trigger.NullObject.INSTANCE;
+            this.activator = activator;
+            this.deactivator = deactivator;
         }
     }
 }

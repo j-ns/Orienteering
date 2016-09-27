@@ -38,6 +38,7 @@ import com.jns.orienteering.model.persisted.Task;
 
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
+import javafx.css.PseudoClass;
 import javafx.geometry.Insets;
 import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.Label;
@@ -46,10 +47,12 @@ import javafx.scene.layout.Region;
 
 public class TaskCellSmall extends SelectableListCell<Task> {
 
+    private static final PseudoClass PSEUDO_CLASS_SLIDING = PseudoClass.getPseudoClass("sliding");
+
     private static final boolean SHOW_PLACE_HOLDER = true;
 
-    private SlidingListTile      slidingTile;
     private Content              content;
+    private SlidingListTile      slidingTile;
     private Predicate<Task>      partOfMissionCheck;
     private Task                 task;
 
@@ -80,7 +83,10 @@ public class TaskCellSmall extends SelectableListCell<Task> {
             initSlidingTile(consumerLeft, consumerRight, textLeft, textRight);
 
             if (sliding != null) {
-                slidingTile.slidingProperty().addListener((ov, b, b1) -> sliding.set(b1));
+                slidingTile.slidingProperty().addListener((ov, b, b1) -> {
+                    sliding.set(b1);
+                    pseudoClassStateChanged(PSEUDO_CLASS_SLIDING, b1);
+                });
             }
         }
     }
@@ -146,6 +152,7 @@ public class TaskCellSmall extends SelectableListCell<Task> {
 
         public Content() {
             getStyleClass().add("content");
+
             setMinHeight(Region.USE_PREF_SIZE);
             setMaxHeight(Region.USE_PREF_SIZE);
             setPadding(new Insets(PADDING_TOP, PADDING_RIGHT, PADDING_BOTTOM, PADDING_LEFT));

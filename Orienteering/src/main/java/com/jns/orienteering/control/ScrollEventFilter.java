@@ -30,18 +30,24 @@ package com.jns.orienteering.control;
 
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
-import javafx.scene.Node;
 import javafx.scene.input.ScrollEvent;
 
 public class ScrollEventFilter {
 
-    private BooleanProperty sliding = new SimpleBooleanProperty(false);;
+    private BooleanProperty sliding = new SimpleBooleanProperty(false);
 
-    public ScrollEventFilter(Node node) {
-        node.addEventFilter(ScrollEvent.ANY, evt ->
+    public ScrollEventFilter(ListViewExtended<?> lview) {
+        lview.addEventFilter(ScrollEvent.ANY, evt ->
         {
             if (sliding.get() && evt.getDeltaY() != 0) {
                 evt.consume();
+            }
+        });
+
+        sliding.addListener((obsVal, b, b1) ->
+        {
+            if (!b1) {
+                lview.clearSelection();
             }
         });
     }

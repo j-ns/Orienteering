@@ -58,7 +58,7 @@ public class TasksPresenter extends ListViewPresenter<Task> {
     @FXML
     private MobileLayoutPane     innerView;
 
-    private TaskFBRepo           taskRepo;
+    private TaskFBRepo           cloudRepo;
 
     private Mission              selectedMission;
     private ObservableList<Task> missionTasks;
@@ -75,7 +75,7 @@ public class TasksPresenter extends ListViewPresenter<Task> {
 
         initActionBar();
 
-        taskRepo = service.getRepoService().getCloudRepo(Task.class);
+        cloudRepo = service.getRepoService().getCloudRepo(Task.class);
     }
 
     @Override
@@ -119,12 +119,12 @@ public class TasksPresenter extends ListViewPresenter<Task> {
             service.setSelectedTask(null);
         } else {
             if (isMissionEditorModus()) {
-                setActionBarVisible(true);
                 selectedMission = service.getSelectedMission();
                 missionTasks = service.<Task> getListUpdater(MISSION_TASKS_UPDATER).createItemsCopy();
             }
             populateListView();
         }
+        setActionBarVisible(isMissionEditorModus());
     }
 
     @Override
@@ -139,7 +139,7 @@ public class TasksPresenter extends ListViewPresenter<Task> {
         }
 
         GluonObservableList<Task> obsTasks =
-                isPrivateAccess() ? taskRepo.getPrivateTasksAsync(cityId, service.getUserId()) : taskRepo.getPublicTasksAsync(cityId);
+                isPrivateAccess() ? cloudRepo.getPrivateTasksAsync(cityId, service.getUserId()) : cloudRepo.getPublicTasksAsync(cityId);
 
         AsyncResultReceiver.create(obsTasks)
                            .defaultProgressLayer()
@@ -186,7 +186,6 @@ public class TasksPresenter extends ListViewPresenter<Task> {
     private void onTaskSelected(Task task) {
         if (task != null) {
             service.setSelectedTask(task);
-            setListUpdater();
             onCreateTask();
         }
     }
@@ -211,17 +210,15 @@ public class TasksPresenter extends ListViewPresenter<Task> {
 
             if (confirmDeleteAnswer(localize("view.tasks.question.deleteTask")).isYesOrOk()) {
                 try {
-                    taskRepo.deleteTask(task);
+                    cloudRepo.deleteTask(task);
                     lview.getListUpdater().remove(task);
 
                     if (isMissionEditorModus()) {
                         service.getListUpdater(MISSION_TASKS_UPDATER).remove(task);
-
-                        if (selectedMission.equals(service.getActiveMission())) {
-                            service.setActiveMission(null);
-                        }
                     }
-
+                    if (selectedMission.equals(service.getActiveMission())) {
+                        service.setActiveMission(null);
+                    }
                 } catch (IOException e) {
                     Dialogs.ok(localize("view.tasks.error.deleteTask")).showAndWait();
                 }
@@ -231,6 +228,7 @@ public class TasksPresenter extends ListViewPresenter<Task> {
 
     @Override
     protected void onHidden() {
+        super.onHidden();
         setActionBarVisible(false);
     }
 

@@ -16,6 +16,7 @@
 	
 	-color-army-background: -color-army-green5;
 	-color-background-dark:#262F1C;
+	-color-cell-selected:#3F4637;
 	
 	-color-orange:#ff9100;
 	-color-orange-dark:#C67100;
@@ -243,6 +244,15 @@
 
 .list-cell.time-line-cell > .time-line-content > .title {
 	-fx-font-size: 16.0;
+}
+
+.list-cell.mission-cell:selected .content,
+.list-cell.city-cell:selected .content,
+.list-cell.task-cell-small:selected .content{
+	-fx-background-color: -color-cell-selected;	
+}
+.list-view:reorder .list-cell.task-cell-small:selected .content{
+	-fx-background-color: -color-cell-selected;	
 }
 
 .list-cell.mission-cell .content > .title ,

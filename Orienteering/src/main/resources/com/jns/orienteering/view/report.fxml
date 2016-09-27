@@ -6,7 +6,7 @@
 <?import com.gluonhq.charm.glisten.mvc.*?>
 <?import com.jfoenix.controls.JFXTabPane?>
 <?import javafx.scene.control.Tab?>
-<?import com.jns.orienteering.model.common.ListViewExtended?>
+<?import com.jns.orienteering.control.ListViewExtended?>
 
 <View fx:id="view" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8.0.60" xmlns:fx="http://javafx.com/fxml/1"
 	fx:controller="com.jns.orienteering.view.ReportPresenter">

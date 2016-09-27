@@ -52,11 +52,11 @@ import com.jns.orienteering.common.BaseService.CityTempBuffer;
 import com.jns.orienteering.common.Validator;
 import com.jns.orienteering.control.ChoiceFloatingTextField;
 import com.jns.orienteering.control.FloatingTextField;
+import com.jns.orienteering.control.ListViewExtended;
 import com.jns.orienteering.control.ScrollEventFilter;
 import com.jns.orienteering.control.cell.TaskCellSmall;
 import com.jns.orienteering.model.common.AccessType;
 import com.jns.orienteering.model.common.ListUpdater;
-import com.jns.orienteering.model.common.ListViewExtended;
 import com.jns.orienteering.model.dynamic.CityHolder;
 import com.jns.orienteering.model.persisted.ActiveTaskList;
 import com.jns.orienteering.model.persisted.City;
@@ -69,9 +69,11 @@ import com.jns.orienteering.util.Dialogs;
 import com.jns.orienteering.util.Icon;
 
 import javafx.collections.FXCollections;
+import javafx.css.PseudoClass;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
+import javafx.scene.control.Tab;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
@@ -83,6 +85,9 @@ public class MissionPresenter extends BasePresenter {
     private static final String                 MISSION_TASKS_UPDATER = "mission_tasks_updater";
     private static final String                 MISSIONS_UPDATER      = "missions_updater";
 
+    private static final PseudoClass            PSEUDO_CLASS_REORDER  = PseudoClass.getPseudoClass("reorder");
+
+    private ToggleButton                        tglSort;
     @FXML
     private VBox                                boxMissionDetails;
     @FXML
@@ -95,10 +100,12 @@ public class MissionPresenter extends BasePresenter {
     private ChoiceFloatingTextField<AccessType> choiceAccess;
 
     @FXML
+    private Tab                                 tabTasks;
+    @FXML
     private MobileLayoutPane                    paneListView;
     @FXML
     private ListViewExtended<Task>              lviewMissionTasks;
-    private ScrollEventFilter                   scrollEventFiler;
+    private ScrollEventFilter                   scrollEventFilter;
 
     @FXML
     private StackPane                           pneMapLayers;
@@ -108,6 +115,8 @@ public class MissionPresenter extends BasePresenter {
     private MapView                             map;
     private MapHelper                           mapHelper;
 
+    private FloatingActionButton                fab;
+
     @Inject
     private BaseService                         service;
     private MissionFBRepo                       cloudRepo;
@@ -116,10 +125,7 @@ public class MissionPresenter extends BasePresenter {
     private GluonObservableList<Task>           tasks;
     private List<Task>                          tasksBuffer;
 
-    private FloatingActionButton                fab;
-
-    private ToggleButton                        tglSort;
-    private Task                                sortSource;
+    private Task                                taskToReorder;
 
     @Override
     protected void initialize() {
@@ -135,10 +141,16 @@ public class MissionPresenter extends BasePresenter {
         choiceAccess.setItems(FXCollections.observableArrayList(AccessType.values()));
 
         lviewMissionTasks.setSelectableCellFactory(listView -> new TaskCellSmall(lviewMissionTasks.selectedItemProperty(), this::onRemoveTask,
-                                                                                 scrollEventFiler.slidingProperty()));
+                                                                                 scrollEventFilter.slidingProperty()));
         lviewMissionTasks.setComparator(Task::compareTo);
         lviewMissionTasks.setOnSelection(this::onSelectTask);
-        scrollEventFiler = new ScrollEventFilter(lviewMissionTasks);
+        scrollEventFilter = new ScrollEventFilter(lviewMissionTasks);
+        scrollEventFilter.slidingProperty().addListener((obsValue, b, b1) ->
+        {
+            if (!b1) {
+                taskToReorder = null;
+            }
+        });
 
         initMap();
         initActionBar();
@@ -152,11 +164,14 @@ public class MissionPresenter extends BasePresenter {
         Node icon = Icon.LIST_NUMBERED.icon("22");
         tglSort = new ToggleButton("", icon);
         tglSort.setId("sortIcon");
+        tglSort.visibleProperty().bind(tabTasks.selectedProperty());
         tglSort.selectedProperty().addListener((obsValue, b, b1) ->
         {
             if (b1) {
-                sortSource = null;
+                taskToReorder = null;
             }
+            lviewMissionTasks.clearSelection();
+            lviewMissionTasks.pseudoClassStateChanged(PSEUDO_CLASS_REORDER, b1);
         });
 
         setAppBar(createBackButton(), localize("view.mission.title"), tglSort);
@@ -181,6 +196,7 @@ public class MissionPresenter extends BasePresenter {
     protected void onShown() {
         super.onShown();
         platformService().getNodePositionAdjuster(boxMissionDetails, view.getScene().focusOwnerProperty());
+        lviewMissionTasks.clearSelection();
 
         mission = service.getSelectedMission();
         boolean isCreatorModus = mission == null;
@@ -241,20 +257,11 @@ public class MissionPresenter extends BasePresenter {
 
     private void onSelectTask(Task task) {
         if (task != null) {
-            if (isSortModus()) {
-                if (sortSource == null) {
-                    sortSource = task;
-                } else {
-                    int idxSource = tasks.indexOf(sortSource);
-                    int idxTarget = tasks.indexOf(task);
-                    if (idxSource != idxTarget) {
-                        tasks.remove(sortSource);
-                        tasks.add(idxTarget, sortSource);
-                        sortSource = null;
-                    }
-                }
+            if (isReorderModus()) {
+                reorderTasks(task);
                 return;
             }
+
             service.setSelectedTask(task);
             if (isEditorModus() && mission.getOwnerId().equals(service.getUserId())) {
                 service.setSelectedMission(createMission());
@@ -265,8 +272,23 @@ public class MissionPresenter extends BasePresenter {
         }
     }
 
+    private void reorderTasks(Task task) {
+        if (taskToReorder == null) {
+            taskToReorder = task;
+        } else {
+            int idxSource = tasks.indexOf(taskToReorder);
+            int idxTarget = tasks.indexOf(task);
+            if (idxSource != idxTarget) {
+                tasks.remove(taskToReorder);
+                tasks.add(idxTarget, taskToReorder);
+            }
+            taskToReorder = null;
+            lviewMissionTasks.clearSelection();
+        }
+    }
+
     private void onSelectTasks() {
-        if (isEditorModus() && mission.getOwnerId().equals(service.getUserId())) {
+        if (!isEditorModus() || isEditorModus() && mission.getOwnerId().equals(service.getUserId())) {
             service.setSelectedMission(createMission());
         }
         service.setTempCity(new CityTempBuffer(getSelectedCityId(), mission.getCityId()));
@@ -275,8 +297,12 @@ public class MissionPresenter extends BasePresenter {
     }
 
     private void onRemoveTask(Task task) {
+        if (tglSort.isSelected()) {
+            return;
+        }
         tasks.remove(task);
         mapHelper.removeMarker(task);
+        lviewMissionTasks.clearSelection();
     }
 
     private void onSave() {
@@ -324,16 +350,6 @@ public class MissionPresenter extends BasePresenter {
             LOGGER.error("Error saving mission '{}'", newMission.getMissionName(), e);
             Dialogs.ok(localize("view.mission.error.save")).showAndWait();
             return false;
-        }
-    }
-
-    private void updateMissionsList(Mission newMission) {
-        ListUpdater<Mission> missionsUpdater = service.getListUpdater(MISSIONS_UPDATER);
-
-        if (isEditorModus()) {
-            new ListViewUpdater<>(missionsUpdater).update(newMission, mission, service.getSelectedCity());
-        } else {
-            new ListViewUpdater<>(missionsUpdater).add(newMission);
         }
     }
 
@@ -387,12 +403,22 @@ public class MissionPresenter extends BasePresenter {
         return mission.getId() != null;
     }
 
-    private boolean isSortModus() {
+    private boolean isReorderModus() {
         return tglSort.isSelected();
     }
 
     private String getSelectedCityId() {
         return choiceCity.getSelectionModel().getSelectedItem().getId();
+    }
+
+    private void updateMissionsList(Mission newMission) {
+        ListUpdater<Mission> missionsUpdater = service.getListUpdater(MISSIONS_UPDATER);
+
+        if (isEditorModus()) {
+            new ListViewUpdater<>(missionsUpdater).update(newMission, mission, service.getSelectedCity());
+        } else {
+            new ListViewUpdater<>(missionsUpdater).add(newMission);
+        }
     }
 
     private void setListUpdater() {
@@ -413,4 +439,5 @@ public class MissionPresenter extends BasePresenter {
             LOGGER.error("Error deleting mission", e);
         }
     }
+
 }

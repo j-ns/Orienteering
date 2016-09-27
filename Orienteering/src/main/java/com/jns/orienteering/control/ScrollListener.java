@@ -50,17 +50,16 @@ public class ScrollListener implements ActivatableDeactivatable {
     private EventHandler<? super MouseEvent> dragDetectedFilter = e -> scrolling.set(true);
 
     private EventHandler<? super MouseEvent> mouseClickedFilter = evt ->
-                                                                    {
-                                                                        if (scrolling.get()) {
-                                                                            scrolling.set(false);
-                                                                            evt.consume();
-                                                                        }
-                                                                    };
+                                                                {
+                                                                    if (scrolling.get()) {
+                                                                        scrolling.set(false);
+                                                                        evt.consume();
+                                                                    }
+                                                                };
 
     private EventHandler<? super MouseEvent> mouseExitedHandler = e -> scrolling.set(false);
 
     private boolean                          listenersEnabled;
-
 
     public ScrollListener(Node observableNode) {
         this.observableNode = observableNode;
@@ -91,6 +90,5 @@ public class ScrollListener implements ActivatableDeactivatable {
     public boolean isScrolling() {
         return scrolling.get();
     }
-
 
 }

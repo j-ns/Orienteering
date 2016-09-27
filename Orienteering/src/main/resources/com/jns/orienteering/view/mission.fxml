@@ -15,7 +15,7 @@
 <?import com.jns.orienteering.control.ChoiceFloatingTextField?>
 <?import com.jfoenix.controls.JFXTabPane?>
 <?import javafx.scene.control.Tab?>
-<?import com.jns.orienteering.model.common.ListViewExtended?>
+<?import com.jns.orienteering.control.ListViewExtended?>
 <?import com.gluonhq.charm.glisten.layout.MobileLayoutPane?>
 <?import com.gluonhq.maps.MapView?>
 <?import javafx.scene.layout.StackPane?>

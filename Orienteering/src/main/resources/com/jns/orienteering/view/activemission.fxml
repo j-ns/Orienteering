@@ -9,7 +9,7 @@
 <?import javafx.scene.layout.StackPane?>
 <?import com.gluonhq.maps.MapView?>
 <?import javafx.scene.control.ScrollPane?>
-<?import com.jns.orienteering.model.common.ListViewExtended?>
+<?import com.jns.orienteering.control.ListViewExtended?>
 <?import javafx.scene.layout.VBox?>
 <?import com.gluonhq.charm.glisten.control.ListTile?>
 <?import com.jns.orienteering.control.cell.TaskCellSmall?>

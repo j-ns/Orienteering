@@ -26,14 +26,15 @@
  *  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  *  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package com.jns.orienteering.model.common;
+package com.jns.orienteering.control;
 
 import java.util.Comparator;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-import com.jns.orienteering.control.ActivatableDeactivatable;
-import com.jns.orienteering.control.ScrollListener;
+import com.jns.orienteering.model.common.AccessType;
+import com.jns.orienteering.model.common.ListUpdater;
+import com.jns.orienteering.model.common.SelectedObjectProperty;
 
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.SortedList;
@@ -45,12 +46,11 @@ public class ListViewExtended<T> extends ListView<T> implements ActivatableDeact
     private ScrollListener            scrollListener;
     private boolean                   listenersEnabled;
 
-    private ListUpdater<T>            listUpdater;
-    private boolean                   listUpdaterInitialized;
-
     private Comparator<T>             comparator;
     private ObservableList<T>         backing;
     private SelectedObjectProperty<T> selectedItem;
+
+    private ListUpdater<T>            listUpdater;
 
     public ListViewExtended() {
         selectedItem = new SelectedObjectProperty<>();
@@ -59,6 +59,14 @@ public class ListViewExtended<T> extends ListView<T> implements ActivatableDeact
 
     public void setSelectableCellFactory(Function<SelectedObjectProperty<T>, ListCell<T>> cellSupplier) {
         super.setCellFactory(listView -> cellSupplier.apply(selectedItem));
+    }
+
+    public void setOnSelection(Consumer<T> consumer) {
+        selectedItem.setConsumer(consumer);
+    }
+
+    public SelectedObjectProperty<T> selectedItemProperty() {
+        return selectedItem;
     }
 
     public void setComparator(Comparator<T> comparator) {
@@ -76,10 +84,6 @@ public class ListViewExtended<T> extends ListView<T> implements ActivatableDeact
         }
     }
 
-    public void setOnSelection(Consumer<T> consumer) {
-        selectedItem.setConsumer(consumer);
-    }
-
     public ListUpdater<T> getListUpdater(AccessType accessType) {
         ListUpdater<T> _listUpdater = getListUpdater();
         _listUpdater.setAccessType(accessType);
@@ -89,14 +93,9 @@ public class ListViewExtended<T> extends ListView<T> implements ActivatableDeact
     public ListUpdater<T> getListUpdater() {
         if (listUpdater == null) {
             listUpdater = new ListUpdater<>(comparator);
-            listUpdaterInitialized = true;
         }
         listUpdater.setItems(backing != null ? backing : getItems());
         return listUpdater;
-    }
-
-    public SelectedObjectProperty<T> selectedItemProperty() {
-        return selectedItem;
     }
 
     @Override
@@ -125,23 +124,9 @@ public class ListViewExtended<T> extends ListView<T> implements ActivatableDeact
         }
     }
 
-    public void removeListenersAndClearAll() {
-        removeListeners();
-        setItems(null);
+    public void clearSelection() {
         selectedItem.set(null);
-        listUpdater = null;
-        listUpdaterInitialized = false;
+        getSelectionModel().clearSelection();
     }
 
-    public void clearSelectedItem() {
-        selectedItem.set(null);
-    }
-
-    public boolean isListUpdaterInitialized() {
-        return listUpdaterInitialized;
-    }
-
-    public boolean isEmpty() {
-        return getItems() == null || getItems().isEmpty();
-    }
 }

@@ -33,7 +33,7 @@ import javafx.scene.control.MultipleSelectionModel;
 import javafx.scene.input.MouseEvent;
 
 /**
- * {@link ListCell} implementation which allows to select the same ListCell again, without first having to select a different
+ * ListCell implementation which allows to select the same ListCell again, without first having to select a different
  * ListCell
  *
  * @param <T>

@@ -40,11 +40,11 @@ import org.slf4j.LoggerFactory;
 import com.gluonhq.charm.glisten.layout.layer.FloatingActionButton;
 import com.gluonhq.connect.GluonObservableList;
 import com.jns.orienteering.common.BaseService;
+import com.jns.orienteering.control.ListViewExtended;
 import com.jns.orienteering.control.ScrollEventFilter;
 import com.jns.orienteering.control.cell.CityCell;
 import com.jns.orienteering.model.common.AccessType;
 import com.jns.orienteering.model.common.ListUpdater;
-import com.jns.orienteering.model.common.ListViewExtended;
 import com.jns.orienteering.model.dynamic.CityHolder;
 import com.jns.orienteering.model.persisted.City;
 import com.jns.orienteering.model.repo.AsyncResultReceiver;
@@ -208,4 +208,8 @@ public class CitiesPresenter extends BasePresenter {
         return access == AccessType.PRIVATE;
     }
 
+    @Override
+    protected void onHidden() {
+        lview.clearSelection();
+    }
 }

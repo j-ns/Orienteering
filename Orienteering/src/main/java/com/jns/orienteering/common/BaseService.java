@@ -114,6 +114,7 @@ public class BaseService {
 
     private Map<String, ListUpdater<?>>     listUpdaters      = new HashMap<>();
 
+    private String                          currentView;
     private String                          previousView;
 
     private BooleanProperty                 initialized       = new SimpleBooleanProperty(false);
@@ -130,6 +131,7 @@ public class BaseService {
                     clearListUpdaters();
                 }
             }
+            currentView = v1.getName();
         });
 
         repoSynchronizer.syncStateProperty().addListener((obsValue, st, st1) ->
@@ -394,6 +396,10 @@ public class BaseService {
 
     public void clearListUpdaters() {
         listUpdaters.clear();
+    }
+
+    public String getCurrentView() {
+        return currentView;
     }
 
     public String getPreviousView() {

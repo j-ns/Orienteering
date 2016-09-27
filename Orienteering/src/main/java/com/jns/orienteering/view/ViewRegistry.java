@@ -34,6 +34,7 @@ import com.gluonhq.charm.glisten.application.MobileApplication;
 import com.gluonhq.charm.glisten.control.NavigationDrawer;
 import com.gluonhq.charm.glisten.control.NavigationDrawer.Item;
 import com.gluonhq.charm.glisten.layout.layer.SidePopupView;
+import com.gluonhq.charm.glisten.mvc.View;
 import com.jns.orienteering.util.Icon;
 
 import javafx.beans.value.ChangeListener;
@@ -102,9 +103,9 @@ public enum ViewRegistry {
     public void registerView(MobileApplication app) {
         app.addViewFactory(viewId, () ->
         {
-            BaseView view = new BaseView(presenterClass);
-            view.getView().setName(viewId);
-            return view.getView();
+            View view = new BaseView(presenterClass).getView();
+            view.setName(viewId);
+            return view;
         });
     }
 

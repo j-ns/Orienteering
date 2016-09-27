@@ -47,7 +47,7 @@ import javafx.scene.control.Button;
 
 public class MapHelper {
 
-    public static final Position     DEFAULT_START_POSITION        = new Position(50.107180, 8.663756);                                                                                                             // Frankfurt
+    public static final Position     DEFAULT_START_POSITION        = new Position(50.107180, 8.663756);                                                                                                                   // Frankfurt
 
     private static final PseudoClass PSEUDO_CLASS_MARKER_ACTIVE    = PseudoClass.getPseudoClass("active");
     private static final PseudoClass PSEUDO_CLASS_MARKER_COMPLETED = PseudoClass.getPseudoClass("completed");

@@ -32,9 +32,9 @@ import javax.inject.Inject;
 
 import com.jns.orienteering.common.BaseService;
 import com.jns.orienteering.control.GraphicChoiceField;
+import com.jns.orienteering.control.ListViewExtended;
 import com.jns.orienteering.control.ScrollEventFilter;
 import com.jns.orienteering.model.common.AccessType;
-import com.jns.orienteering.model.common.ListViewExtended;
 import com.jns.orienteering.model.persisted.City;
 import com.jns.orienteering.util.Icon;
 
@@ -60,7 +60,7 @@ public abstract class ListViewPresenter<T> extends BasePresenter {
 
     protected City                     cityFilter;
     private AccessType                 accessType              = AccessType.PRIVATE;
-    private boolean                    accessTypeListenerMuted = false;;
+    private boolean                    accessTypeListenerMuted;
 
     @Override
     protected void initialize() {
@@ -123,7 +123,8 @@ public abstract class ListViewPresenter<T> extends BasePresenter {
         return accessType == AccessType.PRIVATE;
     }
 
-    protected String getCityIdFilter() {
-        return service.getSelectedCity() == null ? null : service.getSelectedCity().getId();
+    @Override
+    protected void onHidden() {
+        lview.clearSelection();
     }
 }

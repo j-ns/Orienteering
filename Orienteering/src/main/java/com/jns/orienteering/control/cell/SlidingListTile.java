@@ -187,7 +187,6 @@ public class SlidingListTile extends StackPane {
             if (scrolling.get() || !sliding.get() && Math.abs(e.getSceneY() - iniY) > 10) {
                 e.consume();
                 scrolling.set(true);
-
             }
             if (sliding.get() || !scrolling.get() && Math.abs(e.getSceneX() - iniX) > 10) {
                 sliding.set(true);

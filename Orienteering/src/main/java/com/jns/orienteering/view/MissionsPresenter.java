@@ -93,7 +93,7 @@ public class MissionsPresenter extends ListViewPresenter<Mission> {
 
     @Override
     protected void populateListView() {
-        String cityId = getCityIdFilter();
+        String cityId = service.getSelectedCityId();
 
         GluonObservableList<Mission> missions =
                 isPrivateAccess() ? cloudRepo.getPrivateMissions(cityId, service.getUserId()) : cloudRepo.getPublicMissions(cityId);
@@ -107,6 +107,10 @@ public class MissionsPresenter extends ListViewPresenter<Mission> {
     private void onCreateMission() {
         setListUpdater();
         showView(ViewRegistry.MISSION);
+    }
+
+    private void setListUpdater() {
+        service.setListUpdater(MISSIONS_UPDATER, lview.getListUpdater(getAccessType()));
     }
 
     private void onSelectMission(Mission mission) {
@@ -131,10 +135,6 @@ public class MissionsPresenter extends ListViewPresenter<Mission> {
 
         service.setActiveMission(mission);
         showView(ViewRegistry.HOME);
-    }
-
-    private void setListUpdater() {
-        service.setListUpdater(MISSIONS_UPDATER, lview.getListUpdater(getAccessType()));
     }
 
     private void onDeleteMission(Mission mission) {
