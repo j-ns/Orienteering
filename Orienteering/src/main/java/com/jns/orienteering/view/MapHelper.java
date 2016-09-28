@@ -52,11 +52,10 @@ public class MapHelper {
     private static final PseudoClass PSEUDO_CLASS_MARKER_ACTIVE    = PseudoClass.getPseudoClass("active");
     private static final PseudoClass PSEUDO_CLASS_MARKER_COMPLETED = PseudoClass.getPseudoClass("completed");
 
-    private ScrollListener           scrollListener;
-
     private MapView                  map;
     private LocationLayer            locationLayer                 = new LocationLayer();
     private LocationLayer            currentLocationLayer          = new LocationLayer();
+    private ScrollListener           scrollListener;
 
     private Node                     activeMarker;
 
@@ -73,11 +72,6 @@ public class MapHelper {
         map.setCenter(_position.getLatitude(), _position.getLongitude());
         map.setZoom(3);
 
-        scrollListener = new ScrollListener(map);
-        scrollListener.activate();
-    }
-
-    public void addScrollListener() {
         scrollListener = new ScrollListener(map);
         scrollListener.activate();
     }

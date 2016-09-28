@@ -32,10 +32,8 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.gluonhq.connect.GluonObservableList;
+import com.gluonhq.connect.GluonObservableObject;
 import com.gluonhq.connect.provider.DataProvider;
 import com.jns.orienteering.model.common.RepoAction;
 import com.jns.orienteering.model.persisted.Mission;
@@ -52,8 +50,6 @@ import javafx.collections.FXCollections;
 import javafx.collections.transformation.SortedList;
 
 public class MissionFBRepo extends FireBaseRepo<Mission> {
-
-    private static final Logger                             LOGGER                   = LoggerFactory.getLogger(MissionFBRepo.class);
 
     private static final String                             MISSIONS                 = "missions";
     private static final String                             MISSION_NAMES            = "mission_names";
@@ -137,60 +133,74 @@ public class MissionFBRepo extends FireBaseRepo<Mission> {
         return DataProvider.retrieveList(new RestMapReader<>(createRestClient(), TasksByMissionLookup.class, sourceUrl, Task.class, TASKS));
     }
 
-    public void createMission(Mission mission) throws IOException {
-        mission.setTimeStamp(createTimeStamp());
+    public GluonObservableObject<Mission> createMission(Mission mission) {
+        GluonObservableObject<Mission> obsMission = new GluonObservableObject<>();
 
-        Mission result = addToList(mission);
-        if (result != null) {
-            try {
-                nameLookupRepo.createOrUpdate(mission.createNameLookup());
-                cityLookupRepo.createOrUpdate(mission.createCityLookup());
-                tasksLookupRepo.createOrUpdateLookup(mission.createTasksLookup());
-                missionsByTaskLookupRepo.createOrUpdateLookup(mission);
+        executeAsync(obsMission,
+                     () ->
+                     {
+                         mission.setTimeStamp(createTimeStamp());
+                         Mission result = addToList(mission);
+                         if (result != null) {
+                             nameLookupRepo.createOrUpdate(mission.createNameLookup());
+                             cityLookupRepo.createOrUpdate(mission.createCityLookup());
+                             tasksLookupRepo.createOrUpdateLookup(mission.createTasksLookup());
+                             missionsByTaskLookupRepo.createOrUpdateLookup(mission);
+                         }
+                         obsMission.set(mission);
+                     });
 
-            } catch (IOException e) {
-                LOGGER.error("Failed to store mission:. '{}'", mission.getMissionName(), e);
-                throw e;
+        return obsMission;
+    }
+
+    public GluonObservableObject<Mission> updateMission(Mission mission, Mission previousMission, List<Task> tasks, List<Task> tasksBuffer) {
+        GluonObservableObject<Mission> obsMission = new GluonObservableObject<>();
+
+        executeAsync(obsMission, () ->
+        {
+            mission.setTimeStamp(createTimeStamp());
+            createOrUpdate(mission, mission.getId());
+
+            // boolean tasksChanged = !tasksBuffer.containsAll(tasks) || !tasks.containsAll(tasksBuffer);
+            if (true) {
+                TasksByMissionLookup previousTasksByMission = tasksLookupRepo.retrieveObject(mission.getId());
+
+                tasksLookupRepo.createOrUpdateLookup(new TasksByMissionLookup(mission.getId(), mission.getTasksMap()));
+                missionsByTaskLookupRepo.updateLookup(previousTasksByMission, mission);
+                missionStatCloudRepo.deleteAsync(mission.getId());
             }
-        }
+            if (mission.hasMissionNameChanged()) {
+                nameLookupRepo.recreateLookup(previousMission.getMissionName(), mission.createNameLookup());
+            }
+            if (mission.hasCityChanged() || mission.hasAccessTypeChanged()) {
+                cityLookupRepo.recreateCityLookup(new MissionsByCityLookup(mission));
+            }
+            writeLogEntry(mission, RepoAction.UPDATE);
+            obsMission.set(mission);
+        });
+
+        return obsMission;
     }
 
-    public void updateMission(Mission mission, Mission previousMission, List<Task> tasks, List<Task> tasksBuffer) throws IOException {
-        mission.setTimeStamp(createTimeStamp());
+    public GluonObservableObject<Mission> deleteMission(Mission mission) {
+        GluonObservableObject<Mission> obsMission = new GluonObservableObject<>();
 
-        createOrUpdate(mission, mission.getId());
+        executeAsync(obsMission, () ->
+        {
+            mission.setTimeStamp(createTimeStamp());
+            delete(mission.getId());
 
-        // boolean tasksChanged = !tasksBuffer.containsAll(tasks) || !tasks.containsAll(tasksBuffer);
-        if (true) {
-            TasksByMissionLookup previousTasksByMission = tasksLookupRepo.retrieveObject(mission.getId());
-
-            tasksLookupRepo.createOrUpdateLookup(new TasksByMissionLookup(mission.getId(), mission.getTasksMap()));
-            missionsByTaskLookupRepo.updateLookup(previousTasksByMission, mission);
+            nameLookupRepo.deleteLookup(mission.createNameLookup());
+            cityLookupRepo.deleteLookup(mission.createCityLookup());
+            tasksLookupRepo.deleteLookup(mission.createTasksByMissionLookup());
+            missionsByTaskLookupRepo.deleteLookup(mission);
             missionStatCloudRepo.deleteAsync(mission.getId());
-        }
 
-        if (mission.hasMissionNameChanged()) {
-            nameLookupRepo.recreateLookup(previousMission.getMissionName(), mission.createNameLookup());
-        }
-        if (mission.hasCityChanged() || mission.hasAccessTypeChanged()) {
-            cityLookupRepo.recreateCityLookup(new MissionsByCityLookup(mission));
-        }
+            writeLogEntry(mission, RepoAction.DELETE);
+            obsMission.set(mission);
+        });
 
-        writeLogEntry(mission, RepoAction.UPDATE);
-    }
-
-    public void deleteMission(Mission mission) throws IOException {
-        mission.setTimeStamp(createTimeStamp());
-
-        delete(mission.getId());
-
-        nameLookupRepo.deleteLookup(mission.createNameLookup());
-        cityLookupRepo.deleteLookup(mission.createCityLookup());
-        tasksLookupRepo.deleteLookup(mission.createTasksByMissionLookup());
-        missionsByTaskLookupRepo.deleteLookup(mission);
-        missionStatCloudRepo.deleteAsync(mission.getId());
-
-        writeLogEntry(mission, RepoAction.DELETE);
+        return obsMission;
     }
 
     private void writeLogEntry(Mission mission, RepoAction action) {

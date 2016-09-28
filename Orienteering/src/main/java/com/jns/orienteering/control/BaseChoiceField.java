@@ -95,6 +95,10 @@ public abstract class BaseChoiceField<T> extends Control {
         this.selectionModel = selectionModel;
     }
 
+    public T getSelectedItem() {
+        return getSelectionModel().getSelectedItem();
+    }
+
     public abstract String getHint();
 
     public abstract void setHint(String hint);

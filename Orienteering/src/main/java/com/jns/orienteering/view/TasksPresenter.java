@@ -131,6 +131,7 @@ public class TasksPresenter extends ListViewPresenter<Task> {
     protected void populateListView() {
         updateCellFactory();
 
+        // todo:
         String cityId = isMissionEditorModus() ? service.getTempCity() == null ? null : service.getTempCity().getTempCityId()
                 : service.getSelectedCityId();
         if (cityId == null) {

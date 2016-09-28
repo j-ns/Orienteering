@@ -35,7 +35,7 @@ package com.jns.orienteering.util;
 @FunctionalInterface
 public interface Trigger {
 
-    public void start();
+    void start();
 
     public class NullObject implements Trigger {
 

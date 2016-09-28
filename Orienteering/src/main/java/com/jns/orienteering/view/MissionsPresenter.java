@@ -30,10 +30,9 @@ package com.jns.orienteering.view;
 
 import static com.jns.orienteering.util.Dialogs.confirmDeleteAnswer;
 
-import java.io.IOException;
-
 import com.gluonhq.charm.glisten.layout.layer.FloatingActionButton;
 import com.gluonhq.connect.GluonObservableList;
+import com.gluonhq.connect.GluonObservableObject;
 import com.jns.orienteering.control.cell.MissionCell;
 import com.jns.orienteering.model.persisted.Mission;
 import com.jns.orienteering.model.repo.AsyncResultReceiver;
@@ -146,16 +145,18 @@ public class MissionsPresenter extends ListViewPresenter<Mission> {
             }
 
             if (confirmDeleteAnswer(localize("view.mission.question.delete")).isYesOrOk()) {
-                try {
-                    cloudRepo.deleteMission(mission);
-                    lview.getListUpdater().remove(mission);
-
-                    if (mission.equals(service.getActiveMission())) {
-                        service.setActiveMission(null);
-                    }
-                } catch (IOException e) {
-                    Dialogs.ok(localize("view.mission.error.delete")).showAndWait();
-                }
+                GluonObservableObject<Mission> obsMission = cloudRepo.deleteMission(mission);
+                AsyncResultReceiver.create(obsMission)
+                                   .defaultProgressLayer()
+                                   .onSuccess(e ->
+                                   {
+                                       lview.getListUpdater().remove(mission);
+                                       if (mission.equals(service.getActiveMission())) {
+                                           service.setActiveMission(null);
+                                       }
+                                   })
+                                   .exceptionMessage(localize("view.mission.error.delete"))
+                                   .start();
             }
         });
     }

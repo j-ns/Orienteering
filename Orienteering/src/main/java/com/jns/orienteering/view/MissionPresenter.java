@@ -32,20 +32,18 @@ package com.jns.orienteering.view;
 import static com.jns.orienteering.util.Dialogs.confirmDeleteAnswer;
 import static com.jns.orienteering.util.Validators.isNullOrEmpty;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 import javax.inject.Inject;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.gluonhq.charm.glisten.layout.MobileLayoutPane;
 import com.gluonhq.charm.glisten.layout.layer.FloatingActionButton;
 import com.gluonhq.charm.glisten.visual.MaterialDesignIcon;
+import com.gluonhq.connect.GluonObservable;
 import com.gluonhq.connect.GluonObservableList;
+import com.gluonhq.connect.GluonObservableObject;
 import com.gluonhq.maps.MapView;
 import com.jns.orienteering.common.BaseService;
 import com.jns.orienteering.common.BaseService.CityTempBuffer;
@@ -66,6 +64,7 @@ import com.jns.orienteering.model.repo.AsyncResultReceiver;
 import com.jns.orienteering.model.repo.LocalRepo;
 import com.jns.orienteering.model.repo.MissionFBRepo;
 import com.jns.orienteering.util.Dialogs;
+import com.jns.orienteering.util.GluonObservableHelper;
 import com.jns.orienteering.util.Icon;
 
 import javafx.collections.FXCollections;
@@ -80,12 +79,10 @@ import javafx.scene.layout.VBox;
 
 public class MissionPresenter extends BasePresenter {
 
-    private static final Logger                 LOGGER                = LoggerFactory.getLogger(MissionPresenter.class);
+    private static final PseudoClass            PSEUDO_CLASS_REORDER  = PseudoClass.getPseudoClass("reorder");
 
     private static final String                 MISSION_TASKS_UPDATER = "mission_tasks_updater";
     private static final String                 MISSIONS_UPDATER      = "missions_updater";
-
-    private static final PseudoClass            PSEUDO_CLASS_REORDER  = PseudoClass.getPseudoClass("reorder");
 
     private ToggleButton                        tglSort;
     @FXML
@@ -259,16 +256,9 @@ public class MissionPresenter extends BasePresenter {
         if (task != null) {
             if (isReorderModus()) {
                 reorderTasks(task);
-                return;
+            } else {
+                selectTask(task);
             }
-
-            service.setSelectedTask(task);
-            if (isEditorModus() && mission.getOwnerId().equals(service.getUserId())) {
-                service.setSelectedMission(createMission());
-            }
-            service.setTempCity(new CityTempBuffer(getSelectedCityId(), mission.getCityId()));
-            setListUpdater();
-            showView(ViewRegistry.TASK);
         }
     }
 
@@ -287,11 +277,24 @@ public class MissionPresenter extends BasePresenter {
         }
     }
 
+    private void selectTask(Task task) {
+        service.setSelectedTask(task);
+
+        if (isEditorModus() && mission.getOwnerId().equals(service.getUserId())) {
+            service.setSelectedMission(createMission());
+        }
+        service.setTempCity(new CityTempBuffer(getSelectedCityId(), mission.getCityId()));
+
+        setListUpdater();
+        showView(ViewRegistry.TASK);
+    }
+
     private void onSelectTasks() {
         if (!isEditorModus() || isEditorModus() && mission.getOwnerId().equals(service.getUserId())) {
             service.setSelectedMission(createMission());
         }
         service.setTempCity(new CityTempBuffer(getSelectedCityId(), mission.getCityId()));
+
         setListUpdater();
         showView(ViewRegistry.TASKS);
     }
@@ -306,61 +309,85 @@ public class MissionPresenter extends BasePresenter {
     }
 
     private void onSave() {
-        if (saveMission()) {
-            showPreviousView();
-        }
+        saveReceiver().onSuccess(e -> showPreviousView())
+                      .start();
     }
 
     private void onSaveAndContinue() {
-        if (saveMission()) {
-            mission = new Mission();
-            tasks = new GluonObservableList<>();
-            lviewMissionTasks.setItems(tasks);
-            tasksBuffer = new ArrayList<>(tasks);
-            setFields(mission);
-        }
+        saveReceiver()
+                      .onSuccess(e ->
+                      {
+                          mission = new Mission();
+                          tasks = new GluonObservableList<>();
+                          lviewMissionTasks.setItems(tasks);
+                          tasksBuffer = new ArrayList<>(tasks);
+                          setFields(mission);
+                      })
+                      .start();
     }
 
-    private boolean saveMission() {
+    private AsyncResultReceiver<GluonObservable> saveReceiver() {
+        GluonObservable obsResult = saveMission();
+        return AsyncResultReceiver.create(obsResult)
+                                  .defaultProgressLayer();
+    }
+
+    private GluonObservable saveMission() {
+        GluonObservableObject<Object> obsSuccessful = new GluonObservableObject<>();
+
         if (!validateMissionName(txtName.getText())) {
-            return false;
+            GluonObservableHelper.setException(obsSuccessful, new IllegalArgumentException("missionName exists"));
+            return obsSuccessful;
         }
 
         Mission newMission = createMission();
-        try {
-            if (isEditorModus()) {
-                cloudRepo.updateMission(newMission, mission, tasks, tasksBuffer);
+        GluonObservableObject<Mission> obsMission = cloudRepo.updateMission(newMission, mission, tasks, tasksBuffer);
 
-                Mission activeMission = service.getActiveMission();
-                if (activeMission != null && activeMission.getId().equals(newMission.getId())) {
-                    service.setActiveMission(newMission);
-                    service.getActiveTasks().setAll(tasks);
+        if (isEditorModus()) {
+            saveReceiver(obsMission, obsSuccessful)
+                                                   .onSuccess(result ->
+                                                   {
+                                                       Mission activeMission = service.getActiveMission();
+                                                       if (activeMission != null && activeMission.getId().equals(newMission.getId())) {
+                                                           service.setActiveMission(newMission);
+                                                           service.getActiveTasks().setAll(tasks);
 
-                    LocalRepo<Task, ActiveTaskList> localTasksRepo = service.getRepoService().getLocalRepo(Task.class);
-                    localTasksRepo.createOrUpdateListAsync(new ActiveTaskList(tasks));
-                }
-            } else {
-                cloudRepo.createMission(newMission);
-            }
+                                                           LocalRepo<Task, ActiveTaskList> localTasksRepo = service.getRepoService().getLocalRepo(
+                                                                                                                                                  Task.class);
+                                                           localTasksRepo.createOrUpdateListAsync(new ActiveTaskList(tasks));
+                                                       }
+                                                   })
+                                                   .start();
 
-            updateMissionsList(newMission);
-            return true;
-
-        } catch (IOException e) {
-            LOGGER.error("Error saving mission '{}'", newMission.getMissionName(), e);
-            Dialogs.ok(localize("view.mission.error.save")).showAndWait();
-            return false;
+        } else {
+            saveReceiver(obsMission, obsSuccessful).start();
         }
+        return obsSuccessful;
+    }
+
+    private AsyncResultReceiver<GluonObservableObject<Mission>> saveReceiver(GluonObservableObject<Mission> obsMission,
+                                                                             GluonObservable obsSuccessful) {
+        return AsyncResultReceiver.create(obsMission)
+                                  .defaultProgressLayer()
+                                  .onException(() -> GluonObservableHelper.setException(obsSuccessful, obsMission.getException()))
+                                  .exceptionMessage(localize("view.mission.error.save"))
+                                  .finalize(() ->
+                                  {
+                                      if (obsMission.isInitialized()) {
+                                          updateMissionsList(obsMission.get());
+                                          GluonObservableHelper.setInitialized(obsSuccessful, true);
+                                      }
+                                  });
     }
 
     private boolean validateMissionName(String name) {
-        Validator<String> nameDoesntExistValidator = new Validator<>(cloudRepo::checkIfMissionNameDoesntExist,
-                                                                     "view.mission.missionNameAlreadyExists");
-
         if (isNullOrEmpty(name)) {
             Dialogs.ok(localize("view.mission.warning.nameMustNotBeEmpty")).showAndWait();
             return false;
         }
+
+        Validator<String> nameDoesntExistValidator = new Validator<>(cloudRepo::checkIfMissionNameDoesntExist,
+                                                                     localize("view.mission.info.nameExists"));
 
         if (isEditorModus()) {
             boolean missionNameChanged = !name.equals(mission.getMissionName());
@@ -376,7 +403,7 @@ public class MissionPresenter extends BasePresenter {
     private Mission createMission() {
         String missionName = txtName.getText();
         double distance = txtDistance.getTextAsDouble();
-        AccessType accessType = choiceAccess.getSelectionModel().getSelectedItem();
+        AccessType accessType = choiceAccess.getSelectedItem();
 
         Mission newMission = Mission.create(missionName)
                                     .cityId(getSelectedCityId())
@@ -389,7 +416,6 @@ public class MissionPresenter extends BasePresenter {
             maxPoints += task.getPoints();
         }
         newMission.setMaxPoints(maxPoints);
-
         newMission.updateTasksMap(tasks);
 
         if (isEditorModus()) {
@@ -408,7 +434,7 @@ public class MissionPresenter extends BasePresenter {
     }
 
     private String getSelectedCityId() {
-        return choiceCity.getSelectionModel().getSelectedItem().getId();
+        return choiceCity.getSelectedItem().getId();
     }
 
     private void updateMissionsList(Mission newMission) {
@@ -429,15 +455,23 @@ public class MissionPresenter extends BasePresenter {
         if (!confirmDeleteAnswer(localize("view.mission.question.delete")).isYesOrOk()) {
             return;
         }
-        try {
-            mission.updateTasksMap(tasks);
-            cloudRepo.deleteMission(mission);
-            service.getListUpdater(MISSIONS_UPDATER).remove(mission);
+        if (mission.getId() == null) {
             showPreviousView();
-
-        } catch (IOException e) {
-            LOGGER.error("Error deleting mission", e);
+            return;
         }
+
+        mission.updateTasksMap(tasks);
+
+        GluonObservableObject<Mission> obsMission = cloudRepo.deleteMission(mission);
+        AsyncResultReceiver.create(obsMission)
+                           .defaultProgressLayer()
+                           .onSuccess(e ->
+                           {
+                               service.getListUpdater(MISSIONS_UPDATER).remove(mission);
+                               showPreviousView();
+                           })
+                           .exceptionMessage(localize("view.mission.error.delete"))
+                           .start();
     }
 
 }

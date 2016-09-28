@@ -36,11 +36,14 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.function.BiConsumer;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.gluonhq.connect.GluonObservable;
 import com.gluonhq.connect.GluonObservableList;
 import com.gluonhq.connect.GluonObservableObject;
 import com.gluonhq.connect.converter.InputStreamIterableInputConverter;
@@ -58,6 +61,7 @@ import com.jns.orienteering.model.persisted.ChangeLogEntry;
 import com.jns.orienteering.model.repo.readerwriter.JsonInputConverterExtended;
 import com.jns.orienteering.model.repo.readerwriter.JsonOutputConverterExtended;
 import com.jns.orienteering.model.repo.readerwriter.JsonTreeConverter;
+import com.jns.orienteering.util.ExceptionalTrigger;
 import com.jns.orienteering.util.GluonObservableHelper;
 import com.jns.orienteering.util.Validators;
 
@@ -76,6 +80,14 @@ public class FireBaseRepo<T extends Model> {
     protected static final String            PUT                = "PUT";
     protected static final String            POST               = "POST";
     private static final String              OVERRIDE_PARAMETER = "x-http-method-override";
+
+    private static final ExecutorService     executor           = Executors.newFixedThreadPool(4, runnable ->
+                                                                {
+                                                                    Thread thread = Executors.defaultThreadFactory().newThread(runnable);
+                                                                    thread.setName("FireBaseRepoThread");
+                                                                    thread.setDaemon(true);
+                                                                    return thread;
+                                                                });
 
     private static ChangeLogRepo             changeLogRepo      = new ChangeLogRepo();
 
@@ -373,6 +385,19 @@ public class FireBaseRepo<T extends Model> {
     protected <S extends Synchronizable> void writeLogEntry(S obj, BiConsumer<ChangeLogRepo, ChangeLogEntry> logWriter) {
         ChangeLogEntry entry = new ChangeLogEntry(obj);
         logWriter.accept(changeLogRepo, entry);
+    }
+
+    protected void executeAsync(GluonObservable result, ExceptionalTrigger action) {
+        executor.execute(() ->
+        {
+            try {
+                action.start();
+                GluonObservableHelper.setInitialized(result, true);
+            } catch (Exception ex) {
+                LOGGER.error("Error on executeAsync", ex);
+                GluonObservableHelper.setException(result, ex);
+            }
+        });
     }
 
     public static class RemoveObject {

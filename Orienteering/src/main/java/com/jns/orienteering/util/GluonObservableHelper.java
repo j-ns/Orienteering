@@ -88,7 +88,7 @@ public class GluonObservableHelper {
         }
     }
 
-    public static void setException(GluonObservable observable, Exception ex) {
+    public static void setException(GluonObservable observable, Throwable ex) {
         Platform.runLater(() ->
         {
             ((SimpleObjectProperty<Throwable>) observable.exceptionProperty()).set(ex);
