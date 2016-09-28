@@ -140,7 +140,6 @@ public class UserPresenter extends BasePresenter {
                 return;
             }
             login();
-
         } else {
             logoff();
         }

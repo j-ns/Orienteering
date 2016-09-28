@@ -36,8 +36,8 @@ import javafx.collections.ObservableList;
 
 public class ListUpdater<E> {
 
-    private ObservableList<E> items;
     private Comparator<E>     comparator;
+    private ObservableList<E> items;
     private AccessType        accessType;
 
     public ListUpdater(Comparator<E> comparator) {
@@ -87,6 +87,15 @@ public class ListUpdater<E> {
         int idx = indexOf(oldItem);
         if (idx > -1) {
             items.set(idx, newItem);
+        }
+    }
+
+    public void reorder(E sourceItem, E targetItem) {
+        int idxSource = indexOf(sourceItem);
+        int idxTarget = indexOf(targetItem);
+        if (idxSource != idxTarget) {
+            items.remove(sourceItem);
+            items.add(idxTarget, sourceItem);
         }
     }
 

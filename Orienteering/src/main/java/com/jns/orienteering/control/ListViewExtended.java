@@ -124,6 +124,11 @@ public class ListViewExtended<T> extends ListView<T> implements ActivatableDeact
         }
     }
 
+    public void reorder(T sourceItem, T targetItem) {
+        getListUpdater().reorder(sourceItem, targetItem);
+        clearSelection();
+    }
+
     public void clearSelection() {
         selectedItem.set(null);
         getSelectionModel().clearSelection();

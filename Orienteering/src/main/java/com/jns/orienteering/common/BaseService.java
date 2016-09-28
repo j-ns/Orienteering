@@ -192,9 +192,6 @@ public class BaseService {
                                                                                     ImageHandler.AVATAR_PLACE_HOLDER);
 
                                    setProfileImage(image.get());
-                                   // if (_user.getActiveMission() != null) {
-                                   // updateActiveTasksFromCloud(_user.getActiveMission());
-                                   // }
                                })
                                .exceptionMessage(localize("baseService.error.loadUser"))
                                .finalize(this::postUserInit)
@@ -286,6 +283,7 @@ public class BaseService {
 
         GluonObservableList<Task> obsActiveTasks = missionCloudRepo.retrieveTasksAsync(mission.getId());
         AsyncResultReceiver.create(obsActiveTasks)
+                           .newDefaultProgressLayer()
                            .onSuccess(result ->
                            {
                                activeTasksLocalRepo.createOrUpdateListAsync(new ActiveTaskList(result));
@@ -417,7 +415,6 @@ public class BaseService {
     public void setActiveMission(Mission mission) {
         activeMission.set(mission);
         activeMissionName.set(mission == null ? null : mission.getMissionName());
-        LOGGER.debug("active mission set to: {}", mission == null ? null : mission.getMissionName());
     }
 
     public StringProperty activeMissionNameProperty() {

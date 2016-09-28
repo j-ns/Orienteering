@@ -30,8 +30,6 @@ package com.jns.orienteering.model.common;
 
 public interface UpdatableListItem extends CityAssignable{
 
-    String getPostId();
-
     boolean hasNameChanged();
 
 }

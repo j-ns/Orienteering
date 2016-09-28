@@ -68,6 +68,10 @@ public class AsyncResultReceiver<T extends GluonObservable> {
         this.progressLayer = Optional.of(DEFAULT_PROGRESS_LAYER);
         return this;
     }
+    public AsyncResultReceiver<T> newDefaultProgressLayer() {
+        this.progressLayer = Optional.of(new ProgressLayer(PauseFadeInHide::new));
+        return this;
+    }
 
     public AsyncResultReceiver<T> progressLayer(ProgressLayer progressLayer) {
         this.progressLayer = Optional.of(progressLayer);

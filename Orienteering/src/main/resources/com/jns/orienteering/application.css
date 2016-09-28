@@ -209,16 +209,19 @@
 	-fx-background-color: -color-background-dark;
 }
 
+#lviewActiveMissionTasks {
+	-fx-background-color: -color-army-background;
+}
+#lviewActiveMissionTasks .list-cell:empty {
+	-fx-background-color: null;
+}
+
 .list-cell {
 	-fx-padding: 0.0;
 }
 
 .list-cell, .list-cell:odd{
 	-fx-border-color: -color-army-green2;
-}
-
-#lviewActiveMissionTasks {
-	-fx-background-color: -color-army-background;
 }
 
 .list-cell.task-cell-large{

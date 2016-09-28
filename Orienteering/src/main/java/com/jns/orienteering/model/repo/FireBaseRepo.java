@@ -296,8 +296,7 @@ public class FireBaseRepo<T extends Model> {
         client.queryParam("orderBy", "\"" + orderBy + "\"");
         client.queryParam(filter.getKey(), filter.getValue());
 
-        GluonObservableList<T> result = DataProvider.retrieveList(listReader(client));
-        return result;
+        return DataProvider.retrieveList(listReader(client));
     }
 
     public GluonObservableList<T> retrieveListFilteredAsync(String orderBy, List<Pair<String, String>> filters, String... urlParts) {
@@ -310,8 +309,7 @@ public class FireBaseRepo<T extends Model> {
             client.queryParam(filter.getKey(), filter.getValue());
         }
 
-        GluonObservableList<T> result = DataProvider.retrieveList(listReader(client));
-        return result;
+        return DataProvider.retrieveList(listReader(client));
     }
 
     public GluonObservableObject<T> retrieveObjectFilteredAsync(String orderBy, Pair<String, String> filter, String... urlParts) {

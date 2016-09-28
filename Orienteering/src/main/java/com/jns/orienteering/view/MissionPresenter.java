@@ -266,12 +266,7 @@ public class MissionPresenter extends BasePresenter {
         if (taskToReorder == null) {
             taskToReorder = task;
         } else {
-            int idxSource = tasks.indexOf(taskToReorder);
-            int idxTarget = tasks.indexOf(task);
-            if (idxSource != idxTarget) {
-                tasks.remove(taskToReorder);
-                tasks.add(idxTarget, taskToReorder);
-            }
+            lviewMissionTasks.reorder(taskToReorder, task);
             taskToReorder = null;
             lviewMissionTasks.clearSelection();
         }
@@ -341,9 +336,9 @@ public class MissionPresenter extends BasePresenter {
         }
 
         Mission newMission = createMission();
-        GluonObservableObject<Mission> obsMission = cloudRepo.updateMission(newMission, mission, tasks, tasksBuffer);
 
         if (isEditorModus()) {
+            GluonObservableObject<Mission> obsMission = cloudRepo.updateMission(newMission, mission, tasks, tasksBuffer);
             saveReceiver(obsMission, obsSuccessful)
                                                    .onSuccess(result ->
                                                    {
@@ -360,6 +355,7 @@ public class MissionPresenter extends BasePresenter {
                                                    .start();
 
         } else {
+            GluonObservableObject<Mission> obsMission = cloudRepo.createMission(newMission);
             saveReceiver(obsMission, obsSuccessful).start();
         }
         return obsSuccessful;
@@ -468,7 +464,7 @@ public class MissionPresenter extends BasePresenter {
                            .onSuccess(e ->
                            {
                                service.getListUpdater(MISSIONS_UPDATER).remove(mission);
-                               showPreviousView();
+                               showView(ViewRegistry.MISSIONS);
                            })
                            .exceptionMessage(localize("view.mission.error.delete"))
                            .start();
