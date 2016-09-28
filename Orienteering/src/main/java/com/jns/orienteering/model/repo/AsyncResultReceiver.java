@@ -37,6 +37,7 @@ import com.gluonhq.connect.ConnectState;
 import com.gluonhq.connect.GluonObservable;
 import com.jns.orienteering.control.ProgressLayer;
 import com.jns.orienteering.control.ProgressLayer.PauseFadeInHide;
+import com.jns.orienteering.model.dynamic.CountProperty;
 import com.jns.orienteering.util.Dialogs;
 import com.jns.orienteering.util.Trigger;
 
@@ -45,6 +46,7 @@ import javafx.beans.value.ChangeListener;
 public class AsyncResultReceiver<T extends GluonObservable> {
 
     private static final ProgressLayer                               DEFAULT_PROGRESS_LAYER = new ProgressLayer(PauseFadeInHide::new);
+    private static CountProperty                                     runningReceivers       = new CountProperty();
 
     private T                                                        observable;
     private Optional<Consumer<T>>                                    consumer               = Optional.empty();
@@ -66,10 +68,6 @@ public class AsyncResultReceiver<T extends GluonObservable> {
 
     public AsyncResultReceiver<T> defaultProgressLayer() {
         this.progressLayer = Optional.of(DEFAULT_PROGRESS_LAYER);
-        return this;
-    }
-    public AsyncResultReceiver<T> newDefaultProgressLayer() {
-        this.progressLayer = Optional.of(new ProgressLayer(PauseFadeInHide::new));
         return this;
     }
 
@@ -107,6 +105,8 @@ public class AsyncResultReceiver<T extends GluonObservable> {
             observable.initializedProperty().addListener(initializedListener);
             observable.exceptionProperty().addListener(exceptionListener);
             progressLayer.ifPresent(ProgressLayer::show);
+
+            runningReceivers.increment();
         }
     }
 
@@ -151,9 +151,12 @@ public class AsyncResultReceiver<T extends GluonObservable> {
     private void startFinalizer() {
         finalizer.ifPresent(Trigger::start);
         removeListeners();
+        runningReceivers.decrement();
 
         if (!next.isPresent()) {
-            progressLayer.ifPresent(ProgressLayer::hide);
+            if (runningReceivers.get() == 0) {
+                progressLayer.ifPresent(ProgressLayer::hide);
+            }
         } else {
             next.get().start();
         }

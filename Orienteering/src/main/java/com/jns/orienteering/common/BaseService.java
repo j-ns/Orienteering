@@ -283,7 +283,8 @@ public class BaseService {
 
         GluonObservableList<Task> obsActiveTasks = missionCloudRepo.retrieveTasksAsync(mission.getId());
         AsyncResultReceiver.create(obsActiveTasks)
-                           .newDefaultProgressLayer()
+//                           .newDefaultProgressLayer()
+        .defaultProgressLayer()
                            .onSuccess(result ->
                            {
                                activeTasksLocalRepo.createOrUpdateListAsync(new ActiveTaskList(result));
