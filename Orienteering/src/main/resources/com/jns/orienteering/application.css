@@ -73,7 +73,7 @@
 }
 
 .app-bar > .nav-area > .icon-toggle:pressed{
-	-fx-background-color: -color-accent;
+	-fx-background-color: null;
 }
 
 .app-bar > .nav-area > .icon-toggle,

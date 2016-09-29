@@ -38,7 +38,6 @@ import com.gluonhq.charm.glisten.mvc.View;
 import com.gluonhq.charm.glisten.visual.MaterialDesignIcon;
 import com.jns.orienteering.control.ActionBar;
 import com.jns.orienteering.locale.Localization;
-import com.jns.orienteering.model.common.AccessType;
 import com.jns.orienteering.platform.PlatformProvider;
 import com.jns.orienteering.platform.PlatformService;
 import com.jns.orienteering.util.Icon;
@@ -169,13 +168,6 @@ public abstract class BasePresenter {
 
     protected void showView(ViewRegistry view, ViewStackPolicy policy) {
         application.switchView(view.getViewName(), policy);
-    }
-
-    protected void showView(ViewRegistry viewRegistry, AccessType accessType) {
-        application.switchView(viewRegistry.getViewName());
-        if (viewRegistry.getPresenter() instanceof ListViewPresenter<?>) {
-            ((ListViewPresenter<?>) viewRegistry.getPresenter()).setAccessType(accessType);
-        }
     }
 
     protected void showPreviousView() {

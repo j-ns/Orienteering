@@ -31,6 +31,8 @@ package com.jns.orienteering.common;
 
 import static com.jns.orienteering.locale.Localization.localize;
 
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -204,10 +206,28 @@ public class BaseService {
         activeMission.addListener(activeMissionListener);
         defaultCity.addListener(defaultCityListener);
 
-        SyncMetaData syncMetaData = new SyncMetaData().userId(getUserId())
-                                                      .activeMission(getActiveMission());
-        repoSynchronizer.syncNow(syncMetaData);
+        if (internectConnectionEstablished()) {
+            SyncMetaData syncMetaData = new SyncMetaData().userId(getUserId())
+                                                          .activeMission(getActiveMission());
+            repoSynchronizer.syncNow(syncMetaData);
+        }else {
+            initialized.set(true);
+        }
+    }
 
+    private boolean internectConnectionEstablished() {
+        boolean connectionEstablished = false;
+        try {
+            URL url = new URL("http://www.google.com");
+            HttpURLConnection con = (HttpURLConnection) url.openConnection();
+            con.connect();
+            if (con.getResponseCode() == 200) {
+                connectionEstablished = true;
+            }
+        } catch (Exception ex) {
+            LOGGER.error("no internet connection", ex);
+        }
+        return connectionEstablished;
     }
 
     private boolean                         userListenerActive;
@@ -283,8 +303,8 @@ public class BaseService {
 
         GluonObservableList<Task> obsActiveTasks = missionCloudRepo.retrieveTasksAsync(mission.getId());
         AsyncResultReceiver.create(obsActiveTasks)
-//                           .newDefaultProgressLayer()
-        .defaultProgressLayer()
+                           // .newDefaultProgressLayer()
+                           .defaultProgressLayer()
                            .onSuccess(result ->
                            {
                                activeTasksLocalRepo.createOrUpdateListAsync(new ActiveTaskList(result));

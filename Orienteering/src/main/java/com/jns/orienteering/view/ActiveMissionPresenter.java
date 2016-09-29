@@ -200,6 +200,17 @@ public class ActiveMissionPresenter extends BasePresenter {
         lviewStats.addListeners();
     }
 
+    /**
+     * Adds an border to <code>root</code>, which doesn't react to touch gestures.
+     * This is neccessary to prevent the current showing view from being accidentially switched to another view,
+     * when you hold the device in your hand during an active mission.
+     *
+     * @param root
+     *            node to add the border area to
+     * @param nodeOnTop
+     *            node which is added on top of the blind area, to make it responsive to touch gestures, e.g. a map navigation
+     *            button
+     */
     private void addBlindArea(StackPane root, Node nodeOnTop) {
         HBox boxLeft = new HBox();
         boxLeft.setMinWidth(SIDE_MARGIN);

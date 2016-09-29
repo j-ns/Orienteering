@@ -134,6 +134,7 @@ public class MissionPresenter extends BasePresenter {
         choiceCity.getSelectionModel().selectedItemProperty().addListener((obsValue, c, c1) -> onCityChanged(c1));
         choiceCity.setItems(service.getCities());
 
+
         choiceAccess.setStringConverter(accessType -> localize(accessType));
         choiceAccess.setItems(FXCollections.observableArrayList(AccessType.values()));
 
@@ -226,6 +227,7 @@ public class MissionPresenter extends BasePresenter {
                 lviewMissionTasks.refresh();
                 mapHelper.setMarkers(tasks);
                 service.setSelectedMission(null);
+                service.setSelectedTask(null);
             }
 
             boolean userIsOwnerOfMission = service.getUserId() == null ? false : service.getUserId().equals(mission.getOwnerId());
@@ -437,7 +439,7 @@ public class MissionPresenter extends BasePresenter {
         ListUpdater<Mission> missionsUpdater = service.getListUpdater(MISSIONS_UPDATER);
 
         if (isEditorModus()) {
-            new ListViewUpdater<>(missionsUpdater).update(newMission, mission, service.getSelectedCity());
+            new ListViewUpdater<>(missionsUpdater).update(newMission, mission);
         } else {
             new ListViewUpdater<>(missionsUpdater).add(newMission);
         }

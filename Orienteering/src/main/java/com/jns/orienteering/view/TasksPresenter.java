@@ -30,11 +30,10 @@ package com.jns.orienteering.view;
 
 import static com.jns.orienteering.util.Dialogs.confirmDeleteAnswer;
 
-import java.io.IOException;
-
 import com.gluonhq.charm.glisten.layout.MobileLayoutPane;
 import com.gluonhq.charm.glisten.layout.layer.FloatingActionButton;
 import com.gluonhq.connect.GluonObservableList;
+import com.gluonhq.connect.GluonObservableObject;
 import com.jns.orienteering.control.cell.TaskCellSmall;
 import com.jns.orienteering.model.common.ListUpdater;
 import com.jns.orienteering.model.persisted.Mission;
@@ -99,7 +98,7 @@ public class TasksPresenter extends ListViewPresenter<Task> {
         if (ViewRegistry.MISSION.equals(service.getPreviousView())) {
             setAppBar(btnBack, getTitle(), tglAccessType);
         } else {
-            setAppBar(btnBack, getTitle(), tglAccessType, choiceCityFilter);
+            setAppBar(btnBack, getTitle(), tglAccessType, choiceCity);
         }
     }
 
@@ -152,9 +151,10 @@ public class TasksPresenter extends ListViewPresenter<Task> {
         if (isMissionEditorModus()) {
             lview.setCellFactory(
                                  listView -> new TaskCellSmall(lview.selectedItemProperty(), this::isPartOfMission, null,
-                                                               this::onChangePartOfMission, scrollEventFiler.slidingProperty()));
+                                                               this::onChangePartOfMission, scrollEventFilter.slidingProperty()));
         } else {
-            lview.setCellFactory(listView -> new TaskCellSmall(lview.selectedItemProperty(), this::onDeleteTask, scrollEventFiler.slidingProperty()));
+            lview.setCellFactory(listView -> new TaskCellSmall(lview.selectedItemProperty(), this::onDeleteTask, scrollEventFilter
+                                                                                                                                  .slidingProperty()));
         }
     }
 
@@ -208,22 +208,29 @@ public class TasksPresenter extends ListViewPresenter<Task> {
                 Dialogs.ok(localize("view.tasks.info.taskCanOnlyBeDeletedByOwner")).showAndWait();
                 return;
             }
-
-            if (confirmDeleteAnswer(localize("view.tasks.question.deleteTask")).isYesOrOk()) {
-                try {
-                    cloudRepo.deleteTask(task);
-                    lview.getListUpdater().remove(task);
-
-                    if (isMissionEditorModus()) {
-                        service.getListUpdater(MISSION_TASKS_UPDATER).remove(task);
-                    }
-                    if (selectedMission.equals(service.getActiveMission())) {
-                        service.setActiveMission(null);
-                    }
-                } catch (IOException e) {
-                    Dialogs.ok(localize("view.tasks.error.deleteTask")).showAndWait();
-                }
+            if (!confirmDeleteAnswer(localize("view.tasks.question.deleteTask")).isYesOrOk()) {
+                return;
             }
+
+            GluonObservableObject<Task> obsTask = cloudRepo.deleteTaskAsync(task);
+            AsyncResultReceiver.create(obsTask)
+                               .defaultProgressLayer()
+                               .onSuccess(e ->
+                               {
+                                   lview.getListUpdater().remove(task);
+
+                                   if (isMissionEditorModus()) {
+                                       service.getListUpdater(MISSION_TASKS_UPDATER).remove(task);
+
+                                       boolean activeMissionContainsTask = selectedMission.equals(service.getActiveMission()) &&
+                                               selectedMission.getTaskIds().contains(task.getId());
+                                       if (activeMissionContainsTask) {
+                                           service.setActiveMission(null);
+                                       }
+                                   }
+                               })
+                               .exceptionMessage(localize("view.tasks.error.deleteTask"))
+                               .start();
         });
     }
 

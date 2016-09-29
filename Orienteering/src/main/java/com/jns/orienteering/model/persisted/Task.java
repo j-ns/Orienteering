@@ -38,12 +38,12 @@ import com.gluonhq.charm.down.common.Position;
 import com.gluonhq.maps.MapPoint;
 import com.jns.orienteering.locale.Localization;
 import com.jns.orienteering.model.common.AccessType;
-import com.jns.orienteering.model.common.CityAssignable;
 import com.jns.orienteering.model.common.JsonDefaultConstructor;
 import com.jns.orienteering.model.common.LookupSupplier;
 import com.jns.orienteering.model.common.Postable;
+import com.jns.orienteering.model.common.UpdatableListItem;
 
-public class Task extends BaseSynchronizable implements Postable, CityAssignable, LookupSupplier, Comparable<Task> {
+public class Task extends BaseSynchronizable implements Postable, UpdatableListItem, LookupSupplier, Comparable<Task> {
 
     private String     postId;
 
@@ -263,6 +263,21 @@ public class Task extends BaseSynchronizable implements Postable, CityAssignable
     }
 
     @Override
+    public String getPreviousCityId() {
+        return previousTask.getCityId();
+    }
+
+    @Override
+    public boolean hasCityChanged() {
+        return previousTask != null && !previousTask.cityId.equals(cityId);
+    }
+
+    @Override
+    public boolean hasNameChanged() {
+        return previousTask != null && !previousTask.getTaskName().equals(taskName);
+    }
+
+    @Override
     public boolean equals(Object obj) {
         if (this == obj) {
             return true;
@@ -282,16 +297,6 @@ public class Task extends BaseSynchronizable implements Postable, CityAssignable
     @Override
     public String toString() {
         return taskName;
-    }
-
-    @Override
-    public String getPreviousCityId() {
-        return previousTask.getCityId();
-    }
-
-    @Override
-    public boolean hasCityChanged() {
-        return previousTask != null && !previousTask.cityId.equals(cityId);
     }
 
 }

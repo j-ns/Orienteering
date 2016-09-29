@@ -64,8 +64,8 @@ public class ChangeLogEntry extends BaseModel {
         return timeStamp;
     }
 
-    public void setTimeStamp(long timeStamp) {
-        this.timeStamp = timeStamp;
+    public void setTimeStamp(long epochSeconds) {
+        timeStamp = epochSeconds;
     }
 
     @Override

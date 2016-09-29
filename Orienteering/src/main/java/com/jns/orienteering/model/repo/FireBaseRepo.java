@@ -102,7 +102,6 @@ public class FireBaseRepo<T extends Model> {
     public FireBaseRepo(Class<T> targetClass, String baseUrl) {
         this.targetClass = targetClass;
         this.baseUrl = baseUrl;
-
         restClient = createRestClient();
         outputConverter = new JsonOutputConverterExtended<>(targetClass);
         inputConverter = new JsonInputConverterExtended<>(targetClass);

@@ -43,7 +43,7 @@ import com.jns.orienteering.model.repo.AsyncResultReceiver;
 import com.jns.orienteering.model.repo.CityFBRepo;
 import com.jns.orienteering.model.repo.LocalRepo;
 
-public class CitySynchronizer extends BaseSynchronizer<City, City, LocalCityList> {
+public class CitySynchronizer extends BaseSynchronizer<City, LocalCityList> {
 
     private static final Logger LOGGER               = LoggerFactory.getLogger(CitySynchronizer.class);
 
@@ -65,10 +65,10 @@ public class CitySynchronizer extends BaseSynchronizer<City, City, LocalCityList
         setSyncMetaData(syncMetaData);
 
         boolean fileExits = localRepo.fileExists();
-        if (!fileExits) {
-            retrieveCloudDataAndStoreLocally();
-        } else {
+        if (fileExits) {
             readChangeLogAndSyncLocalData();
+        } else {
+            retrieveCloudDataAndStoreLocally();
         }
     }
 

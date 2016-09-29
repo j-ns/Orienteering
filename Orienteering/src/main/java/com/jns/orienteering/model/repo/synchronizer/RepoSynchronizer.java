@@ -52,7 +52,7 @@ public class RepoSynchronizer {
 
     private SettingService                            settingService       = PlatformFactory.getPlatform().getSettingService();
 
-    private Map<String, BaseSynchronizer<?, ?, ?>>    synchronizers        = new HashMap<>();
+    private Map<String, BaseSynchronizer<?, ?>>       synchronizers        = new HashMap<>();
     private SyncMetaData                              syncMetaData;
 
     private CountProperty                             pendingSynchronizers = new CountProperty();
@@ -75,7 +75,7 @@ public class RepoSynchronizer {
                     syncState.set(ConnectState.FAILED);
                 }
             } else {
-                throw new IndexOutOfBoundsException("pendingSynchronizers == -1");
+                throw new IndexOutOfBoundsException("pendingSynchronizers: " + pendingSynchronizers.get());
             }
         });
     }
@@ -88,18 +88,9 @@ public class RepoSynchronizer {
         return syncState;
     }
 
-    public void addSynchronizer(BaseSynchronizer<?, ?, ?> synchronizer) {
+    public void addSynchronizer(BaseSynchronizer<?, ?> synchronizer) {
         synchronizers.put(synchronizer.getName(), synchronizer);
     }
-
-//    public void syncNow(String synchronizerName, SyncMetaData syncMetaData) {
-//        this.syncMetaData = syncMetaData;
-//        setTimeStamps(syncMetaData);
-//
-//        BaseSynchronizer<?, ?, ?> synchronizer = synchronizers.get(synchronizerName);
-//        synchronizer.syncStateProperty().addListener(getStateListener(synchronizerName));
-//        synchronizer.syncNow(syncMetaData);
-//    }
 
     public void syncNow(SyncMetaData syncMetaData) {
         this.syncMetaData = syncMetaData;
@@ -108,7 +99,7 @@ public class RepoSynchronizer {
         LOGGER.debug("lastSyncTimeStamp: {}", syncMetaData.getLastSynced());
 
         pendingSynchronizers.set(synchronizers.size());
-        for (BaseSynchronizer<?, ?, ?> synchronizer : synchronizers.values()) {
+        for (BaseSynchronizer<?, ?> synchronizer : synchronizers.values()) {
             synchronizer.syncStateProperty().addListener(getStateListener(synchronizer.getName()));
             synchronizer.syncNow(syncMetaData);
         }
@@ -148,7 +139,7 @@ public class RepoSynchronizer {
     }
 
     private void removeStateListener(String synchronizerName) {
-        BaseSynchronizer<?, ?, ?> synchronizer = synchronizers.get(synchronizerName);
+        BaseSynchronizer<?, ?> synchronizer = synchronizers.get(synchronizerName);
         ChangeListener<ConnectState> listener = syncStateListeners.remove(synchronizerName);
         synchronizer.syncStateProperty().removeListener(listener);
         LOGGER.debug("removed stateListener for synchronizer: {}", synchronizerName);

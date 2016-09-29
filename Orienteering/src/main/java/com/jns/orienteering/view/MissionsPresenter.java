@@ -55,7 +55,7 @@ public class MissionsPresenter extends ListViewPresenter<Mission> {
         fab.visibleProperty().bind(service.userProperty().isNotNull());
 
         lview.setCellFactory(listView -> new MissionCell(lview.selectedItemProperty(), this::onDeleteMission, this::onSetActiveMission,
-                                                         scrollEventFiler.slidingProperty()));
+                                                         scrollEventFilter.slidingProperty()));
         lview.setComparator(Mission::compareTo);
         lview.setOnSelection(this::onSelectMission);
 

@@ -142,6 +142,7 @@ public class TaskPresenter extends BasePresenter {
         initActionBar();
 
         choiceCity.setStringConverter(City::getCityName);
+        choiceCity.setMissingDataTitle(localize("dialog.error.connectionFailed"));
         choiceCity.setItems(service.getCities());
 
         Label gpsIcon = Icon.GPS_LOCATION.label("22");
@@ -405,7 +406,7 @@ public class TaskPresenter extends BasePresenter {
                         saveImage(image.get(), newTask.getImageUrl(), ImageHandler::storeImage);
                     }
                 }
-                updateTaskList(newTask, nameChanged);
+                updateTasksList(newTask, task);
                 GluonObservableHelper.setInitialized(obsTask, true);
 
             } catch (IOException e) {
@@ -444,7 +445,6 @@ public class TaskPresenter extends BasePresenter {
         String positionText = txtPosition.getText();
         if (isNotNullOrEmpty(positionText)) {
             positionText.replaceAll("\\s", "");
-
             String[] split = positionText.split(",");
             double latitude = Double.valueOf(split[0]);
             double longitude = Double.valueOf(split[1]);
@@ -465,42 +465,22 @@ public class TaskPresenter extends BasePresenter {
         }
     }
 
-    private void updateTaskList(Task newTask, boolean taskNameChanged) {
+    private void updateTasksList(Task newTask, Task previousTask) {
         ListUpdater<Task> tasksUpdater = service.getListUpdater(TASKS_UPDATER);
 
         if (tasksUpdater != null) {
-            boolean accessTypeMatchesList = tasksUpdater.getAccessType() == newTask.getAccessType();
+            ListViewUpdater<Task> listViewUpdater = new ListViewUpdater<>(tasksUpdater);
 
             if (isEditorModus()) {
-                if (accessTypeMatchesList) {
-                    if (taskNameChanged) {
-                        tasksUpdater.remove(task);
-                        tasksUpdater.add(newTask);
-                    } else {
-                        tasksUpdater.update(newTask);
-                    }
-                } else {
-                    tasksUpdater.remove(task);
-                }
+                listViewUpdater.update(newTask, previousTask);
             } else {
-                if (accessTypeMatchesList) {
-                    tasksUpdater.add(newTask);
-                }
+                listViewUpdater.add(newTask);
             }
         }
 
         if (isEditorModus() && isMissionEditorModus()) {
-            ListUpdater<Object> missionTasksUpdater = service.getListUpdater(MISSION_TASKS_UPDATER);
-            boolean accessTypeMatchesList = missionTasksUpdater.getAccessType() == newTask.getAccessType();
-
-            if (accessTypeMatchesList) {
-                if (taskNameChanged) {
-                    missionTasksUpdater.remove(task);
-                    missionTasksUpdater.add(newTask);
-                } else {
-                    missionTasksUpdater.update(newTask);
-                }
-            }
+            ListUpdater<Task> missionTasksUpdater = service.getListUpdater(MISSION_TASKS_UPDATER);
+            new ListViewUpdater<>(missionTasksUpdater).update(newTask, previousTask);
         }
     }
 
@@ -509,34 +489,22 @@ public class TaskPresenter extends BasePresenter {
             return;
         }
 
-        GluonObservableObject<Task> obsTask = new GluonObservableObject<>();
+        GluonObservableObject<Task> obsTask = cloudRepo.deleteTaskAsync(task);
         AsyncResultReceiver.create(obsTask)
                            .defaultProgressLayer()
-                           .onSuccess(e -> showPreviousView())
+                           .onSuccess(e ->
+                           {
+                               ListUpdater<Object> tasksListUpdater = service.getListUpdater(TASKS_UPDATER);
+                               if (tasksListUpdater != null) {
+                                   tasksListUpdater.remove(task);
+                               }
+                               if (isMissionEditorModus()) {
+                                   service.getListUpdater(MISSION_TASKS_UPDATER).remove(task);
+                               }
+                               showPreviousView();
+                           })
                            .exceptionMessage(localize("view.task.error.delete"))
                            .start();
-
-        getExecutor().execute(() ->
-        {
-            try {
-                cloudRepo.deleteTask(task);
-
-                ListUpdater<Object> tasksListUpdater = service.getListUpdater(TASKS_UPDATER);
-                if (tasksListUpdater != null) {
-                    tasksListUpdater.remove(task);
-                }
-
-                if (isMissionEditorModus()) {
-                    service.getListUpdater(MISSION_TASKS_UPDATER).remove(task);
-                }
-
-                GluonObservableHelper.setInitialized(obsTask, true);
-
-            } catch (IOException ex) {
-                LOGGER.error("Failed to delete task: {}", task.getTaskName(), ex);
-                GluonObservableHelper.setException(obsTask, ex);
-            }
-        });
     }
 
     private boolean isEditorModus() {

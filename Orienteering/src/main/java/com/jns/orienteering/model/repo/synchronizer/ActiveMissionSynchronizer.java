@@ -44,7 +44,7 @@ import com.jns.orienteering.util.Dialogs;
 
 import javafx.beans.property.SimpleObjectProperty;
 
-public class ActiveMissionSynchronizer extends BaseSynchronizer<User, User, User> {
+public class ActiveMissionSynchronizer extends BaseSynchronizer<User, User> {
 
     public static final String      NAME                     = "mission_synchronizer";
     private static final String     MISSIONS_LIST_IDENTIFIER = "missions";

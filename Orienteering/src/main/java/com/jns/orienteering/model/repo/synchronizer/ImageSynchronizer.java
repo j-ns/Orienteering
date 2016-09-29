@@ -35,9 +35,8 @@ import com.jns.orienteering.common.ImageHandler;
 import com.jns.orienteering.model.persisted.ActiveTaskList;
 import com.jns.orienteering.model.persisted.ChangeLogEntry;
 import com.jns.orienteering.model.persisted.Task;
-import com.jns.orienteering.model.repo.AsyncResultReceiver;
 
-public class ImageSynchronizer extends BaseSynchronizer<Task, Task, ActiveTaskList> {
+public class ImageSynchronizer extends BaseSynchronizer<Task, ActiveTaskList> {
 
     public static final String  NAME                  = "image_synchronizer";
     private static final String IMAGE_LIST_IDENTIFIER = "images";
@@ -56,17 +55,14 @@ public class ImageSynchronizer extends BaseSynchronizer<Task, Task, ActiveTaskLi
         setRunning();
         LocalDate firstOfMonth = LocalDate.now().withDayOfMonth(1);
 
+        // sync only once a month
         if (!syncMetaData.isLastSyncedBefore(firstOfMonth)) {
             setSucceeded();
             return;
         }
 
         setSyncMetaData(syncMetaData);
-
-        AsyncResultReceiver.create(retrieveChangeLog(IMAGE_LIST_IDENTIFIER))
-                           .onSuccess(this::syncLocalData)
-                           .onException(this::setFailed)
-                           .start();
+        readChangeLogAndSyncLocalData();
     }
 
     @Override

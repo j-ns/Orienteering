@@ -45,21 +45,21 @@ import javafx.scene.control.ToggleButton;
 
 public abstract class ListViewPresenter<T> extends BasePresenter {
 
-    private static final String        USER_NOT_LOGGED_IN      = localize("view.cities.info.userNotLoggedIn");
+    private static final String        USER_NOT_LOGGED_IN = localize("view.cities.info.userNotLoggedIn");
 
-    protected ToggleButton             tglAccessType           = Icon.Buttons.accessType();
-    protected GraphicChoiceField<City> choiceCityFilter        = new GraphicChoiceField<>(Icon.FILTER.button());
+    protected ToggleButton             tglAccessType      = Icon.Buttons.accessType();
+    protected GraphicChoiceField<City> choiceCity         = new GraphicChoiceField<>(Icon.FILTER.button());
 
     @FXML
     protected ListViewExtended<T>      lview;
-    protected Label                    lblPlaceHolder          = new Label();
-    protected ScrollEventFilter        scrollEventFiler;
+    protected Label                    lblPlaceHolder     = new Label();
+    protected ScrollEventFilter        scrollEventFilter;
 
     @Inject
     protected BaseService              service;
 
-    protected City                     cityFilter;
-    private AccessType                 accessType              = AccessType.PRIVATE;
+    protected City                     selectedCity;
+    private AccessType                 accessType         = AccessType.PRIVATE;
     private boolean                    accessTypeListenerMuted;
 
     @Override
@@ -74,9 +74,10 @@ public abstract class ListViewPresenter<T> extends BasePresenter {
             }
         });
 
-        choiceCityFilter.setStringConverter(City::getCityName);
-        choiceCityFilter.setItems(service.getCities());
-        choiceCityFilter.getSelectionModel().selectedItemProperty().addListener((obsValue, t, t1) ->
+        choiceCity.setStringConverter(City::getCityName);
+        choiceCity.setMissingDataTitle(localize("dialog.error.connectionFailed"));
+        choiceCity.setItems(service.getCities());
+        choiceCity.getSelectionModel().selectedItemProperty().addListener((obsValue, t, t1) ->
         {
             if (t1 != null) {
                 service.setSelectedCity(t1);
@@ -91,7 +92,7 @@ public abstract class ListViewPresenter<T> extends BasePresenter {
                                                                                          .then(USER_NOT_LOGGED_IN)
                                                                                          .otherwise(getNoDataExistingMessage()));
         lview.setPlaceholder(lblPlaceHolder);
-        scrollEventFiler = new ScrollEventFilter(lview);
+        scrollEventFilter = new ScrollEventFilter(lview);
         service.getActivatorDeactivatorService().add(getViewName(), lview);
     }
 
@@ -105,7 +106,7 @@ public abstract class ListViewPresenter<T> extends BasePresenter {
 
     @Override
     protected void initAppBar() {
-        setAppBar(createGoHomeButton(), getTitle(), tglAccessType, choiceCityFilter);
+        setAppBar(createGoHomeButton(), getTitle(), tglAccessType, choiceCity);
     }
 
     public AccessType getAccessType() {

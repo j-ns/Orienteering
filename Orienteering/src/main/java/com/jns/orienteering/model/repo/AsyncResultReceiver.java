@@ -30,6 +30,7 @@ package com.jns.orienteering.model.repo;
 
 import static com.jns.orienteering.locale.Localization.localize;
 
+import java.net.UnknownHostException;
 import java.util.Optional;
 import java.util.function.Consumer;
 
@@ -52,7 +53,7 @@ public class AsyncResultReceiver<T extends GluonObservable> {
     private Optional<Consumer<T>>                                    consumer               = Optional.empty();
 
     private Optional<ProgressLayer>                                  progressLayer          = Optional.empty();
-    private Optional<Trigger>                                        onException            = Optional.empty();
+    private Optional<Consumer<Throwable>>                            onException            = Optional.empty();
     private Optional<String>                                         exceptionMessage       = Optional.empty();
     private Optional<Trigger>                                        finalizer              = Optional.empty();
 
@@ -82,6 +83,10 @@ public class AsyncResultReceiver<T extends GluonObservable> {
     }
 
     public AsyncResultReceiver<T> onException(Trigger onException) {
+        return onException(e -> onException.start());
+    }
+
+    public AsyncResultReceiver<T> onException(Consumer<Throwable> onException) {
         this.onException = Optional.of(onException);
         return this;
     }
@@ -97,6 +102,8 @@ public class AsyncResultReceiver<T extends GluonObservable> {
     }
 
     public void start() {
+        runningReceivers.increment();
+
         if (observable.isInitialized()) {
             consumer.ifPresent(c -> c.accept(observable));
             startFinalizer();
@@ -104,9 +111,8 @@ public class AsyncResultReceiver<T extends GluonObservable> {
             observable.stateProperty().addListener(stateListener);
             observable.initializedProperty().addListener(initializedListener);
             observable.exceptionProperty().addListener(exceptionListener);
-            progressLayer.ifPresent(ProgressLayer::show);
 
-            runningReceivers.increment();
+            progressLayer.ifPresent(ProgressLayer::show);
         }
     }
 
@@ -142,9 +148,14 @@ public class AsyncResultReceiver<T extends GluonObservable> {
     private ChangeListener<? super Throwable>    exceptionListener   = (obsValue, e, e1) ->
                                                                      {
                                                                          if (e1 != null) {
-                                                                             onException.ifPresent(Trigger::start);
+                                                                             onException.ifPresent(c -> c.accept(e1));
                                                                              exceptionMessage.ifPresent(msg -> Dialogs.ok(msg).showAndWait());
                                                                              startFinalizer();
+
+                                                                             if (e1 instanceof UnknownHostException) {
+                                                                                 Dialogs.ok(localize("dialog.error.connectionFailed"))
+                                                                                        .showAndWait();
+                                                                             }
                                                                          }
                                                                      };
 

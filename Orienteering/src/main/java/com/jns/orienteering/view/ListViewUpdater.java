@@ -30,7 +30,6 @@ package com.jns.orienteering.view;
 
 import com.jns.orienteering.model.common.ListUpdater;
 import com.jns.orienteering.model.common.UpdatableListItem;
-import com.jns.orienteering.model.persisted.City;
 
 public class ListViewUpdater<T extends UpdatableListItem> {
 
@@ -40,7 +39,7 @@ public class ListViewUpdater<T extends UpdatableListItem> {
         this.listUpdater = listUpdater;
     }
 
-    public void update(T newItem, T previousItem, City selectedCity) {
+    public void update(T newItem, T previousItem) {
         boolean accessTypesMatches = listUpdater.getAccessType() == newItem.getAccessType();
         boolean cityHasChanged = newItem.hasCityChanged();
         boolean nameHasChanged = newItem.hasNameChanged();

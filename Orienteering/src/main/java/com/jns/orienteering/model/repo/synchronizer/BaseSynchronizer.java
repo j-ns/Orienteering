@@ -28,8 +28,6 @@
  */
 package com.jns.orienteering.model.repo.synchronizer;
 
-import static com.jns.orienteering.locale.Localization.localize;
-
 import java.io.IOException;
 import java.util.List;
 import java.util.function.BiFunction;
@@ -53,38 +51,36 @@ import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 
 /**
- * @param <CR>
- *            type of the cloudRepo
- * @param <LR>
- *            type of the localRepo
+ * @param <T>
+ *            type of the synchronizable data
  * @param <L>
  *            type of the locally stored data
  */
-public abstract class BaseSynchronizer<CR extends Synchronizable, LR, L> {
+public abstract class BaseSynchronizer<T extends Synchronizable, L> {
 
-    private static final Logger             LOGGER    = LoggerFactory.getLogger(BaseSynchronizer.class);
+    private static final Logger            LOGGER    = LoggerFactory.getLogger(BaseSynchronizer.class);
 
-    private static ChangeLogRepo            logRepo   = new ChangeLogRepo();
+    private static ChangeLogRepo           logRepo   = new ChangeLogRepo();
 
-    protected FireBaseRepo<CR>              cloudRepo;
-    protected LocalRepo<LR, L>              localRepo;
-    protected String                        listIdentifier;
+    protected FireBaseRepo<T>              cloudRepo;
+    protected LocalRepo<T, L>              localRepo;
+    protected String                       listIdentifier;
 
-    protected BiFunction<List<CR>, Long, L> cloudToLocalMapper;
+    protected BiFunction<List<T>, Long, L> cloudToLocalMapper;
 
-    private SyncMetaData                    syncMetaData;
-    private ObjectProperty<ConnectState>    syncState = new SimpleObjectProperty<>(ConnectState.READY);
-    private Consumer<List<CR>>              onSynced;
+    private SyncMetaData                   syncMetaData;
+    private ObjectProperty<ConnectState>   syncState = new SimpleObjectProperty<>(ConnectState.READY);
+    private Consumer<List<T>>              onSynced;
 
     public BaseSynchronizer(String listIdentifier) {
         this.listIdentifier = listIdentifier;
     }
 
-    public BaseSynchronizer(FireBaseRepo<CR> cloudRepo, LocalRepo<LR, L> localRepo) {
+    public BaseSynchronizer(FireBaseRepo<T> cloudRepo, LocalRepo<T, L> localRepo) {
         this(cloudRepo, localRepo, null, null);
     }
 
-    public BaseSynchronizer(FireBaseRepo<CR> cloudRepo, LocalRepo<LR, L> localRepo, BiFunction<List<CR>, Long, L> cloudToLocalMapper,
+    public BaseSynchronizer(FireBaseRepo<T> cloudRepo, LocalRepo<T, L> localRepo, BiFunction<List<T>, Long, L> cloudToLocalMapper,
                             String listIdentifier) {
         this.cloudRepo = cloudRepo;
         this.localRepo = localRepo;
@@ -110,11 +106,11 @@ public abstract class BaseSynchronizer<CR extends Synchronizable, LR, L> {
         syncState.set(ConnectState.FAILED);
     }
 
-    public Consumer<List<CR>> getOnSynced() {
+    public Consumer<List<T>> getOnSynced() {
         return onSynced;
     }
 
-    public void setOnSynced(Consumer<List<CR>> onSynced) {
+    public void setOnSynced(Consumer<List<T>> onSynced) {
         this.onSynced = onSynced;
     }
 
@@ -135,7 +131,7 @@ public abstract class BaseSynchronizer<CR extends Synchronizable, LR, L> {
                            .start();
     }
 
-    protected void storeLocally(GluonObservableList<CR> cloudData) {
+    protected void storeLocally(GluonObservableList<T> cloudData) {
         L localData = cloudToLocalMapper.apply(cloudData, syncMetaData.getCurrentTimeStamp());
 
         GluonObservableObject<L> obsLocalData = localRepo.createOrUpdateListAsync(localData);
@@ -146,15 +142,22 @@ public abstract class BaseSynchronizer<CR extends Synchronizable, LR, L> {
                                setSucceeded();
                                LOGGER.debug("stored local data {}: {}", listIdentifier, result);
                            })
-                           .exceptionMessage(localize("baseService.error.storeDataLocally"))
-                           .onException(this::setFailed)
+                           .onException(ex ->
+                           {
+                               setFailed();
+                               LOGGER.error("failed to store local data: {}", listIdentifier, ex);
+                           })
                            .start();
     }
 
     protected void readChangeLogAndSyncLocalData() {
         AsyncResultReceiver.create(retrieveChangeLog(listIdentifier))
                            .onSuccess(this::syncLocalData)
-                           .onException(this::setFailed)
+                           .onException(ex ->
+                           {
+                               setFailed();
+                               LOGGER.error("failed to sync local data: {}", listIdentifier, ex);
+                           })
                            .start();
     }
 

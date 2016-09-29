@@ -380,20 +380,11 @@ public class JsonConverterExtended<T> {
         } else if (Map.class.equals(method.getReturnType())) {
             JsonObjectBuilder nestedObjectBuilder = builderFactory.createObjectBuilder();
 
-            ParameterizedType type = (ParameterizedType) method.getGenericReturnType();
-            Class<?> valueClass = (Class<?>) type.getActualTypeArguments()[1];
-
             Map<String, Object> map = (Map<String, Object>) value;
 
-            for (Object key : map.keySet()) {
-                writeMapEntry(nestedObjectBuilder, key.toString(), map.get(key));
-                // nestedObjectBuilder.add(key.toString(), valueClass.cast(map.get(key)));
+            for (String key : map.keySet()) {
+                writeMapEntry(nestedObjectBuilder, key, map.get(key));
             }
-
-            // for (Entry<String, Object> entry : map.entrySet()) {
-            // nestedObjectBuilder.add(entry.getKey(), entry.getValue());
-            // }
-
             jsonObjectBuilder.add(property, nestedObjectBuilder);
 
         } else if (BooleanProperty.class.equals(method.getReturnType())) {

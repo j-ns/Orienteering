@@ -35,6 +35,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.gluonhq.connect.GluonObservableList;
+import com.gluonhq.connect.GluonObservableObject;
 import com.gluonhq.connect.provider.DataProvider;
 import com.jns.orienteering.model.common.RepoAction;
 import com.jns.orienteering.model.persisted.CityTaskLookup;
@@ -137,36 +138,42 @@ public class TaskFBRepo extends FireBaseRepo<Task> {
         }
     }
 
-    public void deleteTask(Task task) throws IOException {
-        task.setTimeStamp(createTimeStamp());
+    public GluonObservableObject<Task> deleteTaskAsync(Task task) {
+        GluonObservableObject<Task> obsTask = new GluonObservableObject<>();
 
-        delete(task.getId());
+        executeAsync(obsTask, () ->
+        {
+            task.setTimeStamp(createTimeStamp());
+            delete(task.getId());
 
-        namelookupRepo.deleteLookup(task.createNameLookup());
-        cityLookupRepo.deleteLookup(task.createCityLookup());
+            namelookupRepo.deleteLookup(task.createNameLookup());
+            cityLookupRepo.deleteLookup(task.createCityLookup());
 
-        MissionsByTaskLookup missionsLookup = missionsByTaskLookupRepo.retrieveObject(task.getId());
-        if (missionsLookup != null) {
-            Iterator<String> missionIds = missionsLookup.getValues().keySet().iterator();
-            while (missionIds.hasNext()) {
-                String missionId = missionIds.next();
+            MissionsByTaskLookup missionsLookup = missionsByTaskLookupRepo.retrieveObject(task.getId());
+            if (missionsLookup != null) {
+                Iterator<String> missionIds = missionsLookup.getValues().keySet().iterator();
+                while (missionIds.hasNext()) {
+                    String missionId = missionIds.next();
 
-                TasksByMissionLookup tasksLookup = tasksLookupRepo.retrieveObject(missionId);
-                if (tasksLookup != null) {
-                    tasksLookup.setId(missionId);
-                    tasksLookup.removeValue(task.getId());
-                    tasksLookupRepo.createOrUpdateLookup(tasksLookup);
+                    TasksByMissionLookup tasksLookup = tasksLookupRepo.retrieveObject(missionId);
+                    if (tasksLookup != null) {
+                        tasksLookup.setId(missionId);
+                        tasksLookup.removeValue(task.getId());
+                        tasksLookupRepo.createOrUpdateLookup(tasksLookup);
+                    }
+
+                    missionStatCloudRepo.deleteAsync(missionId);
                 }
-
-                missionStatCloudRepo.deleteAsync(missionId);
+                missionsByTaskLookupRepo.delete(task.getId());
             }
-            missionsByTaskLookupRepo.delete(task.getId());
-        }
 
-        writeLogEntry(task, RepoAction.DELETE);
-        if (task.getImageId() != null) {
-            writeLogEntry(new ImageLogEntry(task), ChangeLogRepo::writeImageLogAsync);
-        }
+            writeLogEntry(task, RepoAction.DELETE);
+            if (task.getImageId() != null) {
+                writeLogEntry(new ImageLogEntry(task), ChangeLogRepo::writeImageLogAsync);
+            }
+        });
+
+        return obsTask;
     }
 
     private void writeLogEntry(Task task, RepoAction action) {

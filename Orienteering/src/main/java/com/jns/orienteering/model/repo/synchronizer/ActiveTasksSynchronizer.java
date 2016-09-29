@@ -50,7 +50,7 @@ import com.jns.orienteering.util.Dialogs;
 
 import javafx.collections.FXCollections;
 
-public class ActiveTasksSynchronizer extends BaseSynchronizer<Task, Task, ActiveTaskList> {
+public class ActiveTasksSynchronizer extends BaseSynchronizer< Task, ActiveTaskList> {
 
     private static final Logger LOGGER               = LoggerFactory.getLogger(ActiveTasksSynchronizer.class);
 

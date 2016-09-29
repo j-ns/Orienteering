@@ -46,6 +46,9 @@ public class Validators {
     }
 
     public static boolean isDigit(String input) {
+        if (input.length() > 1) {
+            throw new IllegalArgumentException("valid input length = 0 || 1");
+        }
         return isDigit(input, 0);
     }
 
@@ -91,7 +94,7 @@ public class Validators {
             sourceList.addAll(0, Collections.nCopies(countOfDigits - size, 0));
 
         } else if (size > countOfDigits) {
-            throw new IllegalArgumentException("SourceList size is greater than countOfDigits");
+            throw new IllegalArgumentException("sourceList size is greater than countOfDigits");
         }
     }
 }
