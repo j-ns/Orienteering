@@ -39,6 +39,7 @@ import com.gluonhq.maps.MapPoint;
 import com.gluonhq.maps.MapView;
 import com.jns.orienteering.control.ScrollListener;
 import com.jns.orienteering.model.persisted.Task;
+import com.jns.orienteering.util.PositionHelper;
 import com.jns.orienteering.util.Icon;
 
 import javafx.css.PseudoClass;
@@ -46,8 +47,6 @@ import javafx.scene.Node;
 import javafx.scene.control.Button;
 
 public class MapHelper {
-
-    public static final Position     DEFAULT_START_POSITION        = new Position(50.107180, 8.663756);                                                                                                                   // Frankfurt
 
     private static final PseudoClass PSEUDO_CLASS_MARKER_ACTIVE    = PseudoClass.getPseudoClass("active");
     private static final PseudoClass PSEUDO_CLASS_MARKER_COMPLETED = PseudoClass.getPseudoClass("completed");
@@ -60,12 +59,12 @@ public class MapHelper {
     private Node                     activeMarker;
 
     public MapHelper(MapView map) {
-        this(map, DEFAULT_START_POSITION);
+        this(map, PositionHelper.retrieveStartPosition());
     }
 
     public MapHelper(MapView map, Position position) {
         this.map = map;
-        Position _position = position != null ? position : DEFAULT_START_POSITION;
+        Position _position = position != null ? position : PositionHelper.retrieveStartPosition();
 
         map.addLayer(locationLayer);
         map.addLayer(currentLocationLayer);

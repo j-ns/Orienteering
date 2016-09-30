@@ -145,7 +145,7 @@ public class MissionsPresenter extends ListViewPresenter<Mission> {
             }
 
             if (confirmDeleteAnswer(localize("view.mission.question.delete")).isYesOrOk()) {
-                GluonObservableObject<Mission> obsMission = cloudRepo.deleteMission(mission);
+                GluonObservableObject<Mission> obsMission = cloudRepo.deleteMissionAsync(mission);
                 AsyncResultReceiver.create(obsMission)
                                    .defaultProgressLayer()
                                    .onSuccess(e ->

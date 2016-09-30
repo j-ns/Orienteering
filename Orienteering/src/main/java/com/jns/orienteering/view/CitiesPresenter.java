@@ -29,16 +29,13 @@ package com.jns.orienteering.view;
 
 import static com.jns.orienteering.util.Dialogs.confirmDeleteAnswer;
 
-import java.io.IOException;
 import java.util.function.Consumer;
 
 import javax.inject.Inject;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.gluonhq.charm.glisten.layout.layer.FloatingActionButton;
 import com.gluonhq.connect.GluonObservableList;
+import com.gluonhq.connect.GluonObservableObject;
 import com.jns.orienteering.common.BaseService;
 import com.jns.orienteering.control.ListViewExtended;
 import com.jns.orienteering.control.ScrollEventFilter;
@@ -60,8 +57,6 @@ import javafx.scene.control.ToggleButton;
 
 public class CitiesPresenter extends BasePresenter {
 
-    private static final Logger    LOGGER             = LoggerFactory.getLogger(CitiesPresenter.class);
-
     private static final String    USER_NOT_SIGNED_IN = localize("view.cities.info.userNotLoggedIn");
     private static final String    NO_CITY_EXISTING   = localize("view.cities.info.noCityExisting");
 
@@ -77,15 +72,11 @@ public class CitiesPresenter extends BasePresenter {
 
     @Inject
     private BaseService            service;
-    private CityFBRepo             cityCloudRepo;
-
-    private City                   selectedCityBuffer;
+    private CityFBRepo             cloudRepo;
 
     @Override
     protected void initialize() {
         super.initialize();
-
-        cityCloudRepo = service.getRepoService().getCloudRepo(City.class);
 
         FloatingActionButton fab = addFab(view, e -> onCreateCity());
         fab.visibleProperty().bind(service.userProperty().isNotNull());
@@ -97,17 +88,18 @@ public class CitiesPresenter extends BasePresenter {
             populateListView();
         });
 
-        scrollEventFilter = new ScrollEventFilter(lview);
-
-        lview.setComparator(City::compareTo);
-        lview.setOnSelection(this::onSelect);
-        lview.setPlaceholder(lblPlaceHolder);
-
         lblPlaceHolder.textProperty().bind(new When(service.userProperty()
                                                            .isNull().and(tglAccessType.selectedProperty().not()))
                                                                                                                  .then(USER_NOT_SIGNED_IN)
                                                                                                                  .otherwise(NO_CITY_EXISTING));
+
+        lview.setPlaceholder(lblPlaceHolder);
+        lview.setComparator(City::compareTo);
+        lview.setOnSelection(this::onSelect);
+        scrollEventFilter = new ScrollEventFilter(lview);
         service.getActivatorDeactivatorService().add(ViewRegistry.CITIES.getViewName(), lview);
+
+        cloudRepo = service.getRepoService().getCloudRepo(City.class);
     }
 
     @Override
@@ -119,11 +111,11 @@ public class CitiesPresenter extends BasePresenter {
     protected void onShown() {
         super.onShown();
 
-        if (!ViewRegistry.CITY.getViewName().equals(service.getPreviousView())) {
-            populateListView();
-            service.setSelectedCity(selectedCityBuffer);
+        if (ViewRegistry.CITY.getViewName().equals(service.getPreviousView())) {
+            service.setSelectedCity(null);
+            lview.refresh();
         } else {
-            selectedCityBuffer = service.getSelectedCity();
+            populateListView();
         }
     }
 
@@ -131,8 +123,7 @@ public class CitiesPresenter extends BasePresenter {
         updateCellFactory();
 
         String userId = service.getUserId();
-        GluonObservableList<City> cities = isPrivateAccess() ? cityCloudRepo.getPrivateListAsync(userId) : cityCloudRepo.getPublicListAsync(userId);
-
+        GluonObservableList<City> cities = isPrivateAccess() ? cloudRepo.getPrivateListAsync(userId) : cloudRepo.getPublicListAsync(userId);
         AsyncResultReceiver.create(cities)
                            .defaultProgressLayer()
                            .onSuccess(lview::setSortableItems)
@@ -142,9 +133,8 @@ public class CitiesPresenter extends BasePresenter {
     private void updateCellFactory() {
         Consumer<City> consumerLeft = isPrivateAccess() ? this::onDelete : null;
 
-        lview.setCellFactory(
-                             listView -> new CityCell(lview.selectedItemProperty(), consumerLeft, this::onSetDefault,
-                                                      scrollEventFilter.slidingProperty()));
+        lview.setCellFactory(listView -> new CityCell(lview.selectedItemProperty(), consumerLeft, this::onSetDefault, scrollEventFilter
+                                                                                                                                       .slidingProperty()));
     }
 
     private void onCreateCity() {
@@ -181,21 +171,23 @@ public class CitiesPresenter extends BasePresenter {
             if (!confirmDeleteAnswer(localize("view.cities.question.delete")).isYesOrOk()) {
                 return;
             }
-            if (!cityCloudRepo.isCityValidForDelete(city.getId())) {
+            if (!cloudRepo.isCityValidForDelete(city.getId())) {
                 Dialogs.ok(localize("view.cities.error.cityIsUsedByTaskOrMission")).showAndWait();
                 return;
             }
 
-            try {
-                cityCloudRepo.delete(city);
-                lview.getListUpdater().remove(city);
-                CityHolder.remove(city);
-                // if defaultCity == city -> localRepo delete city
+            GluonObservableObject<City> obsCity = cloudRepo.deleteAsync(city);
+            AsyncResultReceiver.create(obsCity)
+                               .defaultProgressLayer()
+                               .onSuccess(e ->
+                               {
+                                   lview.getListUpdater().remove(city);
+                                   service.getCities().remove(city);
+                                   CityHolder.remove(city);
+                               })
+                               .start();
 
-            } catch (IOException e) {
-                LOGGER.error("Error deleting city", e);
-                Dialogs.ok(localize("view.cities.error.deletingCity")).showAndWait();
-            }
+            // todo: localRepo delete city
         });
     }
 

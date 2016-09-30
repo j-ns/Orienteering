@@ -28,9 +28,8 @@
  */
 package com.jns.orienteering.model.repo;
 
-import java.io.IOException;
-
 import com.gluonhq.connect.GluonObservableList;
+import com.gluonhq.connect.GluonObservableObject;
 import com.gluonhq.connect.provider.DataProvider;
 import com.jns.orienteering.model.common.RepoAction;
 import com.jns.orienteering.model.dynamic.CityHolder;
@@ -107,51 +106,55 @@ public class CityFBRepo extends FireBaseRepo<City> {
         return nameLookupRepo.checkIfNameExists(cityName);
     }
 
-    public void create(City city) throws IOException {
-        city.setTimeStamp(createTimeStamp());
+    public GluonObservableObject<City> createCityAsync(City city) {
+        return executeAsync(city, () ->
+        {
+            city.setTimeStamp(createTimeStamp());
+            City result = addToList(city);
+            if (result != null) {
+                nameLookupRepo.createOrUpdate(new CityNameLookup(city));
 
-        City result = addToList(city);
-        if (result != null) {
-            nameLookupRepo.createOrUpdate(new CityNameLookup(city));
+                CitiesByUser existingLookup = citiesByUserLookup.retrieveObject(city.getOwnerId());
+                if (existingLookup != null) {
+                    existingLookup.addValue(city.getId());
+                    citiesByUserLookup.createOrUpdate(existingLookup, city.getOwnerId());
+                } else {
+                    CitiesByUser newLookup = new CitiesByUser(city.getOwnerId(), city.getId());
+                    citiesByUserLookup.createOrUpdate(newLookup, city.getOwnerId());
+                }
+
+                writeLogEntry(result, RepoAction.ADD);
+            }
+        });
+
+    }
+
+    public GluonObservableObject<City> updateAsync(City city, String previousName) {
+        return executeAsync(city, () ->
+        {
+            city.setTimeStamp(createTimeStamp());
+            createOrUpdate(city, city.getId());
+
+            nameLookupRepo.recreateLookup(previousName, new CityNameLookup(city));
+
+            writeLogEntry(city, RepoAction.UPDATE);
+        });
+    }
+
+    public GluonObservableObject<City> deleteAsync(City city) {
+        return executeAsync(city, () ->
+        {
+            city.setTimeStamp(createTimeStamp());
+            delete(city.getId());
+
+            nameLookupRepo.deleteLookup(new CityNameLookup(city));
 
             CitiesByUser existingLookup = citiesByUserLookup.retrieveObject(city.getOwnerId());
-            if (existingLookup != null) {
-                existingLookup.addValue(city.getId());
-                citiesByUserLookup.createOrUpdate(existingLookup, city.getOwnerId());
-            } else {
-                CitiesByUser newLookup = new CitiesByUser(city.getOwnerId(), city.getId());
-                citiesByUserLookup.createOrUpdate(newLookup, city.getOwnerId());
-            }
-            CityHolder.put(city);
+            existingLookup.removeValue(city.getId());
+            citiesByUserLookup.createOrUpdate(existingLookup, city.getOwnerId());
 
-            writeLogEntry(result, RepoAction.ADD);
-        }
-    }
-
-    public void update(City city, String previousName) throws IOException {
-        city.setTimeStamp(createTimeStamp());
-
-        createOrUpdate(city, city.getId());
-        nameLookupRepo.recreateLookup(previousName, new CityNameLookup(city));
-
-        CityHolder.put(city);
-
-        writeLogEntry(city, RepoAction.UPDATE);
-    }
-
-    public void delete(City city) throws IOException {
-        city.setTimeStamp(createTimeStamp());
-
-        delete(city.getId());
-        nameLookupRepo.deleteLookup(new CityNameLookup(city));
-
-        CitiesByUser existingLookup = citiesByUserLookup.retrieveObject(city.getOwnerId());
-        existingLookup.removeValue(city.getId());
-        citiesByUserLookup.createOrUpdate(existingLookup, city.getOwnerId());
-
-        CityHolder.remove(city);
-
-        writeLogEntry(city, RepoAction.DELETE);
+            writeLogEntry(city, RepoAction.DELETE);
+        });
     }
 
     public boolean isCityValidForDelete(String cityId) {

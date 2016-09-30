@@ -75,7 +75,7 @@ public abstract class ListViewPresenter<T> extends BasePresenter {
         });
 
         choiceCity.setStringConverter(City::getCityName);
-        choiceCity.setMissingDataTitle(localize("dialog.error.connectionFailed"));
+        choiceCity.setMissingDataTitle(localize("dialog.info.noCityOrNoConnection"));
         choiceCity.setItems(service.getCities());
         choiceCity.getSelectionModel().selectedItemProperty().addListener((obsValue, t, t1) ->
         {

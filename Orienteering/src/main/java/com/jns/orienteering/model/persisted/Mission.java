@@ -34,6 +34,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 import javax.xml.bind.annotation.XmlElement;
@@ -121,18 +122,19 @@ public class Mission extends BaseSynchronizable implements Postable, UpdatableLi
         this.missionName = missionName;
     }
 
-    public boolean hasMissionNameChanged() {
-        return previousMission != null && !missionName.equals(previousMission.missionName);
-    }
-
     @XmlTransient
     public String getPreviousName() {
-        return previousMission == null ? null : previousMission.getMissionName();
+        return previousMission.getMissionName();
     }
 
     @Override
     public boolean hasNameChanged() {
+        ensurePreviousMission();
         return !missionName.equals(previousMission.missionName);
+    }
+
+    private void ensurePreviousMission() {
+        Objects.requireNonNull(previousMission, "previousMission must not be null");
     }
 
     @Override

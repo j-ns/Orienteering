@@ -28,11 +28,7 @@
  */
 package com.jns.orienteering.model.repo;
 
-import java.io.IOException;
 import java.util.Iterator;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.gluonhq.connect.GluonObservableList;
 import com.gluonhq.connect.GluonObservableObject;
@@ -48,8 +44,6 @@ import com.jns.orienteering.model.persisted.TasksByMissionLookup;
 import com.jns.orienteering.model.repo.readerwriter.RestMapReader;
 
 public class TaskFBRepo extends FireBaseRepo<Task> {
-
-    private static final Logger                        LOGGER                   = LoggerFactory.getLogger(TaskFBRepo.class);
 
     private static final String                        TASKS                    = "tasks";
     private static final String                        TASK_NAMES_LOOKUP        = "task_names";
@@ -88,60 +82,52 @@ public class TaskFBRepo extends FireBaseRepo<Task> {
         return namelookupRepo.checkIfNameExists(name);
     }
 
-    public void createTask(Task task) throws IOException {
-        task.setTimeStamp(createTimeStamp());
-
-        Task result = addToList(task);
-        if (result != null) {
-            try {
+    public GluonObservableObject<Task> createTaskAsync(Task task) {
+        return executeAsync(task, () ->
+        {
+            task.setTimeStamp(createTimeStamp());
+            Task result = addToList(task);
+            if (result != null) {
                 namelookupRepo.createOrUpdate(result.createNameLookup());
                 cityLookupRepo.createOrUpdate(result.createCityLookup());
 
-            } catch (IOException e) {
-                LOGGER.error("Failed to store task: '{}'", task.getTaskName(), e);
-                throw e;
+                writeLogEntry(result, RepoAction.ADD);
             }
-            writeLogEntry(result, RepoAction.ADD);
-        }
+        });
     }
 
-    public void recreateNameLookup(String previousId, Task task) throws IOException {
-        namelookupRepo.recreateLookup(previousId, task.createNameLookup());
-    }
+    public GluonObservableObject<Task> updateTaskAsync(Task task, String previousImageId) {
+        return executeAsync(task, () ->
+        {
+            task.setTimeStamp(createTimeStamp());
+            createOrUpdate(task, task.getId());
 
-    public void recreateCityLookup(String previousId, Task task) throws IOException {
-        cityLookupRepo.recreateCityLookup(new CityTaskLookup(task));
-    }
+            if (task.hasNameChanged()) {
+                namelookupRepo.recreateLookup(task.getPreviousTask().getTaskName(), task.createNameLookup());
+            }
+            if (task.hasCityChanged() || task.hasAccessTypeChanged()) {
+                cityLookupRepo.recreateCityLookup(new CityTaskLookup(task));
+            }
+            // if (task.locationChanged) {
+            // MissionsByTaskLookup missionsLookup = missionsLookupRepo.retrieveObject(task.getId());
+            // if (missionsLookup != null) {
+            // Iterator<String> missionIds = missionsLookup.getValues().keySet().iterator();
+            // while (missionIds.hasNext()) {
+            // String missionId = missionIds.next();
+            // missionStatCloudRepo.deleteAsync(missionId);
+            // }
+            // }
+            // }
+            writeLogEntry(task, RepoAction.UPDATE);
 
-    public void updateTask(Task task, String previousImageId) throws IOException {
-        task.setTimeStamp(createTimeStamp());
-
-        createOrUpdate(task, task.getId());
-
-        if (task.hasAccessTypeChanged()) {
-            cityLookupRepo.recreateCityLookup(new CityTaskLookup(task));
-        }
-        // if (task.locationChanged) {
-        // MissionsByTaskLookup missionsLookup = missionsLookupRepo.retrieveObject(task.getId());
-        // if (missionsLookup != null) {
-        // Iterator<String> missionIds = missionsLookup.getValues().keySet().iterator();
-        // while (missionIds.hasNext()) {
-        // String missionId = missionIds.next();
-        // missionStatCloudRepo.deleteAsync(missionId);
-        // }
-        // }
-        // }
-
-        writeLogEntry(task, RepoAction.UPDATE);
-        if (previousImageId != null) {
-            writeLogEntry(new ImageLogEntry(previousImageId, task.getTimeStamp()), ChangeLogRepo::writeImageLogAsync);
-        }
+            if (previousImageId != null) {
+                writeLogEntry(new ImageLogEntry(previousImageId, task.getTimeStamp()), ChangeLogRepo::writeImageLogAsync);
+            }
+        });
     }
 
     public GluonObservableObject<Task> deleteTaskAsync(Task task) {
-        GluonObservableObject<Task> obsTask = new GluonObservableObject<>();
-
-        executeAsync(obsTask, () ->
+        return executeAsync(task, () ->
         {
             task.setTimeStamp(createTimeStamp());
             delete(task.getId());
@@ -172,8 +158,6 @@ public class TaskFBRepo extends FireBaseRepo<Task> {
                 writeLogEntry(new ImageLogEntry(task), ChangeLogRepo::writeImageLogAsync);
             }
         });
-
-        return obsTask;
     }
 
     private void writeLogEntry(Task task, RepoAction action) {

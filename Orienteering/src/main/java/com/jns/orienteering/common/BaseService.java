@@ -400,8 +400,8 @@ public class BaseService {
         return selectedTask;
     }
 
-    public void setSelectedTask(Task selectedTask) {
-        this.selectedTask = selectedTask;
+    public void setSelectedTask(Task task) {
+        selectedTask = task;
     }
 
     @SuppressWarnings("unchecked")

@@ -130,6 +130,7 @@ public class AccountPresenter extends BasePresenter {
                                                                                   .otherwise(localize("view.account.button.signup")));
 
         choiceDefaultCity.setStringConverter(City::getCityName);
+        choiceDefaultCity.setMissingDataTitle(localize("view.account.info.noCityExisting"));
         choiceDefaultCity.setItems(service.getCities());
 
         userCloudRepo = service.getRepoService().getCloudRepo(User.class);
@@ -201,6 +202,10 @@ public class AccountPresenter extends BasePresenter {
 
     private void update() {
         User updatedUser = createUser();
+        if (!imageChanged) {
+            updatedUser.setImageId(service.getUser().getImageId());
+        }
+
         updatedUser.setActiveMission(service.getActiveMission());
 
         GluonObservableObject<User> obsUser = userCloudRepo.createOrUpdateAsync(updatedUser, updatedUser.getId());
@@ -235,9 +240,11 @@ public class AccountPresenter extends BasePresenter {
                            .defaultProgressLayer()
                            .onSuccess(result ->
                            {
-                               Image savedImage = saveImage(getImage(), newUser.getImageUrl(), ImageHandler::storeImageAsync);
-                               if (savedImage != null) {
-                                   service.setProfileImage(getImage());
+                               if (image.get() != null) {
+                                   Image savedImage = saveImage(getImage(), newUser.getImageUrl(), ImageHandler::storeImageAsync);
+                                   if (savedImage != null) {
+                                       service.setProfileImage(getImage());
+                                   }
                                }
 
                                service.setUser(result.get());
@@ -321,16 +328,11 @@ public class AccountPresenter extends BasePresenter {
     private User createUser() {
         String password = isUpdateModus() ? storedPassword : txtPassword.getText();
 
-        User newUser = new User(txtUserName.getText(),
-                                txtAlias.getText(),
-                                txtEmailAdress.getText(),
-                                password,
-                                choiceDefaultCity.getSelectionModel().getSelectedItem());
-
-        if (!imageChanged) {
-            newUser.setImageId(service.getUser().getImageId());
-        }
-        return newUser;
+        return new User(txtUserName.getText(),
+                        txtAlias.getText(),
+                        txtEmailAdress.getText(),
+                        password,
+                        choiceDefaultCity.getSelectedItem());
     }
 
     private boolean isUpdateModus() {

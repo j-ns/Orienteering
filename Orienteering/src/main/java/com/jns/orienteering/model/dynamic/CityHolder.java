@@ -49,8 +49,8 @@ public class CityHolder {
     private static final Logger      LOGGER      = LoggerFactory.getLogger(CityHolder.class);
 
     private static String            userId;
-    private static Map<String, City> cityIds     = new HashMap<>();                                                                                                                                                                                                                 // publicIds?
-    private static Map<String, City> userCityIds = new HashMap<>();                                                                                                                                                                                                                 // privateIds?
+    private static Map<String, City> cityIds     = new HashMap<>();                                                                                                                                                                                                                                           // publicIds?
+    private static Map<String, City> userCityIds = new HashMap<>();                                                                                                                                                                                                                                           // privateIds?
 
     private CityHolder() {
     }
@@ -89,6 +89,9 @@ public class CityHolder {
     }
 
     public static void remove(City city) {
+        if (city == null) {
+            return;
+        }
         cityIds.remove(city.getId());
         userCityIds.remove(city.getId());
     }

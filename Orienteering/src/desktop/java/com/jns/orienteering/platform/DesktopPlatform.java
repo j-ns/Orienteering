@@ -32,8 +32,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.net.MalformedURLException;
 
-import com.gluonhq.charm.down.common.PlatformFactory;
-import com.gluonhq.charm.down.common.Position;
+import com.jns.orienteering.util.PositionHelper;
 
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -44,8 +43,6 @@ import javafx.scene.image.Image;
 import javafx.stage.FileChooser;
 
 public class DesktopPlatform implements PlatformService {
-
-    private static final String         DEFAULT_POSITION_KEY = "default_position";
 
     private Storage                     storage;
     private DesktopInfoService          infoService;
@@ -77,18 +74,7 @@ public class DesktopPlatform implements PlatformService {
     @Override
     public PositionServiceExtended getPositionService() {
         if (positionService == null) {
-            String defaultPosition = PlatformFactory.getPlatform().getSettingService().retrieve(DEFAULT_POSITION_KEY);
-            if (defaultPosition == null) {
-                throw new IllegalArgumentException("startPosition for FakeDesktopPositionService is missing");
-            }
-
-            defaultPosition.replaceAll("\\s", "");
-
-            String[] split = defaultPosition.split(",");
-            double latitude = Double.valueOf(split[0]);
-            double longitude = Double.valueOf(split[1]);
-            Position position = new Position(latitude, longitude);
-            positionService = new FakeDesktopPositionService(position);
+            positionService = new FakeDesktopPositionService(PositionHelper.retrieveDefaultPosition());
         }
 
         return positionService;

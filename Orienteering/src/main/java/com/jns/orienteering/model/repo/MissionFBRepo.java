@@ -134,58 +134,45 @@ public class MissionFBRepo extends FireBaseRepo<Mission> {
     }
 
     public GluonObservableObject<Mission> createMission(Mission mission) {
-        GluonObservableObject<Mission> obsMission = new GluonObservableObject<>();
-
-        executeAsync(obsMission,
-                     () ->
-                     {
-                         mission.setTimeStamp(createTimeStamp());
-                         Mission result = addToList(mission);
-                         if (result != null) {
-                             nameLookupRepo.createOrUpdate(mission.createNameLookup());
-                             cityLookupRepo.createOrUpdate(mission.createCityLookup());
-                             tasksLookupRepo.createOrUpdateLookup(mission.createTasksLookup());
-                             missionsByTaskLookupRepo.createOrUpdateLookup(mission);
-                         }
-                         obsMission.set(mission);
-                     });
-
-        return obsMission;
+        return executeAsync(mission, () ->
+        {
+            mission.setTimeStamp(createTimeStamp());
+            Mission result = addToList(mission);
+            if (result != null) {
+                nameLookupRepo.createOrUpdate(mission.createNameLookup());
+                cityLookupRepo.createOrUpdate(mission.createCityLookup());
+                tasksLookupRepo.createOrUpdateLookup(mission.createTasksLookup());
+                missionsByTaskLookupRepo.createOrUpdateLookup(mission);
+            }
+        });
     }
 
     public GluonObservableObject<Mission> updateMission(Mission mission, Mission previousMission, List<Task> tasks, List<Task> tasksBuffer) {
-        GluonObservableObject<Mission> obsMission = new GluonObservableObject<>();
-
-        executeAsync(obsMission, () ->
+        return executeAsync(mission, () ->
         {
             mission.setTimeStamp(createTimeStamp());
             createOrUpdate(mission, mission.getId());
 
-            // boolean tasksChanged = !tasksBuffer.containsAll(tasks) || !tasks.containsAll(tasksBuffer);
-            if (true) {
+            boolean tasksChanged = !tasksBuffer.containsAll(tasks) || !tasks.containsAll(tasksBuffer);
+            if (tasksChanged) {
                 TasksByMissionLookup previousTasksByMission = tasksLookupRepo.retrieveObject(mission.getId());
 
                 tasksLookupRepo.createOrUpdateLookup(new TasksByMissionLookup(mission.getId(), mission.getTasksMap()));
                 missionsByTaskLookupRepo.updateLookup(previousTasksByMission, mission);
                 missionStatCloudRepo.deleteAsync(mission.getId());
             }
-            if (mission.hasMissionNameChanged()) {
+            if (mission.hasNameChanged()) {
                 nameLookupRepo.recreateLookup(previousMission.getMissionName(), mission.createNameLookup());
             }
             if (mission.hasCityChanged() || mission.hasAccessTypeChanged()) {
                 cityLookupRepo.recreateCityLookup(new MissionsByCityLookup(mission));
             }
             writeLogEntry(mission, RepoAction.UPDATE);
-            obsMission.set(mission);
         });
-
-        return obsMission;
     }
 
-    public GluonObservableObject<Mission> deleteMission(Mission mission) {
-        GluonObservableObject<Mission> obsMission = new GluonObservableObject<>();
-
-        executeAsync(obsMission, () ->
+    public GluonObservableObject<Mission> deleteMissionAsync(Mission mission) {
+        return executeAsync(mission, () ->
         {
             mission.setTimeStamp(createTimeStamp());
             delete(mission.getId());
@@ -197,10 +184,7 @@ public class MissionFBRepo extends FireBaseRepo<Mission> {
             missionStatCloudRepo.deleteAsync(mission.getId());
 
             writeLogEntry(mission, RepoAction.DELETE);
-            obsMission.set(mission);
         });
-
-        return obsMission;
     }
 
     private void writeLogEntry(Mission mission, RepoAction action) {

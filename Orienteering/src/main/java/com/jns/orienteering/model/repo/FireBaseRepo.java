@@ -43,7 +43,6 @@ import java.util.function.BiConsumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.gluonhq.connect.GluonObservable;
 import com.gluonhq.connect.GluonObservableList;
 import com.gluonhq.connect.GluonObservableObject;
 import com.gluonhq.connect.converter.InputStreamIterableInputConverter;
@@ -384,11 +383,22 @@ public class FireBaseRepo<T extends Model> {
         logWriter.accept(changeLogRepo, entry);
     }
 
-    protected void executeAsync(GluonObservable result, ExceptionalTrigger action) {
+    protected GluonObservableObject<T> newGluonObservableObject() {
+        return new GluonObservableObject<>();
+    }
+
+    protected GluonObservableObject<T> executeAsync(T sourceObject, ExceptionalTrigger action) {
+        GluonObservableObject<T> obsResult = newGluonObservableObject();
+        executeAsync(Optional.of(sourceObject), obsResult, action);
+        return obsResult;
+    }
+
+    protected void executeAsync(Optional<T> sourceObject, GluonObservableObject<T> result, ExceptionalTrigger action) {
         executor.execute(() ->
         {
             try {
                 action.start();
+                sourceObject.ifPresent(result::set);
                 GluonObservableHelper.setInitialized(result, true);
             } catch (Exception ex) {
                 LOGGER.error("Error on executeAsync", ex);

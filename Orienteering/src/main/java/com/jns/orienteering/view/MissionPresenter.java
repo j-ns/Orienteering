@@ -134,11 +134,10 @@ public class MissionPresenter extends BasePresenter {
         choiceCity.getSelectionModel().selectedItemProperty().addListener((obsValue, c, c1) -> onCityChanged(c1));
         choiceCity.setItems(service.getCities());
 
-
         choiceAccess.setStringConverter(accessType -> localize(accessType));
         choiceAccess.setItems(FXCollections.observableArrayList(AccessType.values()));
 
-        lviewMissionTasks.setSelectableCellFactory(listView -> new TaskCellSmall(lviewMissionTasks.selectedItemProperty(), this::onRemoveTask,
+        lviewMissionTasks.setCellFactory(listView -> new TaskCellSmall(lviewMissionTasks.selectedItemProperty(), this::onRemoveTask,
                                                                                  scrollEventFilter.slidingProperty()));
         lviewMissionTasks.setComparator(Task::compareTo);
         lviewMissionTasks.setOnSelection(this::onSelectTask);
@@ -306,13 +305,18 @@ public class MissionPresenter extends BasePresenter {
     }
 
     private void onSave() {
+        if (!validateMissionName(txtName.getText())) {
+            return;
+        }
         saveReceiver().onSuccess(e -> showPreviousView())
                       .start();
     }
 
     private void onSaveAndContinue() {
-        saveReceiver()
-                      .onSuccess(e ->
+        if (!validateMissionName(txtName.getText())) {
+            return;
+        }
+        saveReceiver() .onSuccess(e ->
                       {
                           mission = new Mission();
                           tasks = new GluonObservableList<>();
@@ -324,20 +328,13 @@ public class MissionPresenter extends BasePresenter {
     }
 
     private AsyncResultReceiver<GluonObservable> saveReceiver() {
-        GluonObservable obsResult = saveMission();
+        GluonObservable obsResult = saveMission(createMission());
         return AsyncResultReceiver.create(obsResult)
                                   .defaultProgressLayer();
     }
 
-    private GluonObservable saveMission() {
+    private GluonObservable saveMission(Mission newMission) {
         GluonObservableObject<Object> obsSuccessful = new GluonObservableObject<>();
-
-        if (!validateMissionName(txtName.getText())) {
-            GluonObservableHelper.setException(obsSuccessful, new IllegalArgumentException("missionName exists"));
-            return obsSuccessful;
-        }
-
-        Mission newMission = createMission();
 
         if (isEditorModus()) {
             GluonObservableObject<Mission> obsMission = cloudRepo.updateMission(newMission, mission, tasks, tasksBuffer);
@@ -369,10 +366,10 @@ public class MissionPresenter extends BasePresenter {
                                   .defaultProgressLayer()
                                   .onException(() -> GluonObservableHelper.setException(obsSuccessful, obsMission.getException()))
                                   .exceptionMessage(localize("view.mission.error.save"))
-                                  .finalize(() ->
+                                  .finalize(result ->
                                   {
-                                      if (obsMission.isInitialized()) {
-                                          updateMissionsList(obsMission.get());
+                                      if (result.isInitialized()) {
+                                          updateMissionsList(result.get(), mission);
                                           GluonObservableHelper.setInitialized(obsSuccessful, true);
                                       }
                                   });
@@ -435,11 +432,11 @@ public class MissionPresenter extends BasePresenter {
         return choiceCity.getSelectedItem().getId();
     }
 
-    private void updateMissionsList(Mission newMission) {
+    private void updateMissionsList(Mission newMission, Mission previousMission) {
         ListUpdater<Mission> missionsUpdater = service.getListUpdater(MISSIONS_UPDATER);
 
         if (isEditorModus()) {
-            new ListViewUpdater<>(missionsUpdater).update(newMission, mission);
+            new ListViewUpdater<>(missionsUpdater).update(newMission, previousMission);
         } else {
             new ListViewUpdater<>(missionsUpdater).add(newMission);
         }
@@ -460,7 +457,7 @@ public class MissionPresenter extends BasePresenter {
 
         mission.updateTasksMap(tasks);
 
-        GluonObservableObject<Mission> obsMission = cloudRepo.deleteMission(mission);
+        GluonObservableObject<Mission> obsMission = cloudRepo.deleteMissionAsync(mission);
         AsyncResultReceiver.create(obsMission)
                            .defaultProgressLayer()
                            .onSuccess(e ->

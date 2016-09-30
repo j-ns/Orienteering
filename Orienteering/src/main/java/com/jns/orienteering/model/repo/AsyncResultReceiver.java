@@ -55,7 +55,7 @@ public class AsyncResultReceiver<T extends GluonObservable> {
     private Optional<ProgressLayer>                                  progressLayer          = Optional.empty();
     private Optional<Consumer<Throwable>>                            onException            = Optional.empty();
     private Optional<String>                                         exceptionMessage       = Optional.empty();
-    private Optional<Trigger>                                        finalizer              = Optional.empty();
+    private Optional<Consumer<T>>                                    finalizer              = Optional.empty();
 
     private Optional<AsyncResultReceiver<? extends GluonObservable>> next                   = Optional.empty();
 
@@ -97,6 +97,10 @@ public class AsyncResultReceiver<T extends GluonObservable> {
     }
 
     public AsyncResultReceiver<T> finalize(Trigger finalizer) {
+        return finalize(e -> finalizer.start());
+    }
+
+    public AsyncResultReceiver<T> finalize(Consumer<T> finalizer) {
         this.finalizer = Optional.of(finalizer);
         return this;
     }
@@ -160,7 +164,7 @@ public class AsyncResultReceiver<T extends GluonObservable> {
                                                                      };
 
     private void startFinalizer() {
-        finalizer.ifPresent(Trigger::start);
+        finalizer.ifPresent(f -> f.accept(observable));
         removeListeners();
         runningReceivers.decrement();
 

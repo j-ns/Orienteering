@@ -32,16 +32,9 @@ import static com.jns.orienteering.util.Dialogs.confirmDeleteAnswer;
 import static com.jns.orienteering.util.Validators.isNotNullOrEmpty;
 
 import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.util.concurrent.Executor;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.function.Consumer;
 
 import javax.inject.Inject;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.gluonhq.charm.down.common.Position;
 import com.gluonhq.charm.glisten.control.Dialog;
@@ -64,8 +57,8 @@ import com.jns.orienteering.model.persisted.City;
 import com.jns.orienteering.model.persisted.Task;
 import com.jns.orienteering.model.repo.AsyncResultReceiver;
 import com.jns.orienteering.model.repo.TaskFBRepo;
-import com.jns.orienteering.util.GluonObservableHelper;
 import com.jns.orienteering.util.Icon;
+import com.jns.orienteering.util.PositionHelper;
 import com.jns.orienteering.util.Validators;
 
 import javafx.animation.PauseTransition;
@@ -87,15 +80,11 @@ import javafx.util.Duration;
 
 public class TaskPresenter extends BasePresenter {
 
-    private static final Logger                 LOGGER                = LoggerFactory.getLogger(TaskPresenter.class);
-
     private static final String                 TASKS_UPDATER         = "tasks_updater";
     private static final String                 MISSION_TASKS_UPDATER = "mission_tasks_updater";
 
     // private static final Pattern GPS_PATTERN = Pattern.compile(
     // "^([-+]?)([\\d]{1,2})(((\\.)(\\d+\\s*)(,\\s*)))(([-+]?)([\\d]{1,3})((\\.)(\\d+))?)$");
-
-    private static final Image                  NO_PLACE_HOLDER       = null;
 
     @FXML
     private ChoiceFloatingTextField<City>       choiceCity;
@@ -124,11 +113,10 @@ public class TaskPresenter extends BasePresenter {
     private ScrollListener                      scrollListener;
     private ScrollPositionBuffer                scrollPositionBuffer;
 
-    private Dialog<ButtonType>                  gpsDialog;
+    private GPSDialog                           gpsDialog;
 
     @Inject
     private BaseService                         service;
-    private ExecutorService                     executor;
     private TaskFBRepo                          cloudRepo;
 
     private Task                                task;
@@ -218,6 +206,7 @@ public class TaskPresenter extends BasePresenter {
         task = service.getSelectedTask();
         if (task == null) {
             task = new Task();
+            task.setCityId(service.getSelectedCityId());
             setActionBarVisible(true);
         } else {
             boolean userIsOwnerOfTask = task.getOwnerId().equals(service.getUserId());
@@ -227,7 +216,7 @@ public class TaskPresenter extends BasePresenter {
     }
 
     private void setFields(Task task) {
-        City city = task.getCityId() != null ? CityHolder.get(task.getCityId()) : service.getSelectedCity();
+        City city = CityHolder.get(task.getCityId());
 
         choiceCity.getSelectionModel().select(city);
         txtName.setText(task.getTaskName());
@@ -237,7 +226,7 @@ public class TaskPresenter extends BasePresenter {
         txtPoints.setText(Integer.toString(task.getPoints()));
         choiceAccess.getSelectionModel().select(task.getAccessType());
 
-        AsyncResultReceiver.create(ImageHandler.retrieveImageAsync(task.getImageUrl(), NO_PLACE_HOLDER))
+        AsyncResultReceiver.create(ImageHandler.retrieveImageAsync(task.getImageUrl(), ImageHandler.IMAGE_PLACE_HOLDER))
                            .defaultProgressLayer()
                            .onSuccess(result ->
                            {
@@ -268,51 +257,20 @@ public class TaskPresenter extends BasePresenter {
 
     private void showGpsDialog() {
         if (gpsDialog == null) {
-            createGpsDialog();
+            gpsDialog = new GPSDialog();
         }
         gpsDialog.showAndWait();
     }
 
-    private void createGpsDialog() {
-        Label lblTitle = new Label(localize("view.task.info.tryToGetLocation"));
-
-        ProgressBar progressBar = new ProgressBar();
-        progressBar.setPrefWidth(200);
-        HBox boxContent = new HBox(progressBar);
-        boxContent.setAlignment(Pos.CENTER);
-
-        gpsDialog = new Dialog<>();
-        gpsDialog.setTitle(lblTitle);
-        gpsDialog.setContent(boxContent);
-
-        Button btnCancelOk = new Button(localize("button.cancel"));
-        btnCancelOk.setOnAction(e ->
-        {
-            gpsDialog.setResult(ButtonType.CANCEL);
-            gpsDialog.hide();
-            removePositionListener();
-        });
-
-        PauseTransition pauseTransition = new PauseTransition(Duration.seconds(20));
-        pauseTransition.setOnFinished(e ->
-        {
-            if (position.get() == null) {
-                lblTitle.setText(localize("view.task.info.couldNotGetGpsLocation"));
-                btnCancelOk.setText(localize("button.ok"));
-                progressBar.setProgress(0);
-                removePositionListener();
-            }
-        });
-
-        gpsDialog.getButtons().setAll(btnCancelOk);
-        gpsDialog.setOnShowing(evt -> pauseTransition.play());
-    }
-
     private void onSave() {
-        if (validateTask()) {
-            saveResultReceiver().onSuccess(e -> showPreviousView())
-                                .start();
+        if (!validateTask()) {
+            return;
         }
+        saveResultReceiver().onSuccess(result ->
+        {
+            updateTasksList(result.get(), task);
+            showPreviousView();
+        }).start();
     }
 
     private void onSaveAndContinue() {
@@ -321,6 +279,7 @@ public class TaskPresenter extends BasePresenter {
         }
         saveResultReceiver().onSuccess(result ->
         {
+            updateTasksList(result.get(), task);
             task = new Task();
             setFields(task);
         }).start();
@@ -328,11 +287,11 @@ public class TaskPresenter extends BasePresenter {
 
     private boolean validateTask() {
         Validator<String> nameDoesntExistValidator = new Validator<>(name -> !cloudRepo.checkIfTaskNameExists(name),
-                                                                     localize("view.task.info.taskNameAlreadyExists"));
+                                                                     localize("view.task.info.nameAlreadyExists"));
 
         MultiValidator<String> validator = new MultiValidator<>();
         validator.addCheck(Validators::isNotNullOrEmpty, localize("view.task.info.taskNameCantBeEmpty"));
-        validator.addCheck(e -> service.getSelectedCity() != null, localize("view.task.info.noCitySelected"));
+        validator.addCheck(e -> choiceCity.getSelectedItem() != null, localize("view.task.info.selectCity"));
         // validator.addCheck(e -> Validators.isNotNullOrEmpty(txtPosition.getText()) &&
         // GPS_PATTERN.matcher(txtPosition.getText()).matches(), localize(
         // "view.task.info.gpsDataInvalid"));
@@ -352,73 +311,14 @@ public class TaskPresenter extends BasePresenter {
         return validator.check(txtName.getText());
     }
 
-    private Executor getExecutor() {
-        if (executor == null) {
-            executor = Executors.newSingleThreadExecutor(runnable ->
-            {
-                Thread thread = Executors.defaultThreadFactory().newThread(runnable);
-                thread.setName("SaveTaskThread");
-                thread.setDaemon(true);
-                return thread;
-            });
-        }
-        return executor;
-    }
-
     private AsyncResultReceiver<GluonObservableObject<Task>> saveResultReceiver() {
-        return AsyncResultReceiver.create(saveTask())
+        return AsyncResultReceiver.create(saveTask(createTask()))
                                   .defaultProgressLayer()
                                   .exceptionMessage(localize("view.task.error.save"));
     }
 
-    private GluonObservableObject<Task> saveTask() {
-        GluonObservableObject<Task> obsTask = new GluonObservableObject<>();
-
-        getExecutor().execute(() ->
-        {
-            Task newTask = createTask();
-            boolean nameChanged = !newTask.getTaskName().equals(task.getTaskName());
-
-            try {
-                if (isEditorModus()) {
-                    if (nameChanged) {
-                        cloudRepo.recreateNameLookup(task.getTaskName(), newTask);
-                    }
-                    boolean cityChanged = !newTask.getCityId().equals(task.getCityId());
-                    if (cityChanged) {
-                        cloudRepo.recreateCityLookup(task.getCityId(), newTask);
-                    }
-                    Image _image = image.get();
-
-                    String previousImageId = imageChanged && _image == null ? task.getImageId() : null;
-                    cloudRepo.updateTask(newTask, previousImageId);
-
-                    if (imageChanged) {
-                        if (_image == null) {
-                            ImageHandler.deleteImageAsync(task.getImageUrl());
-                        } else {
-                            saveImage(_image, newTask.getImageUrl(), sImage -> ImageHandler.updateImage(sImage, task.getImageUrl()));
-                        }
-                    }
-                } else {
-                    cloudRepo.createTask(newTask);
-                    if (image.get() != null) {
-                        saveImage(image.get(), newTask.getImageUrl(), ImageHandler::storeImage);
-                    }
-                }
-                updateTasksList(newTask, task);
-                GluonObservableHelper.setInitialized(obsTask, true);
-
-            } catch (IOException e) {
-                LOGGER.error("Save task: '{}' failed", newTask.getTaskName(), e);
-                GluonObservableHelper.setException(obsTask, e);
-            }
-        });
-        return obsTask;
-    }
-
     private Task createTask() {
-        String cityId = service.getSelectedCity().getId();
+        String cityId = choiceCity.getSelectedItem().getId();
         String name = txtName.getText();
         String description = txtDescription.getText();
         String scanCode = txtScanCode.getText();
@@ -444,24 +344,51 @@ public class TaskPresenter extends BasePresenter {
     private Position getPosition() {
         String positionText = txtPosition.getText();
         if (isNotNullOrEmpty(positionText)) {
-            positionText.replaceAll("\\s", "");
-            String[] split = positionText.split(",");
-            double latitude = Double.valueOf(split[0]);
-            double longitude = Double.valueOf(split[1]);
-            return new Position(latitude, longitude);
+            return PositionHelper.toPosition(positionText);
         }
         return new Position(0, 0);
     }
 
-    private Image saveImage(Image image, String imageUrl, Consumer<StorableImage> imageHandler) {
+    private GluonObservableObject<Task> saveTask(Task newTask) {
+        GluonObservableObject<Task> obsTask = null;
+
+        if (isEditorModus()) {
+            Image _image = image.get();
+            String previousImageId = imageChanged && _image == null ? task.getImageId() : null;
+
+            obsTask = cloudRepo.updateTaskAsync(newTask, previousImageId);
+
+            if (imageChanged) {
+                if (_image == null) {
+                    ImageHandler.deleteImageAsync(task.getImageUrl());
+                } else {
+                    saveImage(_image, newTask.getImageUrl(), sImage -> ImageHandler.updateImage(sImage, task.getImageUrl()));
+                }
+            }
+
+        } else {
+            obsTask = cloudRepo.createTaskAsync(newTask);
+
+            AsyncResultReceiver.create(obsTask)
+                               .onSuccess(e ->
+                               {
+                                   if (image.get() != null) {
+                                       saveImage(image.get(), newTask.getImageUrl(), ImageHandler::storeImage);
+                                   }
+                               })
+                               .start();
+        }
+
+        return obsTask;
+    }
+
+    private void saveImage(Image image, String imageUrl, Consumer<StorableImage> imageHandler) {
         try {
             StorableImage storableImage = new StorableImage(platformService().getImageInputStream(), image, imageUrl);
             imageHandler.accept(storableImage);
-            return image;
 
         } catch (FileNotFoundException e) {
             e.printStackTrace();
-            return null;
         }
     }
 
@@ -486,6 +413,11 @@ public class TaskPresenter extends BasePresenter {
 
     private void onDelete() {
         if (!confirmDeleteAnswer(localize("view.tasks.question.deleteTask")).isYesOrOk()) {
+            return;
+        }
+
+        if (task.getId() == null) {
+            showPreviousView();
             return;
         }
 
@@ -528,5 +460,53 @@ public class TaskPresenter extends BasePresenter {
         txtDescription.setText("");
         txtPoints.setText("");
         choiceAccess.getSelectionModel().select(AccessType.PRIVATE);
+    }
+
+    private class GPSDialog {
+
+        private Dialog<ButtonType> gpsDialog = new Dialog<>();
+
+        private GPSDialog() {
+            Label lblTitle = new Label(localize("view.task.info.tryToGetLocation"));
+
+            ProgressBar progressBar = new ProgressBar();
+            progressBar.setPrefWidth(200);
+            HBox boxContent = new HBox(progressBar);
+            boxContent.setAlignment(Pos.CENTER);
+
+            gpsDialog.setTitle(lblTitle);
+            gpsDialog.setContent(boxContent);
+
+            Button btnCancelOk = new Button(localize("button.cancel"));
+            btnCancelOk.setOnAction(e ->
+            {
+                gpsDialog.setResult(ButtonType.CANCEL);
+                gpsDialog.hide();
+                removePositionListener();
+            });
+
+            PauseTransition pauseTransition = new PauseTransition(Duration.seconds(20));
+            pauseTransition.setOnFinished(e ->
+            {
+                if (position.get() == null) {
+                    lblTitle.setText(localize("view.task.info.couldNotGetGpsLocation"));
+                    btnCancelOk.setText(localize("button.ok"));
+                    progressBar.setProgress(0);
+                    removePositionListener();
+                }
+            });
+
+            gpsDialog.getButtons().setAll(btnCancelOk);
+            gpsDialog.setOnShowing(evt -> pauseTransition.play());
+        }
+
+        public void hide() {
+            gpsDialog.hide();
+        }
+
+        public void showAndWait() {
+            gpsDialog.showAndWait();
+        }
+
     }
 }

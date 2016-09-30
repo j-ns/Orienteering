@@ -31,6 +31,8 @@ package com.jns.orienteering.model.persisted;
 import static com.jns.orienteering.locale.Localization.localize;
 import static com.jns.orienteering.util.DateTimeFormatters.createTimeStamp;
 
+import java.util.Objects;
+
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlTransient;
 
@@ -112,6 +114,11 @@ public class Task extends BaseSynchronizable implements Postable, UpdatableListI
     @Override
     public void setPostId(String name) {
         postId = name;
+    }
+
+    @XmlTransient
+    public Task getPreviousTask() {
+        return previousTask;
     }
 
     public void setPreviousTask(Task previousTask) {
@@ -274,7 +281,12 @@ public class Task extends BaseSynchronizable implements Postable, UpdatableListI
 
     @Override
     public boolean hasNameChanged() {
-        return previousTask != null && !previousTask.getTaskName().equals(taskName);
+        ensurePreviousTask();
+        return !previousTask.getTaskName().equals(taskName);
+    }
+
+    private void ensurePreviousTask() {
+        Objects.requireNonNull(previousTask, "previousTask must not be null");
     }
 
     @Override

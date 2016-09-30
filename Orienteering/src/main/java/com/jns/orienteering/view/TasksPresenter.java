@@ -134,7 +134,7 @@ public class TasksPresenter extends ListViewPresenter<Task> {
         String cityId = isMissionEditorModus() ? service.getTempCity() == null ? null : service.getTempCity().getTempCityId()
                 : service.getSelectedCityId();
         if (cityId == null) {
-            lview.setItems(FXCollections.emptyObservableList());
+            lview.setItems(FXCollections.observableArrayList());
             return;
         }
 
