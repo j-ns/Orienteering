@@ -128,7 +128,7 @@ public class Mission extends BaseSynchronizable implements Postable, UpdatableLi
     }
 
     @Override
-    public boolean hasNameChanged() {
+    public boolean nameChanged() {
         ensurePreviousMission();
         return !missionName.equals(previousMission.missionName);
     }
@@ -172,7 +172,7 @@ public class Mission extends BaseSynchronizable implements Postable, UpdatableLi
     }
 
     @Override
-    public boolean hasCityChanged() {
+    public boolean cityChanged() {
         return previousMission != null && !previousMission.cityId.equals(cityId);
     }
 
@@ -186,7 +186,7 @@ public class Mission extends BaseSynchronizable implements Postable, UpdatableLi
     }
 
     @Override
-    public boolean hasAccessTypeChanged() {
+    public boolean accessTypeChanged() {
         return previousMission != null && previousMission.accessType != accessType;
     }
 

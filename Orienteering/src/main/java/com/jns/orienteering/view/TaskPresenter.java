@@ -50,15 +50,17 @@ import com.jns.orienteering.control.FloatingTextField;
 import com.jns.orienteering.control.ScrollListener;
 import com.jns.orienteering.control.ScrollPositionBuffer;
 import com.jns.orienteering.model.common.AccessType;
-import com.jns.orienteering.model.common.ListUpdater;
 import com.jns.orienteering.model.common.StorableImage;
-import com.jns.orienteering.model.dynamic.CityHolder;
+import com.jns.orienteering.model.dynamic.LocalCityCache;
+import com.jns.orienteering.model.dynamic.LocalMissionCache;
+import com.jns.orienteering.model.dynamic.LocalTaskCache;
 import com.jns.orienteering.model.persisted.City;
 import com.jns.orienteering.model.persisted.Task;
 import com.jns.orienteering.model.repo.AsyncResultReceiver;
 import com.jns.orienteering.model.repo.TaskFBRepo;
 import com.jns.orienteering.util.Icon;
 import com.jns.orienteering.util.PositionHelper;
+import com.jns.orienteering.util.SpecialCharReplacer;
 import com.jns.orienteering.util.Validators;
 
 import javafx.animation.PauseTransition;
@@ -80,8 +82,7 @@ import javafx.util.Duration;
 
 public class TaskPresenter extends BasePresenter {
 
-    private static final String                 TASKS_UPDATER         = "tasks_updater";
-    private static final String                 MISSION_TASKS_UPDATER = "mission_tasks_updater";
+    private static final Image                  NO_PLACEHOLDER = null;
 
     // private static final Pattern GPS_PATTERN = Pattern.compile(
     // "^([-+]?)([\\d]{1,2})(((\\.)(\\d+\\s*)(,\\s*)))(([-+]?)([\\d]{1,3})((\\.)(\\d+))?)$");
@@ -120,7 +121,7 @@ public class TaskPresenter extends BasePresenter {
     private TaskFBRepo                          cloudRepo;
 
     private Task                                task;
-    private ReadOnlyObjectProperty<Position>    position              = platformService().getPositionService().positionProperty();
+    private ReadOnlyObjectProperty<Position>    position       = platformService().getPositionService().positionProperty();
     private ObjectProperty<Image>               image;
     private boolean                             imageChanged;
 
@@ -216,7 +217,7 @@ public class TaskPresenter extends BasePresenter {
     }
 
     private void setFields(Task task) {
-        City city = CityHolder.get(task.getCityId());
+        City city = LocalCityCache.INSTANCE.get(task.getCityId());
 
         choiceCity.getSelectionModel().select(city);
         txtName.setText(task.getTaskName());
@@ -226,7 +227,7 @@ public class TaskPresenter extends BasePresenter {
         txtPoints.setText(Integer.toString(task.getPoints()));
         choiceAccess.getSelectionModel().select(task.getAccessType());
 
-        AsyncResultReceiver.create(ImageHandler.retrieveImageAsync(task.getImageUrl(), ImageHandler.IMAGE_PLACE_HOLDER))
+        AsyncResultReceiver.create(ImageHandler.retrieveImageAsync(task.getImageUrl(), NO_PLACEHOLDER))
                            .defaultProgressLayer()
                            .onSuccess(result ->
                            {
@@ -291,7 +292,8 @@ public class TaskPresenter extends BasePresenter {
 
         MultiValidator<String> validator = new MultiValidator<>();
         validator.addCheck(Validators::isNotNullOrEmpty, localize("view.task.info.taskNameCantBeEmpty"));
-        validator.addCheck(e -> choiceCity.getSelectedItem() != null, localize("view.task.info.selectCity"));
+        validator.addCheck(e -> choiceCity.getSelectedItem() != null, localize("view.task.info.selectCity")); // possible?
+        validator.addCheck(SpecialCharReplacer::validateInput, localize("view.error.invalidCharEntered"));
         // validator.addCheck(e -> Validators.isNotNullOrEmpty(txtPosition.getText()) &&
         // GPS_PATTERN.matcher(txtPosition.getText()).matches(), localize(
         // "view.task.info.gpsDataInvalid"));
@@ -368,7 +370,6 @@ public class TaskPresenter extends BasePresenter {
 
         } else {
             obsTask = cloudRepo.createTaskAsync(newTask);
-
             AsyncResultReceiver.create(obsTask)
                                .onSuccess(e ->
                                {
@@ -393,21 +394,16 @@ public class TaskPresenter extends BasePresenter {
     }
 
     private void updateTasksList(Task newTask, Task previousTask) {
-        ListUpdater<Task> tasksUpdater = service.getListUpdater(TASKS_UPDATER);
-
-        if (tasksUpdater != null) {
-            ListViewUpdater<Task> listViewUpdater = new ListViewUpdater<>(tasksUpdater);
-
-            if (isEditorModus()) {
-                listViewUpdater.update(newTask, previousTask);
-            } else {
-                listViewUpdater.add(newTask);
-            }
+        if (isEditorModus()) {
+            LocalTaskCache.INSTANCE.updateItem(newTask, previousTask);
+        } else {
+            LocalTaskCache.INSTANCE.addItem(newTask);
         }
 
         if (isEditorModus() && isMissionEditorModus()) {
-            ListUpdater<Task> missionTasksUpdater = service.getListUpdater(MISSION_TASKS_UPDATER);
-            new ListViewUpdater<>(missionTasksUpdater).update(newTask, previousTask);
+            // todo: LocalCache verwenden
+            // ListUpdater<Task> missionTasksUpdater = service.getListUpdater(MISSION_TASKS_UPDATER);
+            // new ListViewUpdater<>(missionTasksUpdater).update(newTask, previousTask);
         }
     }
 
@@ -426,12 +422,9 @@ public class TaskPresenter extends BasePresenter {
                            .defaultProgressLayer()
                            .onSuccess(e ->
                            {
-                               ListUpdater<Object> tasksListUpdater = service.getListUpdater(TASKS_UPDATER);
-                               if (tasksListUpdater != null) {
-                                   tasksListUpdater.remove(task);
-                               }
+                               LocalTaskCache.INSTANCE.removeItem(task);
                                if (isMissionEditorModus()) {
-                                   service.getListUpdater(MISSION_TASKS_UPDATER).remove(task);
+                                   LocalMissionCache.INSTANCE.getActiveTasksSorted().remove(task);
                                }
                                showPreviousView();
                            })

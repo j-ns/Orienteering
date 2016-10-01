@@ -41,11 +41,12 @@ import com.jns.orienteering.control.ListViewExtended;
 import com.jns.orienteering.control.ScrollEventFilter;
 import com.jns.orienteering.control.cell.CityCell;
 import com.jns.orienteering.model.common.AccessType;
-import com.jns.orienteering.model.common.ListUpdater;
-import com.jns.orienteering.model.dynamic.CityHolder;
+import com.jns.orienteering.model.dynamic.LocalCityCache;
 import com.jns.orienteering.model.persisted.City;
+import com.jns.orienteering.model.persisted.LocalCityList;
 import com.jns.orienteering.model.repo.AsyncResultReceiver;
 import com.jns.orienteering.model.repo.CityFBRepo;
+import com.jns.orienteering.model.repo.LocalRepo;
 import com.jns.orienteering.util.Dialogs;
 import com.jns.orienteering.util.Icon;
 
@@ -57,22 +58,22 @@ import javafx.scene.control.ToggleButton;
 
 public class CitiesPresenter extends BasePresenter {
 
-    private static final String    USER_NOT_SIGNED_IN = localize("view.cities.info.userNotLoggedIn");
-    private static final String    NO_CITY_EXISTING   = localize("view.cities.info.noCityExisting");
+    private static final String            USER_NOT_SIGNED_IN = localize("view.cities.info.userNotLoggedIn");
+    private static final String            NO_CITY_EXISTING   = localize("view.cities.info.noCityExisting");
 
-    private static final String    CITIES_UPDATER     = "cities_updater";
-
-    private ToggleButton           tglAccessType;
-    private AccessType             access             = AccessType.PRIVATE;
+    private ToggleButton                   tglAccessType;
+    private AccessType                     access             = AccessType.PRIVATE;
 
     @FXML
-    private ListViewExtended<City> lview;
-    private Label                  lblPlaceHolder     = new Label();
-    private ScrollEventFilter      scrollEventFilter;
+    private ListViewExtended<City>         lview;
+    private Label                          lblPlaceHolder     = new Label();
+    private ScrollEventFilter              scrollEventFilter;
 
     @Inject
-    private BaseService            service;
-    private CityFBRepo             cloudRepo;
+    private BaseService                    service;
+    private CityFBRepo                     cloudRepo;
+    private LocalRepo<City, LocalCityList> localRepo;
+    private LocalCityCache                     localCityCache     = LocalCityCache.INSTANCE;
 
     @Override
     protected void initialize() {
@@ -100,6 +101,7 @@ public class CitiesPresenter extends BasePresenter {
         service.getActivatorDeactivatorService().add(ViewRegistry.CITIES.getViewName(), lview);
 
         cloudRepo = service.getRepoService().getCloudRepo(City.class);
+        localRepo = service.getRepoService().getLocalRepo(City.class);
     }
 
     @Override
@@ -111,7 +113,7 @@ public class CitiesPresenter extends BasePresenter {
     protected void onShown() {
         super.onShown();
 
-        if (ViewRegistry.CITY.getViewName().equals(service.getPreviousView())) {
+        if (ViewRegistry.CITY.equals(service.getPreviousView())) {
             service.setSelectedCity(null);
             lview.refresh();
         } else {
@@ -122,8 +124,9 @@ public class CitiesPresenter extends BasePresenter {
     private void populateListView() {
         updateCellFactory();
 
-        String userId = service.getUserId();
-        GluonObservableList<City> cities = isPrivateAccess() ? cloudRepo.getPrivateListAsync(userId) : cloudRepo.getPublicListAsync(userId);
+        // String userId = service.getUserId();
+        GluonObservableList<City> cities = isPrivateAccess() ? localCityCache.getPrivateCities() : localCityCache.getPublicCities();
+        // cloudRepo.getPrivateListAsync(userId) : cloudRepo.getPublicListAsync();
         AsyncResultReceiver.create(cities)
                            .defaultProgressLayer()
                            .onSuccess(lview::setSortableItems)
@@ -139,7 +142,6 @@ public class CitiesPresenter extends BasePresenter {
 
     private void onCreateCity() {
         service.setSelectedCity(null);
-        setListUpdater();
         showView(ViewRegistry.CITY);
     }
 
@@ -150,7 +152,6 @@ public class CitiesPresenter extends BasePresenter {
                 return;
             }
             service.setSelectedCity(city);
-            setListUpdater();
             showView(ViewRegistry.CITY);
         }
     }
@@ -181,19 +182,12 @@ public class CitiesPresenter extends BasePresenter {
                                .defaultProgressLayer()
                                .onSuccess(e ->
                                {
-                                   lview.getListUpdater().remove(city);
-                                   service.getCities().remove(city);
-                                   CityHolder.remove(city);
+                                   // service.getCities().remove(city);
+                                   localRepo.createOrUpdateListAsync(new LocalCityList(LocalCityCache.INSTANCE.getAll()));
+                                   localCityCache.remove(city);
                                })
                                .start();
-
-            // todo: localRepo delete city
         });
-    }
-
-    private void setListUpdater() {
-        ListUpdater<City> listUpdater = lview.getListUpdater(access);
-        service.setListUpdater(CITIES_UPDATER, listUpdater);
     }
 
     protected boolean isPrivateAccess() {

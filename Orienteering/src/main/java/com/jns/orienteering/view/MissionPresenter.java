@@ -30,7 +30,6 @@
 package com.jns.orienteering.view;
 
 import static com.jns.orienteering.util.Dialogs.confirmDeleteAnswer;
-import static com.jns.orienteering.util.Validators.isNullOrEmpty;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -47,6 +46,7 @@ import com.gluonhq.connect.GluonObservableObject;
 import com.gluonhq.maps.MapView;
 import com.jns.orienteering.common.BaseService;
 import com.jns.orienteering.common.BaseService.CityTempBuffer;
+import com.jns.orienteering.common.MultiValidator;
 import com.jns.orienteering.common.Validator;
 import com.jns.orienteering.control.ChoiceFloatingTextField;
 import com.jns.orienteering.control.FloatingTextField;
@@ -54,8 +54,8 @@ import com.jns.orienteering.control.ListViewExtended;
 import com.jns.orienteering.control.ScrollEventFilter;
 import com.jns.orienteering.control.cell.TaskCellSmall;
 import com.jns.orienteering.model.common.AccessType;
-import com.jns.orienteering.model.common.ListUpdater;
-import com.jns.orienteering.model.dynamic.CityHolder;
+import com.jns.orienteering.model.dynamic.LocalCityCache;
+import com.jns.orienteering.model.dynamic.LocalMissionCache;
 import com.jns.orienteering.model.persisted.ActiveTaskList;
 import com.jns.orienteering.model.persisted.City;
 import com.jns.orienteering.model.persisted.Mission;
@@ -63,9 +63,10 @@ import com.jns.orienteering.model.persisted.Task;
 import com.jns.orienteering.model.repo.AsyncResultReceiver;
 import com.jns.orienteering.model.repo.LocalRepo;
 import com.jns.orienteering.model.repo.MissionFBRepo;
-import com.jns.orienteering.util.Dialogs;
 import com.jns.orienteering.util.GluonObservableHelper;
 import com.jns.orienteering.util.Icon;
+import com.jns.orienteering.util.SpecialCharReplacer;
+import com.jns.orienteering.util.Validators;
 
 import javafx.collections.FXCollections;
 import javafx.css.PseudoClass;
@@ -79,10 +80,7 @@ import javafx.scene.layout.VBox;
 
 public class MissionPresenter extends BasePresenter {
 
-    private static final PseudoClass            PSEUDO_CLASS_REORDER  = PseudoClass.getPseudoClass("reorder");
-
-    private static final String                 MISSION_TASKS_UPDATER = "mission_tasks_updater";
-    private static final String                 MISSIONS_UPDATER      = "missions_updater";
+    private static final PseudoClass            PSEUDO_CLASS_REORDER = PseudoClass.getPseudoClass("reorder");
 
     private ToggleButton                        tglSort;
     @FXML
@@ -117,6 +115,7 @@ public class MissionPresenter extends BasePresenter {
     @Inject
     private BaseService                         service;
     private MissionFBRepo                       cloudRepo;
+    private LocalMissionCache                   localMissionCache;
 
     private Mission                             mission;
     private GluonObservableList<Task>           tasks;
@@ -138,7 +137,7 @@ public class MissionPresenter extends BasePresenter {
         choiceAccess.setItems(FXCollections.observableArrayList(AccessType.values()));
 
         lviewMissionTasks.setCellFactory(listView -> new TaskCellSmall(lviewMissionTasks.selectedItemProperty(), this::onRemoveTask,
-                                                                                 scrollEventFilter.slidingProperty()));
+                                                                       scrollEventFilter.slidingProperty()));
         lviewMissionTasks.setComparator(Task::compareTo);
         lviewMissionTasks.setOnSelection(this::onSelectTask);
         scrollEventFilter = new ScrollEventFilter(lviewMissionTasks);
@@ -154,6 +153,7 @@ public class MissionPresenter extends BasePresenter {
 
         service.getActivatorDeactivatorService().add(ViewRegistry.MISSION.getViewName(), lviewMissionTasks);
         cloudRepo = service.getRepoService().getCloudRepo(Mission.class);
+        localMissionCache = LocalMissionCache.INSTANCE;
     }
 
     @Override
@@ -211,7 +211,8 @@ public class MissionPresenter extends BasePresenter {
 
         } else {
             if (ViewRegistry.MISSIONS.equals(service.getPreviousView()) || ViewRegistry.HOME.equals(service.getPreviousView())) {
-                tasks = cloudRepo.retrieveOrderedTasksAsync(mission.getId());
+                // tasks = cloudRepo.retrieveOrderedTasksAsync(mission.getId());
+                tasks = localMissionCache.retrieveMissionTasksSorted(mission.getId());
                 AsyncResultReceiver.create(tasks)
                                    .defaultProgressLayer()
                                    .onSuccess(result ->
@@ -236,7 +237,7 @@ public class MissionPresenter extends BasePresenter {
     }
 
     private void setFields(Mission mission) {
-        choiceCity.getSelectionModel().select(CityHolder.get(mission.getCityId()));
+        choiceCity.getSelectionModel().select(LocalCityCache.INSTANCE.get(mission.getCityId()));
         txtName.setText(mission.getMissionName());
         txtDistance.setDoubleAsText(mission.getDistance());
         choiceAccess.getSelectionModel().select(mission.getAccessType());
@@ -280,8 +281,6 @@ public class MissionPresenter extends BasePresenter {
             service.setSelectedMission(createMission());
         }
         service.setTempCity(new CityTempBuffer(getSelectedCityId(), mission.getCityId()));
-
-        setListUpdater();
         showView(ViewRegistry.TASK);
     }
 
@@ -290,8 +289,6 @@ public class MissionPresenter extends BasePresenter {
             service.setSelectedMission(createMission());
         }
         service.setTempCity(new CityTempBuffer(getSelectedCityId(), mission.getCityId()));
-
-        setListUpdater();
         showView(ViewRegistry.TASKS);
     }
 
@@ -316,7 +313,8 @@ public class MissionPresenter extends BasePresenter {
         if (!validateMissionName(txtName.getText())) {
             return;
         }
-        saveReceiver() .onSuccess(e ->
+        saveReceiver()
+                      .onSuccess(e ->
                       {
                           mission = new Mission();
                           tasks = new GluonObservableList<>();
@@ -325,6 +323,28 @@ public class MissionPresenter extends BasePresenter {
                           setFields(mission);
                       })
                       .start();
+    }
+
+    private boolean validateMissionName(String name) {
+        Validator<String> nameDoesntExistValidator = new Validator<>(cloudRepo::checkIfMissionNameDoesntExist,
+                                                                     localize("view.mission.info.nameExists"));
+
+        MultiValidator<String> validator = new MultiValidator<>();
+        validator.addCheck(Validators::isNotNullOrEmpty, localize("view.mission.warning.nameMustNotBeEmpty"));
+        validator.addCheck(SpecialCharReplacer::validateInput, localize("view.error.invalidCharEntered"));
+        validator.addCheck(missionName ->
+        {
+            if (isEditorModus()) {
+                boolean missionNameChanged = !name.equals(mission.getMissionName());
+                if (missionNameChanged) {
+                    return nameDoesntExistValidator.check(name);
+                }
+                return true;
+            } else {
+                return nameDoesntExistValidator.check(name);
+            }
+        });
+        return validator.check(name);
     }
 
     private AsyncResultReceiver<GluonObservable> saveReceiver() {
@@ -375,26 +395,6 @@ public class MissionPresenter extends BasePresenter {
                                   });
     }
 
-    private boolean validateMissionName(String name) {
-        if (isNullOrEmpty(name)) {
-            Dialogs.ok(localize("view.mission.warning.nameMustNotBeEmpty")).showAndWait();
-            return false;
-        }
-
-        Validator<String> nameDoesntExistValidator = new Validator<>(cloudRepo::checkIfMissionNameDoesntExist,
-                                                                     localize("view.mission.info.nameExists"));
-
-        if (isEditorModus()) {
-            boolean missionNameChanged = !name.equals(mission.getMissionName());
-            if (missionNameChanged) {
-                return nameDoesntExistValidator.check(name);
-            }
-            return true;
-        } else {
-            return nameDoesntExistValidator.check(name);
-        }
-    }
-
     private Mission createMission() {
         String missionName = txtName.getText();
         double distance = txtDistance.getTextAsDouble();
@@ -420,6 +420,14 @@ public class MissionPresenter extends BasePresenter {
         return newMission;
     }
 
+    private void updateMissionsList(Mission newMission, Mission previousMission) {
+        if (isEditorModus()) {
+            localMissionCache.updateItem(newMission, previousMission);
+        } else {
+            localMissionCache.addItem(newMission);
+        }
+    }
+
     private boolean isEditorModus() {
         return mission.getId() != null;
     }
@@ -430,20 +438,6 @@ public class MissionPresenter extends BasePresenter {
 
     private String getSelectedCityId() {
         return choiceCity.getSelectedItem().getId();
-    }
-
-    private void updateMissionsList(Mission newMission, Mission previousMission) {
-        ListUpdater<Mission> missionsUpdater = service.getListUpdater(MISSIONS_UPDATER);
-
-        if (isEditorModus()) {
-            new ListViewUpdater<>(missionsUpdater).update(newMission, previousMission);
-        } else {
-            new ListViewUpdater<>(missionsUpdater).add(newMission);
-        }
-    }
-
-    private void setListUpdater() {
-        service.setListUpdater(MISSION_TASKS_UPDATER, lviewMissionTasks.getListUpdater(choiceAccess.getSelectionModel().getSelectedItem()));
     }
 
     private void onDelete() {
@@ -462,7 +456,8 @@ public class MissionPresenter extends BasePresenter {
                            .defaultProgressLayer()
                            .onSuccess(e ->
                            {
-                               service.getListUpdater(MISSIONS_UPDATER).remove(mission);
+                               // service.getListUpdater(MISSIONS_UPDATER).remove(mission);
+                               localMissionCache.removeItem(mission);
                                showView(ViewRegistry.MISSIONS);
                            })
                            .exceptionMessage(localize("view.mission.error.delete"))

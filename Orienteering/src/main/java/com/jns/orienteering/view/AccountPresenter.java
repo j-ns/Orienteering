@@ -152,8 +152,8 @@ public class AccountPresenter extends BasePresenter {
     }
 
     @Override
-    protected void onShowing() {
-        super.onShowing();
+    protected void onShown() {
+        super.onShown();
         platformService().getNodePositionAdjuster(scrollPane, scrollPane.getScene().focusOwnerProperty());
 
         imageChanged = false;
@@ -241,7 +241,7 @@ public class AccountPresenter extends BasePresenter {
                            .onSuccess(result ->
                            {
                                if (image.get() != null) {
-                                   Image savedImage = saveImage(getImage(), newUser.getImageUrl(), ImageHandler::storeImageAsync);
+                                   Image savedImage = saveImage(getImage(), result.get().getImageUrl(), ImageHandler::storeImageAsync);
                                    if (savedImage != null) {
                                        service.setProfileImage(getImage());
                                    }
@@ -328,11 +328,16 @@ public class AccountPresenter extends BasePresenter {
     private User createUser() {
         String password = isUpdateModus() ? storedPassword : txtPassword.getText();
 
-        return new User(txtUserName.getText(),
-                        txtAlias.getText(),
-                        txtEmailAdress.getText(),
-                        password,
-                        choiceDefaultCity.getSelectedItem());
+        User user = new User(txtUserName.getText(),
+                             txtAlias.getText(),
+                             txtEmailAdress.getText(),
+                             password,
+                             choiceDefaultCity.getSelectedItem());
+
+        if (image.get() == null) {
+            user.setImageId(null);
+        }
+        return user;
     }
 
     private boolean isUpdateModus() {

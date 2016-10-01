@@ -46,9 +46,6 @@ import com.jns.orienteering.model.persisted.TasksByMissionLookup;
 import com.jns.orienteering.model.repo.readerwriter.RestMapReader;
 import com.jns.orienteering.util.GluonObservableHelper;
 
-import javafx.collections.FXCollections;
-import javafx.collections.transformation.SortedList;
-
 public class MissionFBRepo extends FireBaseRepo<Mission> {
 
     private static final String                             MISSIONS                 = "missions";
@@ -112,9 +109,7 @@ public class MissionFBRepo extends FireBaseRepo<Mission> {
                                            task.setOrderNumber(lookupMap.get(task.getId()));
                                        }
 
-                                       SortedList<Task> sortedList = new SortedList<>(result, (Task t, Task t1) -> Integer.compare(t.getOrderNumber(),
-                                                                                                                                   t1.getOrderNumber()));
-                                       obsTasks.setAll(FXCollections.observableArrayList(sortedList));
+                                       obsTasks.setAll(result);
                                        GluonObservableHelper.setInitialized(obsTasks, true);
 
                                    } catch (IOException e) {
@@ -153,7 +148,19 @@ public class MissionFBRepo extends FireBaseRepo<Mission> {
             mission.setTimeStamp(createTimeStamp());
             createOrUpdate(mission, mission.getId());
 
-            boolean tasksChanged = !tasksBuffer.containsAll(tasks) || !tasks.containsAll(tasksBuffer);
+            boolean tasksChanged = false;
+
+            if (tasks.size() != tasksBuffer.size()) {
+                tasksChanged = true;
+            } else {
+                for (int idx = 0; idx < tasks.size(); idx++) {
+                    if (!tasks.get(idx).equals(tasksBuffer.get(idx))) {
+                        tasksChanged = true;
+                        break;
+                    }
+                }
+            }
+
             if (tasksChanged) {
                 TasksByMissionLookup previousTasksByMission = tasksLookupRepo.retrieveObject(mission.getId());
 
@@ -161,10 +168,10 @@ public class MissionFBRepo extends FireBaseRepo<Mission> {
                 missionsByTaskLookupRepo.updateLookup(previousTasksByMission, mission);
                 missionStatCloudRepo.deleteAsync(mission.getId());
             }
-            if (mission.hasNameChanged()) {
+            if (mission.nameChanged()) {
                 nameLookupRepo.recreateLookup(previousMission.getMissionName(), mission.createNameLookup());
             }
-            if (mission.hasCityChanged() || mission.hasAccessTypeChanged()) {
+            if (mission.cityChanged() || mission.accessTypeChanged()) {
                 cityLookupRepo.recreateCityLookup(new MissionsByCityLookup(mission));
             }
             writeLogEntry(mission, RepoAction.UPDATE);

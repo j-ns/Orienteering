@@ -30,6 +30,6 @@ package com.jns.orienteering.model.common;
 
 public enum RepoAction {
 
-    ADD, UPDATE, DELETE, CHANGE_IMAGE;
+    ADD, UPDATE, DELETE;
 
 }

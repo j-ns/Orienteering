@@ -34,6 +34,7 @@ import com.gluonhq.charm.glisten.layout.layer.FloatingActionButton;
 import com.gluonhq.connect.GluonObservableList;
 import com.gluonhq.connect.GluonObservableObject;
 import com.jns.orienteering.control.cell.MissionCell;
+import com.jns.orienteering.model.dynamic.LocalMissionCache;
 import com.jns.orienteering.model.persisted.Mission;
 import com.jns.orienteering.model.repo.AsyncResultReceiver;
 import com.jns.orienteering.model.repo.MissionFBRepo;
@@ -43,9 +44,8 @@ import javafx.application.Platform;
 
 public class MissionsPresenter extends ListViewPresenter<Mission> {
 
-    private static final String MISSIONS_UPDATER = "missions_updater";
-
-    private MissionFBRepo       cloudRepo;
+    private MissionFBRepo     cloudRepo;
+    private LocalMissionCache localMissionCache = LocalMissionCache.INSTANCE;
 
     @Override
     protected void initialize() {
@@ -94,8 +94,10 @@ public class MissionsPresenter extends ListViewPresenter<Mission> {
     protected void populateListView() {
         String cityId = service.getSelectedCityId();
 
-        GluonObservableList<Mission> missions =
-                isPrivateAccess() ? cloudRepo.getPrivateMissions(cityId, service.getUserId()) : cloudRepo.getPublicMissions(cityId);
+        // GluonObservableList<Mission> missions =
+        // isPrivateAccess() ? cloudRepo.getPrivateMissions(cityId, service.getUserId()) : cloudRepo.getPublicMissions(cityId);
+        GluonObservableList<Mission> missions = isPrivateAccess() ? localMissionCache.getPrivateList(cityId, service.getUserId()) : localMissionCache
+                                                                                                                                                     .getPublicList(cityId);
 
         AsyncResultReceiver.create(missions)
                            .defaultProgressLayer()
@@ -104,18 +106,12 @@ public class MissionsPresenter extends ListViewPresenter<Mission> {
     }
 
     private void onCreateMission() {
-        setListUpdater();
         showView(ViewRegistry.MISSION);
-    }
-
-    private void setListUpdater() {
-        service.setListUpdater(MISSIONS_UPDATER, lview.getListUpdater(getAccessType()));
     }
 
     private void onSelectMission(Mission mission) {
         if (mission != null) {
             service.setSelectedMission(mission);
-            setListUpdater();
             showView(ViewRegistry.MISSION);
         }
     }

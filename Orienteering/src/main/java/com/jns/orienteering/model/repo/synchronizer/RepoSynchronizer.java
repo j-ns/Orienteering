@@ -37,7 +37,7 @@ import org.slf4j.LoggerFactory;
 import com.gluonhq.charm.down.common.PlatformFactory;
 import com.gluonhq.charm.down.common.SettingService;
 import com.gluonhq.connect.ConnectState;
-import com.jns.orienteering.model.dynamic.CountProperty;
+import com.jns.orienteering.model.common.CountProperty;
 
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;

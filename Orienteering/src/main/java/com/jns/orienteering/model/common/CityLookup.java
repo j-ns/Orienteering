@@ -65,7 +65,7 @@ public class CityLookup extends MultiIdLookup {
 
     @XmlTransient
     public boolean hasAccessTypeChanged() {
-        return assignable.hasAccessTypeChanged();
+        return assignable.accessTypeChanged();
     }
 
     public String getPreviousId() {
@@ -73,7 +73,7 @@ public class CityLookup extends MultiIdLookup {
     }
 
     public boolean hasCityChanged() {
-        return assignable.hasCityChanged();
+        return assignable.cityChanged();
     }
 
     @XmlTransient

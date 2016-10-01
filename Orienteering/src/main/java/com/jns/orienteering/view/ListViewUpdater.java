@@ -30,38 +30,42 @@ package com.jns.orienteering.view;
 
 import com.jns.orienteering.model.common.ListUpdater;
 import com.jns.orienteering.model.common.UpdatableListItem;
+import com.jns.orienteering.model.dynamic.LocalCache;
 
 public class ListViewUpdater<T extends UpdatableListItem> {
 
     private ListUpdater<T> listUpdater;
+    private LocalCache<T>  localCache;
 
     public ListViewUpdater(ListUpdater<T> listUpdater) {
         this.listUpdater = listUpdater;
     }
 
+    public ListViewUpdater(ListUpdater<T> listUpdater, LocalCache<T> localCache) {
+        this.listUpdater = listUpdater;
+        this.localCache = localCache;
+    }
+
     public void update(T newItem, T previousItem) {
         boolean accessTypesMatches = listUpdater.getAccessType() == newItem.getAccessType();
-        boolean cityHasChanged = newItem.hasCityChanged();
-        boolean nameHasChanged = newItem.hasNameChanged();
+        boolean cityHasChanged = newItem.cityChanged();
+        boolean nameHasChanged = newItem.nameChanged();
 
-        if (accessTypesMatches && !cityHasChanged) {
-            if (nameHasChanged) {
-                listUpdater.remove(previousItem);
-                listUpdater.add(newItem);
-            } else {
-                listUpdater.update(newItem);
-            }
-        } else {
-            listUpdater.remove(newItem);
+        localCache.removeItem(previousItem);
+        if (!cityHasChanged) {
+            localCache.addItem(newItem);
         }
     }
 
     public void add(T item) {
         boolean accessTypesMatches = listUpdater.getAccessType() == item.getAccessType();
-        boolean cityHasChanged = item.hasCityChanged();
+        boolean cityHasChanged = item.cityChanged();
 
-        if (accessTypesMatches && !cityHasChanged) {
-            listUpdater.add(item);
+        // if (accessTypesMatches && !cityHasChanged) {
+        // listUpdater.add(item);
+        // }
+        if (!cityHasChanged) {
+            localCache.addItem(item);
         }
     }
 

@@ -45,7 +45,7 @@ import com.gluonhq.connect.GluonObservableList;
 import com.gluonhq.connect.GluonObservableObject;
 import com.jns.orienteering.model.common.ListUpdater;
 import com.jns.orienteering.model.common.StorableImage;
-import com.jns.orienteering.model.dynamic.CityHolder;
+import com.jns.orienteering.model.dynamic.LocalCityCache;
 import com.jns.orienteering.model.persisted.ActiveTaskList;
 import com.jns.orienteering.model.persisted.City;
 import com.jns.orienteering.model.persisted.Mission;
@@ -162,7 +162,13 @@ public class BaseService {
 
     private void initSynchronizers() {
         CitySynchronizer citySynchronizer = new CitySynchronizer(repoService.getCloudRepo(City.class), repoService.getLocalRepo(City.class));
-        citySynchronizer.setOnSynced(cities::setAll);
+        citySynchronizer.setOnSynced(result ->
+        {
+            cities.setAll(result);
+            if (LocalCityCache.INSTANCE.isEmpty()) {
+                LocalCityCache.INSTANCE.createMapping(result, getUserId());
+            }
+        });
 
         ActiveMissionSynchronizer missionSynchronizer = new ActiveMissionSynchronizer(this);
         ImageSynchronizer imageSynchronizer = new ImageSynchronizer();
@@ -210,7 +216,7 @@ public class BaseService {
             SyncMetaData syncMetaData = new SyncMetaData().userId(getUserId())
                                                           .activeMission(getActiveMission());
             repoSynchronizer.syncNow(syncMetaData);
-        }else {
+        } else {
             initialized.set(true);
         }
     }
@@ -253,7 +259,7 @@ public class BaseService {
                                                                           setDefaultCity(null);
                                                                           setActiveMission(null);
                                                                       }
-                                                                      CityHolder.setUserId(u1 == null ? null : u1.getId());
+                                                                      LocalCityCache.INSTANCE.setUserId(u1 == null ? null : u1.getId());
                                                                       userListenerActive = false;
                                                                   };
 

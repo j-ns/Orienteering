@@ -35,7 +35,7 @@ import org.slf4j.LoggerFactory;
 
 import com.gluonhq.connect.GluonObservableList;
 import com.jns.orienteering.model.common.RepoAction;
-import com.jns.orienteering.model.dynamic.CityHolder;
+import com.jns.orienteering.model.dynamic.LocalCityCache;
 import com.jns.orienteering.model.persisted.ChangeLogEntry;
 import com.jns.orienteering.model.persisted.City;
 import com.jns.orienteering.model.persisted.LocalCityList;
@@ -50,8 +50,11 @@ public class CitySynchronizer extends BaseSynchronizer<City, LocalCityList> {
     public static final String  NAME                 = "city_synchronizer";
     private static final String CITY_LIST_IDENTIFIER = "cities";
 
+    private LocalCityCache          localCityCache;
+
     public CitySynchronizer(CityFBRepo cloudRepo, LocalRepo<City, LocalCityList> localRepo) {
         super(cloudRepo, localRepo, LocalCityList::new, CITY_LIST_IDENTIFIER);
+        localCityCache = LocalCityCache.INSTANCE;
     }
 
     @Override
@@ -74,8 +77,8 @@ public class CitySynchronizer extends BaseSynchronizer<City, LocalCityList> {
 
     @Override
     protected void storeLocally(GluonObservableList<City> cloudData) {
-        CityHolder.createMapping(cloudData, getSyncMetaData().getUserId());
         super.storeLocally(cloudData);
+        localCityCache.createMapping(cloudData, getSyncMetaData().getUserId());
     }
 
     @Override
@@ -84,7 +87,7 @@ public class CitySynchronizer extends BaseSynchronizer<City, LocalCityList> {
         AsyncResultReceiver.create(obsLocalData)
                            .onSuccess(resultLocal ->
                            {
-                               CityHolder.createMapping(resultLocal, getSyncMetaData().getUserId());
+                               LocalCityCache.INSTANCE.createMapping(resultLocal, getSyncMetaData().getUserId());
 
                                if (log != null) {
                                    boolean localDataNeedsUpdate = false;
@@ -95,15 +98,15 @@ public class CitySynchronizer extends BaseSynchronizer<City, LocalCityList> {
                                        String cityId = logEntry.getTargetId();
 
                                        if (logEntry.getAction() == RepoAction.DELETE) {
-                                           LOGGER.debug("removed locally {}: {}", listIdentifier, CityHolder.get(cityId));
-                                           localDataNeedsUpdate = CityHolder.remove(cityId) != null;
+                                           LOGGER.debug("removed locally {}: {}", listIdentifier, localCityCache.get(cityId));
+                                           localDataNeedsUpdate = localCityCache.remove(cityId) != null;
 
                                        } else {
-                                           if (!CityHolder.contains(cityId) || CityHolder.get(cityId)
-                                                                                         .getTimeStamp() < logEntry.getTimeStamp()) {
+                                           if (!localCityCache.contains(cityId) || localCityCache.get(cityId)
+                                                                                                 .getTimeStamp() < logEntry.getTimeStamp()) {
                                                try {
                                                    City cityFromCloud = cloudRepo.retrieveObject(cityId);
-                                                   CityHolder.put(cityFromCloud);
+                                                   localCityCache.put(cityFromCloud);
                                                    localDataNeedsUpdate = true;
 
                                                    LOGGER.debug("added/udpated locally {}: {}", listIdentifier, cityFromCloud);
@@ -115,10 +118,10 @@ public class CitySynchronizer extends BaseSynchronizer<City, LocalCityList> {
                                        }
                                    }
                                    if (localDataNeedsUpdate) {
-                                       localRepo.createOrUpdateListAsync(new LocalCityList(CityHolder.getAll()));
+                                       localRepo.createOrUpdateListAsync(new LocalCityList(localCityCache.getAll()));
                                    }
                                }
-                               getOnSynced().accept(CityHolder.getAll());
+                               getOnSynced().accept(localCityCache.getAll());
                                setSucceeded();
                            })
                            .onException(this::setFailed)

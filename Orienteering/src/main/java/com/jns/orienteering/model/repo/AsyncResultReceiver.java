@@ -34,17 +34,23 @@ import java.net.UnknownHostException;
 import java.util.Optional;
 import java.util.function.Consumer;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.gluonhq.connect.ConnectState;
 import com.gluonhq.connect.GluonObservable;
 import com.jns.orienteering.control.ProgressLayer;
 import com.jns.orienteering.control.ProgressLayer.PauseFadeInHide;
-import com.jns.orienteering.model.dynamic.CountProperty;
+import com.jns.orienteering.model.common.CountProperty;
 import com.jns.orienteering.util.Dialogs;
+import com.jns.orienteering.util.GluonObservableHelper;
 import com.jns.orienteering.util.Trigger;
 
 import javafx.beans.value.ChangeListener;
 
 public class AsyncResultReceiver<T extends GluonObservable> {
+
+    private static final Logger                                      LOGGER                 = LoggerFactory.getLogger(AsyncResultReceiver.class);
 
     private static final ProgressLayer                               DEFAULT_PROGRESS_LAYER = new ProgressLayer(PauseFadeInHide::new);
     private static CountProperty                                     runningReceivers       = new CountProperty();
@@ -91,6 +97,11 @@ public class AsyncResultReceiver<T extends GluonObservable> {
         return this;
     }
 
+    public AsyncResultReceiver<T> propagateException(T obsValue) {
+        this.onException = Optional.of(ex -> GluonObservableHelper.setException(obsValue, ex));
+        return this;
+    }
+
     public AsyncResultReceiver<T> exceptionMessage(String message) {
         exceptionMessage = Optional.of(message);
         return this;
@@ -127,6 +138,7 @@ public class AsyncResultReceiver<T extends GluonObservable> {
                                                                                  break;
 
                                                                              case REMOVED:
+                                                                                 consumer.ifPresent(c -> c.accept(observable));
                                                                                  startFinalizer();
                                                                                  break;
 
@@ -152,6 +164,7 @@ public class AsyncResultReceiver<T extends GluonObservable> {
     private ChangeListener<? super Throwable>    exceptionListener   = (obsValue, e, e1) ->
                                                                      {
                                                                          if (e1 != null) {
+                                                                             LOGGER.error("AsyncRestultReceiver exception:", e);
                                                                              onException.ifPresent(c -> c.accept(e1));
                                                                              exceptionMessage.ifPresent(msg -> Dialogs.ok(msg).showAndWait());
                                                                              startFinalizer();

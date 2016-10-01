@@ -61,6 +61,11 @@ public class SpecialCharReplacer {
         }
     }
 
+    public static boolean validateInput(String input) {
+        boolean result = INVALID_CHARS_PATTERN.matcher(input).find();
+        return !result;
+    }
+
     public static String replaceSpecialChars(String input) {
         if (input == null) {
             return input;
@@ -83,10 +88,6 @@ public class SpecialCharReplacer {
             tmp = tmp.replaceAll(replacement.replacement, replacement.specialChar);
         }
         return tmp;
-    }
-
-    public static boolean containsInvalidChar(String input) {
-        return INVALID_CHARS_PATTERN.matcher(input).matches();
     }
 
 }

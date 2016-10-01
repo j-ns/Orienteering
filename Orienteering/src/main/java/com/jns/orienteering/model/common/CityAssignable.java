@@ -28,21 +28,15 @@
  */
 package com.jns.orienteering.model.common;
 
-public interface CityAssignable {
-
-    String getId();
+public interface CityAssignable extends Sharable {
 
     String getCityId();
 
     String getPreviousCityId();
 
-    boolean hasCityChanged();
+    boolean cityChanged();
 
     String getOwnerId();
-
-    AccessType getAccessType();
-
-    boolean hasAccessTypeChanged();
 
     CityLookup createCityLookup();
 

@@ -32,14 +32,11 @@ import com.gluonhq.connect.GluonObservableList;
 import com.gluonhq.connect.GluonObservableObject;
 import com.gluonhq.connect.provider.DataProvider;
 import com.jns.orienteering.model.common.RepoAction;
-import com.jns.orienteering.model.dynamic.CityHolder;
 import com.jns.orienteering.model.persisted.CitiesByUser;
 import com.jns.orienteering.model.persisted.City;
 import com.jns.orienteering.model.persisted.CityNameLookup;
 import com.jns.orienteering.model.repo.readerwriter.RestMapReader;
 import com.jns.orienteering.util.GluonObservableHelper;
-
-import javafx.beans.property.SimpleBooleanProperty;
 
 public class CityFBRepo extends FireBaseRepo<City> {
 
@@ -64,42 +61,12 @@ public class CityFBRepo extends FireBaseRepo<City> {
             return GluonObservableHelper.newGluonObservableListInitialized();
         }
 
-        if (!CityHolder.isEmpty()) {
-            return CityHolder.getPrivateCities();
-        }
-
         String idsUrl = buildFullUrl(CITIES_BY_USER, userId);
         return DataProvider.retrieveList(new RestMapReader<>(createRestClient(), CitiesByUser.class, idsUrl, City.class, CITIES));
     }
 
-    public GluonObservableList<City> getPublicListAsync(String userId) {
-        if (!CityHolder.isEmpty()) {
-            return CityHolder.getPublicCities();
-        }
-
-        GluonObservableList<City> result = new GluonObservableList<>();
-
-        GluonObservableList<City> publicCities = retrieveListAsync();
-        publicCities.initializedProperty().addListener((obsValue, b, b1) ->
-        {
-            if (b1) {
-                result.setAll(publicCities);
-
-                if (userId != null) {
-                    GluonObservableList<City> obsPrivateCities = getPrivateListAsync(userId);
-                    obsPrivateCities.initializedProperty().addListener((obs, b2, b3) ->
-                    {
-                        if (b3) {
-                            ((SimpleBooleanProperty) result.initializedProperty()).set(true);
-                        }
-                    });
-
-                } else {
-                    GluonObservableHelper.setInitialized(result, true);
-                }
-            }
-        });
-        return result;
+    public GluonObservableList<City> getPublicListAsync() {
+        return retrieveListAsync();
     }
 
     public boolean checkIfNameExists(String cityName) {
@@ -126,7 +93,6 @@ public class CityFBRepo extends FireBaseRepo<City> {
                 writeLogEntry(result, RepoAction.ADD);
             }
         });
-
     }
 
     public GluonObservableObject<City> updateAsync(City city, String previousName) {

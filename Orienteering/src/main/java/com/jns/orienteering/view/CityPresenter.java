@@ -28,16 +28,15 @@
  */
 package com.jns.orienteering.view;
 
+import static com.jns.orienteering.util.Dialogs.confirmDeleteAnswer;
+
 import javax.inject.Inject;
 
-import com.gluonhq.connect.GluonObservable;
-import com.gluonhq.connect.GluonObservableList;
 import com.gluonhq.connect.GluonObservableObject;
 import com.jns.orienteering.common.BaseService;
 import com.jns.orienteering.common.MultiValidator;
 import com.jns.orienteering.control.FloatingTextField;
-import com.jns.orienteering.model.common.ListUpdater;
-import com.jns.orienteering.model.dynamic.CityHolder;
+import com.jns.orienteering.model.dynamic.LocalCityCache;
 import com.jns.orienteering.model.persisted.City;
 import com.jns.orienteering.model.persisted.LocalCityList;
 import com.jns.orienteering.model.repo.AsyncResultReceiver;
@@ -46,14 +45,13 @@ import com.jns.orienteering.model.repo.LocalRepo;
 import com.jns.orienteering.util.Dialogs;
 import com.jns.orienteering.util.GluonObservableHelper;
 import com.jns.orienteering.util.Icon;
+import com.jns.orienteering.util.SpecialCharReplacer;
 import com.jns.orienteering.util.Validators;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 
 public class CityPresenter extends BasePresenter {
-
-    private static final String            CITIES_UPDATER = "cities_updater";
 
     @FXML
     private FloatingTextField              txtCityName;
@@ -62,6 +60,7 @@ public class CityPresenter extends BasePresenter {
     private CityFBRepo                     cloudRepo;
     private LocalRepo<City, LocalCityList> localRepo;
     private City                           city;
+    private LocalCityCache                     localCityCache;
 
     @Override
     protected void initialize() {
@@ -70,6 +69,7 @@ public class CityPresenter extends BasePresenter {
 
         cloudRepo = service.getRepoService().getCloudRepo(City.class);
         localRepo = service.getRepoService().getLocalRepo(City.class);
+        localCityCache = LocalCityCache.INSTANCE;
     }
 
     @Override
@@ -96,31 +96,31 @@ public class CityPresenter extends BasePresenter {
     }
 
     private void onSave() {
-        if (!validateCityName(txtCityName.getText())) {
+        if (!validateCityName()) {
             return;
         }
-
         saveResultReceiver().onSuccess(e -> showPreviousView())
                             .start();
     }
 
     private void onSaveAndContinue() {
-        if (!validateCityName(txtCityName.getText())) {
+        if (!validateCityName()) {
             return;
         }
-
-        saveResultReceiver().onSuccess(e ->
-        {
-            city = new City();
-            txtCityName.setText("");
-        })
+        saveResultReceiver()
+                            .onSuccess(e ->
+                            {
+                                city = new City();
+                                txtCityName.setText("");
+                            })
                             .start();
     }
 
-    private boolean validateCityName(String name) {
+    private boolean validateCityName() {
         MultiValidator<String> validator = new MultiValidator<>();
 
         validator.addCheck(Validators::isNotNullOrEmpty, localize("view.city.info.nameMustNotBeEmpty"));
+        validator.addCheck(SpecialCharReplacer::validateInput, localize("view.error.invalidCharEntered"));
         validator.addCheck(cityName ->
         {
             if (isEditorModus()) {
@@ -129,42 +129,37 @@ public class CityPresenter extends BasePresenter {
                     return !cloudRepo.checkIfNameExists(cityName);
                 }
                 return false;
-
             } else {
                 return !cloudRepo.checkIfNameExists(cityName);
             }
         },
                            localize("view.city.error.alreadExists"));
 
-        return validator.check(name);
+        return validator.check(txtCityName.getText());
     }
 
-    private AsyncResultReceiver<GluonObservable> saveResultReceiver() {
-        GluonObservable obsSuccessful = new GluonObservableObject<>();
+    private AsyncResultReceiver<GluonObservableObject<City>> saveResultReceiver() {
+        GluonObservableObject<City> obsSuccessful = new GluonObservableObject<>();
 
         AsyncResultReceiver.create(saveCity(createCity()))
                            .defaultProgressLayer()
                            .onSuccess(result ->
                            {
                                City cityResult = result.get();
-                               GluonObservableList<City> cities = service.getCities();
-                               ListUpdater<City> listUpdater = service.getListUpdater(CITIES_UPDATER);
+                               // GluonObservableList<City> cities = service.getCities();
 
                                if (isEditorModus()) {
-                                   listUpdater.remove(city);
-                                   cities.remove(city);
-                                   CityHolder.remove(city);
-                               } else {
-                                   cities.add(cityResult);
+                                   // cities.remove(city);
+                                   localCityCache.remove(cityResult);
                                }
+                               // cities.add(cityResult);
+                               localCityCache.put(cityResult);
 
-                               listUpdater.add(cityResult);
-                               CityHolder.put(cityResult);
-                               localRepo.createOrUpdateListAsync(new LocalCityList(CityHolder.getAll()));
+                               localRepo.createOrUpdateListAsync(new LocalCityList(localCityCache.getAll()));
 
                                GluonObservableHelper.setInitialized(obsSuccessful, true);
                            })
-                           .onException(ex -> GluonObservableHelper.setException(obsSuccessful, ex))
+                           .propagateException(obsSuccessful)
                            .start();
 
         return AsyncResultReceiver.create(obsSuccessful)
@@ -187,12 +182,11 @@ public class CityPresenter extends BasePresenter {
         } else {
             obsCity = cloudRepo.createCityAsync(newCity);
         }
-
         return obsCity;
     }
 
     private void onDelete() {
-        if (!confirmDelete()) {
+        if (!confirmDeleteAnswer(localize("view.cities.question.delete")).isYesOrOk()) {
             return;
         }
         if (!cloudRepo.isCityValidForDelete(city.getId())) {
@@ -205,20 +199,12 @@ public class CityPresenter extends BasePresenter {
                            .defaultProgressLayer()
                            .onSuccess(result ->
                            {
-                               CityHolder.remove(city);
-                               localRepo.createOrUpdateListAsync(new LocalCityList(CityHolder.getAll()));
-
-                               service.getListUpdater(CITIES_UPDATER).remove(city);
-                               service.getCities().remove(city);
+                               localCityCache.remove(city);
+                               localRepo.createOrUpdateListAsync(new LocalCityList(localCityCache.getAll()));
 
                                showPreviousView();
                            })
                            .start();
-
-    }
-
-    private boolean confirmDelete() {
-        return Dialogs.confirmDeleteAnswer(localize("view.cities.question.delete")).isYesOrOk();
     }
 
     private boolean isEditorModus() {

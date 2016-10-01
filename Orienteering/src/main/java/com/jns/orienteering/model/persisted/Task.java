@@ -229,7 +229,7 @@ public class Task extends BaseSynchronizable implements Postable, UpdatableListI
     }
 
     @Override
-    public boolean hasAccessTypeChanged() {
+    public boolean accessTypeChanged() {
         return accessTypeChanged;
     }
 
@@ -275,12 +275,12 @@ public class Task extends BaseSynchronizable implements Postable, UpdatableListI
     }
 
     @Override
-    public boolean hasCityChanged() {
+    public boolean cityChanged() {
         return previousTask != null && !previousTask.cityId.equals(cityId);
     }
 
     @Override
-    public boolean hasNameChanged() {
+    public boolean nameChanged() {
         ensurePreviousTask();
         return !previousTask.getTaskName().equals(taskName);
     }

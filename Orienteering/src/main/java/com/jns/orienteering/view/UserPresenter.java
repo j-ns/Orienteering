@@ -35,13 +35,13 @@ import javax.inject.Inject;
 
 import com.gluonhq.charm.down.common.JavaFXPlatform;
 import com.gluonhq.charm.glisten.control.Avatar;
+import com.gluonhq.connect.GluonObservable;
 import com.gluonhq.connect.GluonObservableObject;
 import com.jns.orienteering.common.BaseService;
 import com.jns.orienteering.common.ImageHandler;
 import com.jns.orienteering.control.FloatingTextField;
 import com.jns.orienteering.model.persisted.User;
 import com.jns.orienteering.model.repo.AsyncResultReceiver;
-import com.jns.orienteering.model.repo.FireBaseRepo.RemoveObject;
 import com.jns.orienteering.model.repo.UserFBRepo;
 import com.jns.orienteering.util.Dialogs;
 
@@ -192,8 +192,9 @@ public class UserPresenter extends BasePresenter {
 
     private void onDeleteUser() {
         if (confirmDeleteAnswer(localize("view.user.question.delete")).isYesOrOk()) {
-            GluonObservableObject<RemoveObject> obsResult = userCloudRepo.deleteAsync(txtUserName.getText());
+            GluonObservable obsResult = userCloudRepo.deleteAsync(txtUserName.getText());
             AsyncResultReceiver.create(obsResult)
+                               .defaultProgressLayer()
                                .onSuccess(e -> logoff())
                                .start();
         }

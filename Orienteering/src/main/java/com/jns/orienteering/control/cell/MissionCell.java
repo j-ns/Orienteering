@@ -33,7 +33,7 @@ import static com.jns.orienteering.locale.Localization.localize;
 import java.util.function.Consumer;
 
 import com.gluonhq.charm.glisten.visual.MaterialDesignIcon;
-import com.jns.orienteering.model.dynamic.CityHolder;
+import com.jns.orienteering.model.dynamic.LocalCityCache;
 import com.jns.orienteering.model.persisted.Mission;
 
 import javafx.beans.property.BooleanProperty;
@@ -57,8 +57,8 @@ public class MissionCell extends SelectableListCell<Mission> {
         content = new Content();
 
         slidingTile = new SlidingListTile(content, true, MaterialDesignIcon.DELETE.text, MaterialDesignIcon.EXPLORE.text);
-        slidingTile.setOnSwipedLeft(consumerRight,  this::getMission);
-        slidingTile.setOnSwipedRight(consumerLeft,  this::getMission);
+        slidingTile.setOnSwipedLeft(consumerRight, this::getMission);
+        slidingTile.setOnSwipedRight(consumerLeft, this::getMission);
         slidingTile.slidingProperty().addListener((ov, b, b1) -> sliding.set(b1));
     }
 
@@ -80,7 +80,7 @@ public class MissionCell extends SelectableListCell<Mission> {
             }
             content.lblName.setText(mission.getMissionName());
             content.lblDistance.setText(mission.getDistanceText() + " " + localize("unit.miles"));
-            content.lblCity.setText(CityHolder.get(mission.getCityId()).getCityName());
+            content.lblCity.setText(LocalCityCache.INSTANCE.get(mission.getCityId()).getCityName());
             content.lblPoints.setText(Integer.toString(mission.getMaxPoints()) + " " + localize("label.points"));
         }
     }
