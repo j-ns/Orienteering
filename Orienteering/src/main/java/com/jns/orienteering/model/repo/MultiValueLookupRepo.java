@@ -32,7 +32,7 @@ import java.io.IOException;
 
 import com.jns.orienteering.model.common.MultiValueLookup;
 
-public class MultiValueLookupRepo<T extends MultiValueLookup> extends FireBaseRepo<T> {
+public class MultiValueLookupRepo<T extends MultiValueLookup<?>> extends FireBaseRepo<T> {
 
     public MultiValueLookupRepo(Class<T> targetClass, String baseUrl) {
         super(targetClass, baseUrl);

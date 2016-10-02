@@ -26,7 +26,9 @@
  *  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  *  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package com.jns.orienteering.util;
+package com.jns.orienteering.control;
+
+import com.jns.orienteering.model.common.AccessType;
 
 import de.jensd.fx.glyphs.GlyphIcons;
 import de.jensd.fx.glyphs.GlyphsDude;
@@ -40,8 +42,6 @@ import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.control.ToggleButton;
-import javafx.scene.layout.StackPane;
 
 public enum Icon {
     ARROW_UP(MaterialDesignIcon.ARROW_UP_BOLD),
@@ -93,6 +93,7 @@ public enum Icon {
     PICTURES(MaterialIcon.COLLECTIONS),
     PLUS(FontAwesomeIcon.PLUS),
     RECYCLE(FontAwesomeIcon.RECYCLE),
+    REFRESH(FontAwesomeIcon.REFRESH),
     SETTINGS(FontAwesomeIcon.COG),
     SKIP_FORWARD(MaterialDesignIcon.SKIP_NEXT),
     SHARE(MaterialDesignIcon.SHARE),
@@ -145,10 +146,6 @@ public enum Icon {
         return GlyphsDude.createIcon(glypIcon, size);
     }
 
-    public Node progressIcon() {
-        return new StackPane(icon("32"));
-    }
-
     public static class Buttons {
 
         private Buttons() {
@@ -176,20 +173,16 @@ public enum Icon {
             return Icon.FILTER.button(onAction);
         }
 
-        public static ToggleButton accessType() {
-            Node locked = LOCK.icon("22");
-            Node unlocked = UNLOCK.icon("22");
-
-            ToggleButton button = new ToggleButton("", locked);
-            button.selectedProperty().addListener((obs, b, b1) ->
-            {
-                if (b1) {
-                    button.setGraphic(unlocked);
-                } else {
-                    button.setGraphic(locked);
-                }
-            });
+        public static Button refresh(EventHandler<ActionEvent> onAction) {
+            Button button = Icon.REFRESH.button("22");
+            button.setOnAction(onAction);
             return button;
+        }
+
+        public static StateButton<AccessType> accessType() {
+            Node locked = LOCK.icon(DEFAULT_ICON_SIZE);
+            Node unlocked = UNLOCK.icon(DEFAULT_ICON_SIZE);
+            return new StateButton<>(locked, unlocked);
         }
 
     }

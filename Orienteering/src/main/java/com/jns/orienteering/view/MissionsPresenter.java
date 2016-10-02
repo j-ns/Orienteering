@@ -34,6 +34,7 @@ import com.gluonhq.charm.glisten.layout.layer.FloatingActionButton;
 import com.gluonhq.connect.GluonObservableList;
 import com.gluonhq.connect.GluonObservableObject;
 import com.jns.orienteering.control.cell.MissionCell;
+import com.jns.orienteering.model.dynamic.LocalCache;
 import com.jns.orienteering.model.dynamic.LocalMissionCache;
 import com.jns.orienteering.model.persisted.Mission;
 import com.jns.orienteering.model.repo.AsyncResultReceiver;
@@ -41,11 +42,12 @@ import com.jns.orienteering.model.repo.MissionFBRepo;
 import com.jns.orienteering.util.Dialogs;
 
 import javafx.application.Platform;
+import javafx.collections.FXCollections;
 
 public class MissionsPresenter extends ListViewPresenter<Mission> {
 
     private MissionFBRepo     cloudRepo;
-    private LocalMissionCache localMissionCache = LocalMissionCache.INSTANCE;
+    private LocalMissionCache localMissionCache;
 
     @Override
     protected void initialize() {
@@ -60,6 +62,7 @@ public class MissionsPresenter extends ListViewPresenter<Mission> {
         lview.setOnSelection(this::onSelectMission);
 
         cloudRepo = service.getRepoService().getCloudRepo(Mission.class);
+        localMissionCache = LocalMissionCache.INSTANCE;
     }
 
     @Override
@@ -78,6 +81,11 @@ public class MissionsPresenter extends ListViewPresenter<Mission> {
     }
 
     @Override
+    protected LocalCache<?> getLocalCache() {
+        return localMissionCache;
+    }
+
+    @Override
     protected void onShown() {
         super.onShown();
         service.setTempCity(null);
@@ -93,12 +101,14 @@ public class MissionsPresenter extends ListViewPresenter<Mission> {
     @Override
     protected void populateListView() {
         String cityId = service.getSelectedCityId();
+        String userId = service.getUserId();
+        if (cityId == null || userId == null) {
+            lview.setItems(FXCollections.emptyObservableList());
+            return;
+        }
 
-        // GluonObservableList<Mission> missions =
-        // isPrivateAccess() ? cloudRepo.getPrivateMissions(cityId, service.getUserId()) : cloudRepo.getPublicMissions(cityId);
-        GluonObservableList<Mission> missions = isPrivateAccess() ? localMissionCache.getPrivateList(cityId, service.getUserId()) : localMissionCache
-                                                                                                                                                     .getPublicList(cityId);
-
+        GluonObservableList<Mission> missions = isPrivateAccess() ? localMissionCache.getPrivateItems(cityId, userId) : localMissionCache
+                                                                                                                                         .getPublicItems(cityId);
         AsyncResultReceiver.create(missions)
                            .defaultProgressLayer()
                            .onSuccess(lview::setSortableItems)
@@ -146,7 +156,7 @@ public class MissionsPresenter extends ListViewPresenter<Mission> {
                                    .defaultProgressLayer()
                                    .onSuccess(e ->
                                    {
-                                       lview.getListUpdater().remove(mission);
+                                       localMissionCache.removeItem(mission);
                                        if (mission.equals(service.getActiveMission())) {
                                            service.setActiveMission(null);
                                        }

@@ -91,7 +91,7 @@ public class MissionStatFBRepo extends FireBaseRepo<MissionStat> {
 
     public GluonObservableList<MissionStat> getMissionStats(String missionId) {
         RestClient client = createRestClient();
-        client.path(statByMissionRepo.buildFullUrlFromRelativePath(missionId));
+        client.path(statByMissionRepo.buildUrlFromRelativePath(missionId));
         client.queryParam("orderBy", "\"duration\"");
         client.queryParam("limitToFirst", "5");
 

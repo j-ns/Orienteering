@@ -38,7 +38,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.function.BiConsumer;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,8 +54,7 @@ import com.gluonhq.connect.provider.RestClient;
 import com.gluonhq.connect.source.RestDataSource;
 import com.jns.orienteering.model.common.Model;
 import com.jns.orienteering.model.common.Postable;
-import com.jns.orienteering.model.common.Synchronizable;
-import com.jns.orienteering.model.persisted.ChangeLogEntry;
+import com.jns.orienteering.model.common.UrlBuilder;
 import com.jns.orienteering.model.repo.readerwriter.JsonInputConverterExtended;
 import com.jns.orienteering.model.repo.readerwriter.JsonOutputConverterExtended;
 import com.jns.orienteering.model.repo.readerwriter.JsonTreeConverter;
@@ -71,9 +69,8 @@ public class FireBaseRepo<T extends Model> {
     private static final Logger              LOGGER             = LoggerFactory.getLogger(FireBaseRepo.class);
 
     private static final String              APP_ID             = "https://orienteering-2dd97.firebaseio.com";
-    protected static final String            JSON_SUFFIX        = ".json";
     private static final String              AUTH_PARAM_NAME    = "auth";
-    protected static final String            CREDENTIALS        = "2ekET9SyGxrYCeSWgPZaWdiCHxncCHmAvGCjDjwu";
+    private static final String              CREDENTIALS        = "2ekET9SyGxrYCeSWgPZaWdiCHxncCHmAvGCjDjwu";
 
     protected static final String            GET                = "GET";
     protected static final String            PUT                = "PUT";
@@ -90,8 +87,9 @@ public class FireBaseRepo<T extends Model> {
 
     private static ChangeLogRepo             changeLogRepo      = new ChangeLogRepo();
 
-    protected RestClient                     restClient;
+    private RestClient                       restClient;
     protected String                         baseUrl;
+    private UrlBuilder                       urlBuilder;
 
     protected final Class<T>                 targetClass;
     protected JsonOutputConverterExtended<T> outputConverter;
@@ -101,6 +99,7 @@ public class FireBaseRepo<T extends Model> {
     public FireBaseRepo(Class<T> targetClass, String baseUrl) {
         this.targetClass = targetClass;
         this.baseUrl = baseUrl;
+        urlBuilder = new UrlBuilder(baseUrl);
         restClient = createRestClient();
         outputConverter = new JsonOutputConverterExtended<>(targetClass);
         inputConverter = new JsonInputConverterExtended<>(targetClass);
@@ -114,11 +113,11 @@ public class FireBaseRepo<T extends Model> {
     }
 
     protected void updateRestClientUrl(String method, String... urlParts) {
-        updateRestClient(method, buildFullUrl(urlParts));
+        updateRestClient(method, urlBuilder.buildUrl(urlParts));
     }
 
     protected void updateRestClientFromRelativePath(String method, String... urlParts) {
-        String url = buildFullUrlFromRelativePath(urlParts);
+        String url = buildUrlFromRelativePath(urlParts);
         updateRestClient(method, url);
     }
 
@@ -130,32 +129,12 @@ public class FireBaseRepo<T extends Model> {
         restClient.path(path);
     }
 
-    protected String buildFullUrl(String... urlParts) {
-        return buildPath(urlParts) + JSON_SUFFIX;
+    protected String buildUrlFromRelativePath(String... urlParts) {
+        return urlBuilder.buildUrlFromRelativePath(urlParts);
     }
 
-    protected String buildFullUrlFromRelativePath(String... urlParts) {
-        if (urlParts.length > 0) {
-            return baseUrl + buildPath(urlParts) + JSON_SUFFIX;
-        }
-        return baseUrl + JSON_SUFFIX;
-    }
-
-    protected static String buildPath(String... urlParts) {
-        String result = "";
-
-        for (String child : urlParts) {
-            if (Validators.isNullOrEmpty(child)) {
-                continue;
-            }
-
-            if (!child.startsWith("/")) {
-                result = result + "/" + child;
-            } else {
-                result = result + child;
-            }
-        }
-        return result;
+    protected String buildPath(String... urlParts) {
+        return urlBuilder.buildPath(urlParts);
     }
 
     public boolean checkIfUrlExists(String... urlParts) {
@@ -165,7 +144,7 @@ public class FireBaseRepo<T extends Model> {
             RestClient client = createRestClient();
 
             client.method(GET);
-            client.path(buildFullUrl(urlParts));
+            client.path(urlBuilder.buildUrl(urlParts));
             client.queryParam("shallow", "true");
 
             RestDataSource createRestDataSource = client.createRestDataSource();
@@ -208,7 +187,7 @@ public class FireBaseRepo<T extends Model> {
         try {
             RestClient client = createRestClient();
             client.method(POST);
-            client.path(buildFullUrlFromRelativePath(urlParts));
+            client.path(buildUrlFromRelativePath(urlParts));
             client.queryParam(OVERRIDE_PARAMETER, "Delete");
 
             remover(client).removeObject(obs);
@@ -225,7 +204,7 @@ public class FireBaseRepo<T extends Model> {
 
         RestClient client = createRestClient();
         client.method(POST);
-        client.path(buildFullUrlFromRelativePath(urlParts));
+        client.path(buildUrlFromRelativePath(urlParts));
         client.queryParam(OVERRIDE_PARAMETER, "Delete");
 
         DataProvider.removeObject(obs, remover(client));
@@ -290,7 +269,7 @@ public class FireBaseRepo<T extends Model> {
     public GluonObservableList<T> retrieveListFilteredAsync(String orderBy, Pair<String, String> filter, String... urlParts) {
         RestClient client = createRestClient();
         client.method(GET);
-        client.path(buildFullUrlFromRelativePath(urlParts));
+        client.path(buildUrlFromRelativePath(urlParts));
         client.queryParam("orderBy", "\"" + orderBy + "\"");
         client.queryParam(filter.getKey(), filter.getValue());
 
@@ -300,7 +279,7 @@ public class FireBaseRepo<T extends Model> {
     public GluonObservableList<T> retrieveListFilteredAsync(String orderBy, List<Pair<String, String>> filters, String... urlParts) {
         RestClient client = createRestClient();
         client.method(GET);
-        client.path(buildFullUrlFromRelativePath(urlParts));
+        client.path(buildUrlFromRelativePath(urlParts));
         client.queryParam("orderBy", "\"" + orderBy + "\"");
 
         for (Pair<String, String> filter : filters) {
@@ -313,7 +292,7 @@ public class FireBaseRepo<T extends Model> {
     public GluonObservableObject<T> retrieveObjectFilteredAsync(String orderBy, Pair<String, String> filter, String... urlParts) {
         RestClient client = createRestClient();
         client.method(GET);
-        client.path(buildFullUrlFromRelativePath(urlParts));
+        client.path(buildUrlFromRelativePath(urlParts));
         client.queryParam("orderBy", "\"" + orderBy + "\"");
         client.queryParam(filter.getKey(), filter.getValue());
 
@@ -323,7 +302,7 @@ public class FireBaseRepo<T extends Model> {
     public T retrieveObjectFiltered(String orderBy, Pair<String, String> filter, String... urlParts) throws IOException {
         RestClient client = createRestClient();
         client.method(GET);
-        client.path(buildFullUrlFromRelativePath(urlParts));
+        client.path(buildUrlFromRelativePath(urlParts));
         client.queryParam("orderBy", "\"" + orderBy + "\"");
         client.queryParam(filter.getKey(), filter.getValue());
 
@@ -374,13 +353,8 @@ public class FireBaseRepo<T extends Model> {
         return secs;
     }
 
-    protected void writeLogEntry(ChangeLogEntry logEntry, BiConsumer<ChangeLogRepo, ChangeLogEntry> logWriter) {
-        logWriter.accept(changeLogRepo, logEntry);
-    }
-
-    protected <S extends Synchronizable> void writeLogEntry(S obj, BiConsumer<ChangeLogRepo, ChangeLogEntry> logWriter) {
-        ChangeLogEntry entry = new ChangeLogEntry(obj);
-        logWriter.accept(changeLogRepo, entry);
+    protected ChangeLogRepo getChangeLogRepo() {
+        return changeLogRepo;
     }
 
     protected GluonObservableObject<T> newGluonObservableObject() {
@@ -399,10 +373,10 @@ public class FireBaseRepo<T extends Model> {
             try {
                 action.start();
                 sourceObject.ifPresent(result::set);
-                GluonObservableHelper.setInitialized(result, true);
+                GluonObservableHelper.setInitialized(result);
             } catch (Exception ex) {
                 LOGGER.error("Error on executeAsync", ex);
-                GluonObservableHelper.setException(result, ex);
+                result.setException(ex);
             }
         });
     }

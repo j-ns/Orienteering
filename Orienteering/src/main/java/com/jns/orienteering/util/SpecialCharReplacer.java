@@ -62,8 +62,7 @@ public class SpecialCharReplacer {
     }
 
     public static boolean validateInput(String input) {
-        boolean result = INVALID_CHARS_PATTERN.matcher(input).find();
-        return !result;
+        return !INVALID_CHARS_PATTERN.matcher(input).find();
     }
 
     public static String replaceSpecialChars(String input) {

@@ -47,6 +47,7 @@ import com.jns.orienteering.common.MultiValidator;
 import com.jns.orienteering.common.Validator;
 import com.jns.orienteering.control.ChoiceFloatingTextField;
 import com.jns.orienteering.control.FloatingTextField;
+import com.jns.orienteering.control.Icon;
 import com.jns.orienteering.control.ScrollListener;
 import com.jns.orienteering.control.ScrollPositionBuffer;
 import com.jns.orienteering.model.common.AccessType;
@@ -58,7 +59,6 @@ import com.jns.orienteering.model.persisted.City;
 import com.jns.orienteering.model.persisted.Task;
 import com.jns.orienteering.model.repo.AsyncResultReceiver;
 import com.jns.orienteering.model.repo.TaskFBRepo;
-import com.jns.orienteering.util.Icon;
 import com.jns.orienteering.util.PositionHelper;
 import com.jns.orienteering.util.SpecialCharReplacer;
 import com.jns.orienteering.util.Validators;
@@ -371,6 +371,7 @@ public class TaskPresenter extends BasePresenter {
         } else {
             obsTask = cloudRepo.createTaskAsync(newTask);
             AsyncResultReceiver.create(obsTask)
+                               .defaultProgressLayer()
                                .onSuccess(e ->
                                {
                                    if (image.get() != null) {
@@ -401,9 +402,7 @@ public class TaskPresenter extends BasePresenter {
         }
 
         if (isEditorModus() && isMissionEditorModus()) {
-            // todo: LocalCache verwenden
-            // ListUpdater<Task> missionTasksUpdater = service.getListUpdater(MISSION_TASKS_UPDATER);
-            // new ListViewUpdater<>(missionTasksUpdater).update(newTask, previousTask);
+            LocalMissionCache.INSTANCE.udpateMissionTask(newTask, previousTask);
         }
     }
 
@@ -424,7 +423,7 @@ public class TaskPresenter extends BasePresenter {
                            {
                                LocalTaskCache.INSTANCE.removeItem(task);
                                if (isMissionEditorModus()) {
-                                   LocalMissionCache.INSTANCE.getActiveTasksSorted().remove(task);
+                                   LocalMissionCache.INSTANCE.getMissionTasks().remove(task);
                                }
                                showPreviousView();
                            })

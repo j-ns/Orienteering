@@ -32,23 +32,27 @@ import javax.inject.Inject;
 
 import com.jns.orienteering.common.BaseService;
 import com.jns.orienteering.control.GraphicChoiceField;
+import com.jns.orienteering.control.Icon;
 import com.jns.orienteering.control.ListViewExtended;
 import com.jns.orienteering.control.ScrollEventFilter;
+import com.jns.orienteering.control.SelectState;
+import com.jns.orienteering.control.StateButton;
 import com.jns.orienteering.model.common.AccessType;
+import com.jns.orienteering.model.dynamic.LocalCache;
 import com.jns.orienteering.model.persisted.City;
-import com.jns.orienteering.util.Icon;
 
 import javafx.beans.binding.When;
 import javafx.fxml.FXML;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.control.ToggleButton;
 
 public abstract class ListViewPresenter<T> extends BasePresenter {
 
     private static final String        USER_NOT_LOGGED_IN = localize("view.cities.info.userNotLoggedIn");
 
-    protected ToggleButton             tglAccessType      = Icon.Buttons.accessType();
+    protected StateButton<AccessType>  tglAccessType      = Icon.Buttons.accessType();
     protected GraphicChoiceField<City> choiceCity         = new GraphicChoiceField<>(Icon.FILTER.button());
+    protected Button                   btnRefresh;
 
     @FXML
     protected ListViewExtended<T>      lview;
@@ -59,16 +63,22 @@ public abstract class ListViewPresenter<T> extends BasePresenter {
     protected BaseService              service;
 
     protected City                     selectedCity;
-    private AccessType                 accessType         = AccessType.PRIVATE;
     private boolean                    accessTypeListenerMuted;
 
     @Override
     protected void initialize() {
         super.initialize();
 
-        tglAccessType.selectedProperty().addListener((obs, b, b1) ->
+        btnRefresh = Icon.Buttons.refresh(e ->
         {
-            accessType = b1 ? AccessType.PUBLIC : AccessType.PRIVATE;
+            getLocalCache().clearItems(tglAccessType.getSelectState().get());
+            populateListView();
+        });
+
+        SelectState<AccessType> selectState = new SelectState<AccessType>(AccessType.PRIVATE, AccessType.PUBLIC);
+        tglAccessType.setSelectState(selectState);
+        tglAccessType.setOnAction(() ->
+        {
             if (!accessTypeListenerMuted) {
                 populateListView();
             }
@@ -86,11 +96,8 @@ public abstract class ListViewPresenter<T> extends BasePresenter {
         });
 
         lblPlaceHolder.textProperty()
-                      .bind(new When(service.userProperty()
-                                            .isNull()
-                                            .and(tglAccessType.selectedProperty().not()))
-                                                                                         .then(USER_NOT_LOGGED_IN)
-                                                                                         .otherwise(getNoDataExistingMessage()));
+                      .bind(new When(service.userProperty().isNull()).then(USER_NOT_LOGGED_IN)
+                                                                     .otherwise(getNoDataExistingMessage()));
         lview.setPlaceholder(lblPlaceHolder);
         scrollEventFilter = new ScrollEventFilter(lview);
         service.getActivatorDeactivatorService().add(getViewName(), lview);
@@ -102,26 +109,23 @@ public abstract class ListViewPresenter<T> extends BasePresenter {
 
     protected abstract String getNoDataExistingMessage();
 
+    protected abstract LocalCache<?> getLocalCache();
+
     protected abstract void populateListView();
 
     @Override
     protected void initAppBar() {
-        setAppBar(createGoHomeButton(), getTitle(), tglAccessType, choiceCity);
-    }
-
-    public AccessType getAccessType() {
-        return accessType;
+        setAppBar(createGoHomeButton(), getTitle(), btnRefresh, tglAccessType, choiceCity);
     }
 
     public void setAccessType(AccessType accessType) {
-        this.accessType = accessType;
         accessTypeListenerMuted = true;
         tglAccessType.setSelected(accessType == AccessType.PUBLIC);
         accessTypeListenerMuted = false;
     }
 
     protected boolean isPrivateAccess() {
-        return accessType == AccessType.PRIVATE;
+        return tglAccessType.getSelectState().get() == AccessType.PRIVATE;
     }
 
     @Override

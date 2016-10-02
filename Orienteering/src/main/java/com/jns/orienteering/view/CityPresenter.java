@@ -32,10 +32,12 @@ import static com.jns.orienteering.util.Dialogs.confirmDeleteAnswer;
 
 import javax.inject.Inject;
 
+import com.gluonhq.connect.GluonObservable;
 import com.gluonhq.connect.GluonObservableObject;
 import com.jns.orienteering.common.BaseService;
 import com.jns.orienteering.common.MultiValidator;
 import com.jns.orienteering.control.FloatingTextField;
+import com.jns.orienteering.control.Icon;
 import com.jns.orienteering.model.dynamic.LocalCityCache;
 import com.jns.orienteering.model.persisted.City;
 import com.jns.orienteering.model.persisted.LocalCityList;
@@ -43,8 +45,6 @@ import com.jns.orienteering.model.repo.AsyncResultReceiver;
 import com.jns.orienteering.model.repo.CityFBRepo;
 import com.jns.orienteering.model.repo.LocalRepo;
 import com.jns.orienteering.util.Dialogs;
-import com.jns.orienteering.util.GluonObservableHelper;
-import com.jns.orienteering.util.Icon;
 import com.jns.orienteering.util.SpecialCharReplacer;
 import com.jns.orienteering.util.Validators;
 
@@ -59,8 +59,9 @@ public class CityPresenter extends BasePresenter {
     private BaseService                    service;
     private CityFBRepo                     cloudRepo;
     private LocalRepo<City, LocalCityList> localRepo;
+    private LocalCityCache                 localCityCache;
+
     private City                           city;
-    private LocalCityCache                     localCityCache;
 
     @Override
     protected void initialize() {
@@ -138,27 +139,21 @@ public class CityPresenter extends BasePresenter {
         return validator.check(txtCityName.getText());
     }
 
-    private AsyncResultReceiver<GluonObservableObject<City>> saveResultReceiver() {
-        GluonObservableObject<City> obsSuccessful = new GluonObservableObject<>();
+    private AsyncResultReceiver<GluonObservable> saveResultReceiver() {
+        GluonObservable obsSuccessful = new GluonObservableObject<>();
 
         AsyncResultReceiver.create(saveCity(createCity()))
                            .defaultProgressLayer()
                            .onSuccess(result ->
                            {
-                               City cityResult = result.get();
-                               // GluonObservableList<City> cities = service.getCities();
-
                                if (isEditorModus()) {
-                                   // cities.remove(city);
-                                   localCityCache.remove(cityResult);
+                                   localCityCache.remove(result.get());
                                }
-                               // cities.add(cityResult);
-                               localCityCache.put(cityResult);
+                               localCityCache.put(result.get());
 
-                               localRepo.createOrUpdateListAsync(new LocalCityList(localCityCache.getAll()));
-
-                               GluonObservableHelper.setInitialized(obsSuccessful, true);
+                               localRepo.createOrUpdateListAsync(new LocalCityList(localCityCache.getPublicCities()));
                            })
+                           .setInitializedOnSuccess(obsSuccessful)
                            .propagateException(obsSuccessful)
                            .start();
 
@@ -200,7 +195,7 @@ public class CityPresenter extends BasePresenter {
                            .onSuccess(result ->
                            {
                                localCityCache.remove(city);
-                               localRepo.createOrUpdateListAsync(new LocalCityList(localCityCache.getAll()));
+                               localRepo.createOrUpdateListAsync(new LocalCityList(localCityCache.getPublicCities()));
 
                                showPreviousView();
                            })

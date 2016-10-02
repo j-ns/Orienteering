@@ -34,7 +34,7 @@ import java.util.List;
 
 import com.gluonhq.maps.MapLayer;
 import com.gluonhq.maps.MapPoint;
-import com.jns.orienteering.util.Icon;
+import com.jns.orienteering.control.Icon;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
