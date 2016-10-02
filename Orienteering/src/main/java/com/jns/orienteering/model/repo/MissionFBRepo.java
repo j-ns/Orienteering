@@ -44,8 +44,7 @@ import com.jns.orienteering.model.persisted.MissionsByTaskLookup;
 import com.jns.orienteering.model.persisted.Task;
 import com.jns.orienteering.model.persisted.TasksByMissionLookup;
 import com.jns.orienteering.model.repo.readerwriter.RestMapReader;
-
-import javafx.collections.transformation.SortedList;
+import com.jns.orienteering.util.GluonObservableHelper;
 
 public class MissionFBRepo extends FireBaseRepo<Mission> {
 
@@ -99,7 +98,9 @@ public class MissionFBRepo extends FireBaseRepo<Mission> {
         AsyncResultReceiver.create(obsLookup)
                            .onSuccess(result ->
                            {
-                               if (result != null) {
+                               if (result == null) {
+                                   GluonObservableHelper.setInitialized(obsTasks, true);
+                               } else {
                                    try {
                                        @SuppressWarnings("unchecked")
                                        Map<String, Integer> lookupMap = (Map<String, Integer>) mapReader.getMap();
@@ -108,16 +109,15 @@ public class MissionFBRepo extends FireBaseRepo<Mission> {
                                            task.setOrderNumber(lookupMap.get(task.getId()));
                                        }
 
-                                       SortedList<Task> sortedTasks = new SortedList<>(result, Task.getOrderNumberComparator());
-                                       obsTasks.setAll(sortedTasks);
+                                       obsTasks.setAll(result);
+                                       GluonObservableHelper.setInitialized(obsTasks, true);
 
                                    } catch (IOException e) {
                                        e.printStackTrace();
-                                       obsTasks.setException(e);
+                                       GluonObservableHelper.setException(obsTasks, e);
                                    }
                                }
                            })
-                           .setInitializedOnSuccess(obsTasks)
                            .start();
 
         return obsTasks;
@@ -195,7 +195,8 @@ public class MissionFBRepo extends FireBaseRepo<Mission> {
     }
 
     private void writeLogEntry(Mission mission, RepoAction action) {
-        getChangeLogRepo().writeLog(mission, action, ChangeLogRepo::writeMissionLogAsync);
+        mission.setRepoAction(action);
+        writeLogEntry(mission, ChangeLogRepo::writeMissionLogAsync);
     }
 
 }

@@ -28,6 +28,8 @@
  */
 package com.jns.orienteering.control;
 
+import com.jns.orienteering.util.Icon;
+
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.layout.StackPane;

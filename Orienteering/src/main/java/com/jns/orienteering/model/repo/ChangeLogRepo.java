@@ -28,12 +28,8 @@
  */
 package com.jns.orienteering.model.repo;
 
-import java.util.function.BiConsumer;
-
 import com.gluonhq.connect.GluonObservableList;
 import com.gluonhq.connect.GluonObservableObject;
-import com.jns.orienteering.model.common.RepoAction;
-import com.jns.orienteering.model.common.Synchronizable;
 import com.jns.orienteering.model.persisted.ChangeLogEntry;
 
 import javafx.util.Pair;
@@ -49,12 +45,6 @@ public class ChangeLogRepo extends FireBaseRepo<ChangeLogEntry> {
 
     public ChangeLogRepo() {
         super(ChangeLogEntry.class, CHANGE_LOG);
-    }
-
-    public void writeLog(Synchronizable obj, RepoAction action, BiConsumer<ChangeLogRepo, ChangeLogEntry> logWriter) {
-        obj.setRepoAction(action);
-        ChangeLogEntry changeLogEntry = new ChangeLogEntry(obj);
-        logWriter.accept(this, changeLogEntry);
     }
 
     public void writeCityLogAsync(ChangeLogEntry entry) {

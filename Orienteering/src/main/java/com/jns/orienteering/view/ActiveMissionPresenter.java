@@ -39,7 +39,6 @@ import com.gluonhq.charm.down.common.PlatformFactory;
 import com.gluonhq.charm.down.common.Position;
 import com.gluonhq.maps.MapView;
 import com.jns.orienteering.common.BaseService;
-import com.jns.orienteering.control.Icon;
 import com.jns.orienteering.control.ListViewExtended;
 import com.jns.orienteering.control.cell.TaskCellLarge;
 import com.jns.orienteering.control.cell.TaskCellSmall;
@@ -53,6 +52,7 @@ import com.jns.orienteering.model.repo.MissionStatFBRepo;
 import com.jns.orienteering.platform.PositionServiceExtended;
 import com.jns.orienteering.util.Dialogs;
 import com.jns.orienteering.util.Dialogs.DialogAnswer;
+import com.jns.orienteering.util.Icon;
 import com.jns.orienteering.util.Validators;
 
 import javafx.beans.property.ReadOnlyObjectProperty;

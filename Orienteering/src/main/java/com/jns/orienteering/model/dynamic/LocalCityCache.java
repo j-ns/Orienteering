@@ -39,6 +39,9 @@ import com.gluonhq.connect.GluonObservableList;
 import com.jns.orienteering.model.persisted.City;
 import com.jns.orienteering.util.GluonObservableHelper;
 
+import javafx.collections.ObservableList;
+import javafx.collections.transformation.SortedList;
+
 public class LocalCityCache {
 
     private static final Logger       LOGGER        = LoggerFactory.getLogger(LocalCityCache.class);
@@ -46,8 +49,8 @@ public class LocalCityCache {
     public static LocalCityCache      INSTANCE      = new LocalCityCache();
 
     private String                    userId;
-    private Map<String, City>         cityIds       = new HashMap<>();                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         // publicIds?
-    private Map<String, City>         userCityIds   = new HashMap<>();                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         // privateIds?
+    private Map<String, City>         cityIds       = new HashMap<>();                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           // publicIds?
+    private Map<String, City>         userCityIds   = new HashMap<>();                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           // privateIds?
 
     private GluonObservableList<City> privateCities = new GluonObservableList<>();
     private GluonObservableList<City> publicCities  = new GluonObservableList<>();
@@ -70,14 +73,18 @@ public class LocalCityCache {
         publicCities.setAll(cityIds.values());
         privateCities.setAll(userCityIds.values());
 
-        GluonObservableHelper.setInitialized(publicCities);
-        GluonObservableHelper.setInitialized(privateCities);
+        GluonObservableHelper.setInitialized(publicCities, true);
+        GluonObservableHelper.setInitialized(privateCities, true);
     }
 
     public void setUserId(String userId) {
         this.userId = userId;
         userCityIds.clear();
         privateCities = new GluonObservableList<>();
+    }
+
+    public ObservableList<City> getAll() {
+        return new SortedList<>(publicCities, City::compareTo);
     }
 
     public GluonObservableList<City> getPrivateCities() {
@@ -89,7 +96,7 @@ public class LocalCityCache {
                     }
                 }
                 privateCities.setAll(userCityIds.values());
-                GluonObservableHelper.setInitialized(privateCities);
+                GluonObservableHelper.setInitialized(privateCities, true);
             }
         }
         return privateCities;
@@ -114,9 +121,10 @@ public class LocalCityCache {
     }
 
     public void remove(City city) {
-        if (city != null) {
-            remove(city.getId());
+        if (city == null) {
+            return;
         }
+        remove(city.getId());
     }
 
     public City remove(String cityId) {

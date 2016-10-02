@@ -47,19 +47,19 @@ public class GluonObservableHelper {
     public static <T> GluonObservableList<T> newGluonObservableListInitialized(Collection<T> items) {
         GluonObservableList<T> gluonObservableList = new GluonObservableList<>();
         gluonObservableList.setAll(items);
-        setInitialized(gluonObservableList);
+        setInitialized(gluonObservableList, true);
         return gluonObservableList;
     }
 
     public static <T> GluonObservableList<T> newGluonObservableListInitialized() {
         GluonObservableList<T> gluonObservableList = new GluonObservableList<>();
-        setInitialized(gluonObservableList);
+        setInitialized(gluonObservableList, true);
         return gluonObservableList;
     }
 
     public static <T> GluonObservableObject<T> newGluonObservableInitialized() {
         GluonObservableObject<T> gluonObservableObject = new GluonObservableObject<>();
-        setInitialized(gluonObservableObject);
+        setInitialized(gluonObservableObject, true);
         return gluonObservableObject;
     }
 
@@ -76,10 +76,6 @@ public class GluonObservableHelper {
             ((SimpleBooleanProperty) observable.initializedProperty()).set(initialized);
             ((SimpleObjectProperty<ConnectState>) observable.stateProperty()).set(ConnectState.SUCCEEDED);
         });
-    }
-
-    public static void setInitialized(GluonObservable observable) {
-        setInitialized(observable, true);
     }
 
     public static void setInitialized(GluonObservable observable, boolean initialized) {

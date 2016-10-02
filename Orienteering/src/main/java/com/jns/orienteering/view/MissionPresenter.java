@@ -50,7 +50,6 @@ import com.jns.orienteering.common.MultiValidator;
 import com.jns.orienteering.common.Validator;
 import com.jns.orienteering.control.ChoiceFloatingTextField;
 import com.jns.orienteering.control.FloatingTextField;
-import com.jns.orienteering.control.Icon;
 import com.jns.orienteering.control.ListViewExtended;
 import com.jns.orienteering.control.ScrollEventFilter;
 import com.jns.orienteering.control.cell.TaskCellSmall;
@@ -65,6 +64,7 @@ import com.jns.orienteering.model.repo.AsyncResultReceiver;
 import com.jns.orienteering.model.repo.LocalRepo;
 import com.jns.orienteering.model.repo.MissionFBRepo;
 import com.jns.orienteering.util.GluonObservableHelper;
+import com.jns.orienteering.util.Icon;
 import com.jns.orienteering.util.SpecialCharReplacer;
 import com.jns.orienteering.util.Validators;
 
@@ -138,9 +138,6 @@ public class MissionPresenter extends BasePresenter {
 
         lviewMissionTasks.setCellFactory(listView -> new TaskCellSmall(lviewMissionTasks.selectedItemProperty(), this::onRemoveTask,
                                                                        scrollEventFilter.slidingProperty()));
-
-        // lviewMissionTasks.setComparator((Task t, Task t1) -> Integer.compare(t .getOrderNumber(),
-        // t1.getOrderNumber()));
         lviewMissionTasks.setComparator(Task::compareTo);
         lviewMissionTasks.setOnSelection(this::onSelectTask);
         scrollEventFilter = new ScrollEventFilter(lviewMissionTasks);
@@ -220,9 +217,9 @@ public class MissionPresenter extends BasePresenter {
                                    .defaultProgressLayer()
                                    .onSuccess(result ->
                                    {
-                                       lviewMissionTasks.setItems(tasks);
-                                       mapHelper.setMarkers(tasks);
-                                       tasksBuffer = new ArrayList<>(tasks);
+                                       lviewMissionTasks.setItems(result);
+                                       mapHelper.setMarkers(result);
+                                       tasksBuffer = new ArrayList<>(result);
                                        setFields(mission);
                                    })
                                    .start();
@@ -261,7 +258,6 @@ public class MissionPresenter extends BasePresenter {
         if (task != null) {
             if (isReorderModus()) {
                 reorderTasks(task);
-                mapHelper.setMarkers(tasks);
             } else {
                 selectTask(task);
             }
@@ -358,10 +354,10 @@ public class MissionPresenter extends BasePresenter {
     }
 
     private GluonObservable saveMission(Mission newMission) {
-        GluonObservable obsSuccessful = new GluonObservableObject<>();
+        GluonObservableObject<Object> obsSuccessful = new GluonObservableObject<>();
 
         if (isEditorModus()) {
-            GluonObservableObject<Mission> obsMission = cloudRepo.updateMission(newMission, mission, lviewMissionTasks.getItems(), tasksBuffer);
+            GluonObservableObject<Mission> obsMission = cloudRepo.updateMission(newMission, mission, tasks, tasksBuffer);
             saveReceiver(obsMission, obsSuccessful)
                                                    .onSuccess(result ->
                                                    {
@@ -388,13 +384,13 @@ public class MissionPresenter extends BasePresenter {
                                                                              GluonObservable obsSuccessful) {
         return AsyncResultReceiver.create(obsMission)
                                   .defaultProgressLayer()
-                                  .propagateException(obsSuccessful)
+                                  .onException(() -> GluonObservableHelper.setException(obsSuccessful, obsMission.getException()))
                                   .exceptionMessage(localize("view.mission.error.save"))
                                   .finalize(result ->
                                   {
                                       if (result.isInitialized()) {
                                           updateMissionsList(result.get(), mission);
-                                          GluonObservableHelper.setInitialized(obsSuccessful);
+                                          GluonObservableHelper.setInitialized(obsSuccessful, true);
                                       }
                                   });
     }
@@ -453,7 +449,7 @@ public class MissionPresenter extends BasePresenter {
             return;
         }
 
-        mission.updateTasksMap(tasksBuffer);
+        mission.updateTasksMap(tasks);
 
         GluonObservableObject<Mission> obsMission = cloudRepo.deleteMissionAsync(mission);
         AsyncResultReceiver.create(obsMission)

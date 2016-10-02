@@ -189,7 +189,7 @@ public class ImageHandler {
     }
 
     public static GluonObservableObject<Image> deleteImageAsync(String url) {
-        return executeAsync(() -> deleteImage(url), GluonObservableHelper::setInitialized);
+        return executeAsync(() -> deleteImage(url), obsImage -> GluonObservableHelper.setInitialized(obsImage, true));
     }
 
     public static void deleteImage(String url) {
@@ -258,7 +258,7 @@ public class ImageHandler {
                 action.start();
                 onSuccess.accept(obsImage);
             } catch (StorageException ex) {
-                obsImage.setException(ex);
+                GluonObservableHelper.setException(obsImage, ex);
             }
         });
         return obsImage;

@@ -31,9 +31,9 @@ package com.jns.orienteering.control.cell;
 import static com.jns.orienteering.util.DateTimeFormatters.formatTime;
 
 import com.jns.orienteering.control.DurationDisplay;
-import com.jns.orienteering.control.Icon;
 import com.jns.orienteering.locale.Localization;
 import com.jns.orienteering.model.persisted.TaskStat;
+import com.jns.orienteering.util.Icon;
 
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.BooleanPropertyBase;

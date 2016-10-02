@@ -37,10 +37,10 @@ import java.util.function.Supplier;
 import com.gluonhq.charm.down.common.Position;
 import com.gluonhq.maps.MapPoint;
 import com.gluonhq.maps.MapView;
-import com.jns.orienteering.control.Icon;
 import com.jns.orienteering.control.ScrollListener;
 import com.jns.orienteering.model.persisted.Task;
 import com.jns.orienteering.util.PositionHelper;
+import com.jns.orienteering.util.Icon;
 
 import javafx.css.PseudoClass;
 import javafx.scene.Node;

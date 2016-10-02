@@ -35,7 +35,7 @@ import com.gluonhq.charm.glisten.control.NavigationDrawer;
 import com.gluonhq.charm.glisten.control.NavigationDrawer.Item;
 import com.gluonhq.charm.glisten.layout.layer.SidePopupView;
 import com.gluonhq.charm.glisten.mvc.View;
-import com.jns.orienteering.control.Icon;
+import com.jns.orienteering.util.Icon;
 
 import javafx.beans.value.ChangeListener;
 import javafx.scene.Node;

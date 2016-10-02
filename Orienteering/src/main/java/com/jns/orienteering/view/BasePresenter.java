@@ -37,10 +37,10 @@ import com.gluonhq.charm.glisten.layout.layer.FloatingActionButton;
 import com.gluonhq.charm.glisten.mvc.View;
 import com.gluonhq.charm.glisten.visual.MaterialDesignIcon;
 import com.jns.orienteering.control.ActionBar;
-import com.jns.orienteering.control.Icon;
 import com.jns.orienteering.locale.Localization;
 import com.jns.orienteering.platform.PlatformProvider;
 import com.jns.orienteering.platform.PlatformService;
+import com.jns.orienteering.util.Icon;
 
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;

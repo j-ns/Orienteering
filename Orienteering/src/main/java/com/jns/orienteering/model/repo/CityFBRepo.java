@@ -32,7 +32,6 @@ import com.gluonhq.connect.GluonObservableList;
 import com.gluonhq.connect.GluonObservableObject;
 import com.gluonhq.connect.provider.DataProvider;
 import com.jns.orienteering.model.common.RepoAction;
-import com.jns.orienteering.model.common.UrlBuilder;
 import com.jns.orienteering.model.persisted.CitiesByUser;
 import com.jns.orienteering.model.persisted.City;
 import com.jns.orienteering.model.persisted.CityNameLookup;
@@ -62,7 +61,7 @@ public class CityFBRepo extends FireBaseRepo<City> {
             return GluonObservableHelper.newGluonObservableListInitialized();
         }
 
-        String idsUrl = new UrlBuilder().buildUrl(CITIES_BY_USER, userId);
+        String idsUrl = buildFullUrl(CITIES_BY_USER, userId);
         return DataProvider.retrieveList(new RestMapReader<>(createRestClient(), CitiesByUser.class, idsUrl, City.class, CITIES));
     }
 
@@ -130,7 +129,8 @@ public class CityFBRepo extends FireBaseRepo<City> {
     }
 
     private void writeLogEntry(City city, RepoAction action) {
-        getChangeLogRepo().writeLog(city, action, ChangeLogRepo::writeCityLogAsync);
+        city.setRepoAction(action);
+        writeLogEntry(city, ChangeLogRepo::writeCityLogAsync);
     }
 
 }

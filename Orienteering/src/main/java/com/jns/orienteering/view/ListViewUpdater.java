@@ -26,64 +26,47 @@
  *  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  *  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package com.jns.orienteering.model.common;
+package com.jns.orienteering.view;
 
-import javax.xml.bind.annotation.XmlTransient;
+import com.jns.orienteering.model.common.ListUpdater;
+import com.jns.orienteering.model.common.UpdatableListItem;
+import com.jns.orienteering.model.dynamic.LocalCache;
 
-import com.jns.orienteering.model.common.MultiValueLookup.MultiIdLookup;
+public class ListViewUpdater<T extends UpdatableListItem> {
 
-public class CityLookup extends MultiIdLookup {
+    private ListUpdater<T> listUpdater;
+    private LocalCache<T>  localCache;
 
-    private CityAssignable assignable;
-    private AccessType     accessType;
-
-    @JsonDefaultConstructor
-    public CityLookup() {
-        super();
+    public ListViewUpdater(ListUpdater<T> listUpdater) {
+        this.listUpdater = listUpdater;
     }
 
-    public CityLookup(CityAssignable assignable) {
-        this.assignable = assignable;
-        id = assignable.getCityId();
-        accessType = assignable.getAccessType();
-        addValue(assignable.getId());
+    public ListViewUpdater(ListUpdater<T> listUpdater, LocalCache<T> localCache) {
+        this.listUpdater = listUpdater;
+        this.localCache = localCache;
     }
 
-    @XmlTransient
-    public AccessType getAccessType() {
-        return accessType;
+    public void update(T newItem, T previousItem) {
+        boolean accessTypesMatches = listUpdater.getAccessType() == newItem.getAccessType();
+        boolean cityHasChanged = newItem.cityChanged();
+        boolean nameHasChanged = newItem.nameChanged();
+
+        localCache.removeItem(previousItem);
+        if (!cityHasChanged) {
+            localCache.addItem(newItem);
+        }
     }
 
-    @XmlTransient
-    public void setAccessType(AccessType accessType) {
-        this.accessType = accessType;
-    }
+    public void add(T item) {
+        boolean accessTypesMatches = listUpdater.getAccessType() == item.getAccessType();
+        boolean cityHasChanged = item.cityChanged();
 
-    public String getAccessTypeName() {
-        return accessType.name().toLowerCase();
-    }
-
-    @XmlTransient
-    public boolean hasAccessTypeChanged() {
-        return assignable.accessTypeChanged();
-    }
-
-    public String getPreviousId() {
-        return assignable.getPreviousCityId();
-    }
-
-    public boolean hasCityChanged() {
-        return assignable.cityChanged();
-    }
-
-    @XmlTransient
-    public String getOwnerId() {
-        return accessType == AccessType.PRIVATE ? assignable.getOwnerId() : null;
-    }
-
-    @XmlTransient
-    public String getTargetId() {
-        return assignable.getId();
+        // if (accessTypesMatches && !cityHasChanged) {
+        // listUpdater.add(item);
+        // }
+        if (!cityHasChanged) {
+            localCache.addItem(item);
+        }
     }
 
 }

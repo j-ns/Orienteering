@@ -31,7 +31,6 @@ package com.jns.orienteering.model.persisted;
 import static com.jns.orienteering.locale.Localization.localize;
 import static com.jns.orienteering.util.DateTimeFormatters.createTimeStamp;
 
-import java.util.Comparator;
 import java.util.Objects;
 
 import javax.xml.bind.annotation.XmlElement;
@@ -48,28 +47,26 @@ import com.jns.orienteering.model.common.UpdatableListItem;
 
 public class Task extends BaseSynchronizable implements Postable, UpdatableListItem, LookupSupplier, Comparable<Task> {
 
-    private static Comparator<Task> orderNumberComparator = (t, t1) -> Integer.compare(t.getOrderNumber(), t1.getOrderNumber());
+    private String     postId;
 
-    private String                  postId;
+    private String     cityId;
+    private String     taskName;
+    private String     description;
+    private String     scancode;
+    private int        points;
+    private double     longitude;
+    private double     latitude;
+    private AccessType accessType;
+    private String     ownerId;
+    private String     imageId;
+    private boolean    createImageId;
 
-    private String                  cityId;
-    private String                  taskName;
-    private String                  description;
-    private String                  scancode;
-    private int                     points;
-    private double                  longitude;
-    private double                  latitude;
-    private AccessType              accessType;
-    private String                  ownerId;
-    private String                  imageId;
-    private boolean                 createImageId;
+    private boolean    completed;
+    private boolean    accessTypeChanged;
 
-    private boolean                 completed;
-    private boolean                 accessTypeChanged;
+    private Task       previousTask;
 
-    private Task                    previousTask;
-
-    private int                     orderNumber;
+    private int        orderNumber;
 
     @JsonDefaultConstructor
     public Task() {
@@ -290,10 +287,6 @@ public class Task extends BaseSynchronizable implements Postable, UpdatableListI
 
     private void ensurePreviousTask() {
         Objects.requireNonNull(previousTask, "previousTask must not be null");
-    }
-
-    public static Comparator<Task> getOrderNumberComparator() {
-        return orderNumberComparator;
     }
 
     @Override

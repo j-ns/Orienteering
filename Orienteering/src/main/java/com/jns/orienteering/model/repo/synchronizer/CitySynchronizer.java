@@ -118,10 +118,10 @@ public class CitySynchronizer extends BaseSynchronizer<City, LocalCityList> {
                                        }
                                    }
                                    if (localDataNeedsUpdate) {
-                                       localRepo.createOrUpdateListAsync(new LocalCityList(localCityCache.getPublicCities()));
+                                       localRepo.createOrUpdateListAsync(new LocalCityList(localCityCache.getAll()));
                                    }
                                }
-                               getOnSynced().accept(localCityCache.getPublicCities());
+                               getOnSynced().accept(localCityCache.getAll());
                                setSucceeded();
                            })
                            .onException(this::setFailed)

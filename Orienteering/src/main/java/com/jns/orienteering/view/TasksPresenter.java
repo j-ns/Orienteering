@@ -34,9 +34,7 @@ import com.gluonhq.charm.glisten.layout.MobileLayoutPane;
 import com.gluonhq.charm.glisten.layout.layer.FloatingActionButton;
 import com.gluonhq.connect.GluonObservableList;
 import com.gluonhq.connect.GluonObservableObject;
-import com.jns.orienteering.control.Icon;
 import com.jns.orienteering.control.cell.TaskCellSmall;
-import com.jns.orienteering.model.dynamic.LocalCache;
 import com.jns.orienteering.model.dynamic.LocalMissionCache;
 import com.jns.orienteering.model.dynamic.LocalTaskCache;
 import com.jns.orienteering.model.persisted.Mission;
@@ -44,6 +42,7 @@ import com.jns.orienteering.model.persisted.Task;
 import com.jns.orienteering.model.repo.AsyncResultReceiver;
 import com.jns.orienteering.model.repo.TaskFBRepo;
 import com.jns.orienteering.util.Dialogs;
+import com.jns.orienteering.util.Icon;
 
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
@@ -94,17 +93,12 @@ public class TasksPresenter extends ListViewPresenter<Task> {
     }
 
     @Override
-    protected LocalCache<?> getLocalCache() {
-        return localTaskCache;
-    }
-
-    @Override
     protected void initAppBar() {
         Button btnBack = isMissionEditorModus() ? createBackButton() : createGoHomeButton();
         if (ViewRegistry.MISSION.equals(service.getPreviousView())) {
-            setAppBar(btnBack, getTitle(), btnRefresh, tglAccessType);
+            setAppBar(btnBack, getTitle(), tglAccessType);
         } else {
-            setAppBar(btnBack, getTitle(), btnRefresh, tglAccessType, choiceCity);
+            setAppBar(btnBack, getTitle(), tglAccessType, choiceCity);
         }
     }
 
@@ -125,7 +119,8 @@ public class TasksPresenter extends ListViewPresenter<Task> {
         } else {
             if (isMissionEditorModus()) {
                 selectedMission = service.getSelectedMission();
-                missionTasks = FXCollections.observableArrayList(LocalMissionCache.INSTANCE.getMissionTasks());
+                // missionTasks = service.<Task> getListUpdater(MISSION_TASKS_UPDATER).createItemsCopy();
+                missionTasks = FXCollections.observableArrayList(LocalMissionCache.INSTANCE.getActiveTasksSorted());
             }
             populateListView();
         }
@@ -139,13 +134,15 @@ public class TasksPresenter extends ListViewPresenter<Task> {
         // todo:
         String cityId = isMissionEditorModus() ? service.getTempCity() == null ? null : service.getTempCity().getTempCityId()
                 : service.getSelectedCityId();
-        if (cityId == null || service.getUserId() == null) {
+        if (cityId == null) {
             lview.setItems(FXCollections.observableArrayList());
             return;
         }
 
         GluonObservableList<Task> obsTasks =
-                isPrivateAccess() ? localTaskCache.getPrivateItems(cityId, service.getUserId()) : localTaskCache.getPublicItems(cityId);
+                // isPrivateAccess() ? cloudRepo.getPrivateTasksAsync(cityId, service.getUserId()) :
+                // cloudRepo.getPublicTasksAsync(cityId);
+                isPrivateAccess() ? localTaskCache.getPrivateList(cityId, service.getUserId()) : localTaskCache.getPublicList(cityId);
 
         AsyncResultReceiver.create(obsTasks)
                            .defaultProgressLayer()
@@ -182,7 +179,7 @@ public class TasksPresenter extends ListViewPresenter<Task> {
 
     private void onUpdateMissionTasks() {
         // service.<Task> getListUpdater(MISSION_TASKS_UPDATER).setAll(missionTasks);
-        LocalMissionCache.INSTANCE.getMissionTasks().setAll(missionTasks);
+        LocalMissionCache.INSTANCE.getActiveTasksSorted().setAll(missionTasks);
         showPreviousView();
     }
 
@@ -222,7 +219,7 @@ public class TasksPresenter extends ListViewPresenter<Task> {
 
                                    if (isMissionEditorModus()) {
                                        // service.getListUpdater(MISSION_TASKS_UPDATER).remove(task);
-                                       LocalMissionCache.INSTANCE.getMissionTasks().remove(task);
+                                       LocalMissionCache.INSTANCE.getActiveTasksSorted().remove(task);
 
                                        boolean activeMissionContainsTask = selectedMission.equals(service.getActiveMission()) &&
                                                selectedMission.getTaskIds().contains(task.getId());

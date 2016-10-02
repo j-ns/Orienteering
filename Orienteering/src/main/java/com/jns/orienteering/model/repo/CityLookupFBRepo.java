@@ -30,12 +30,13 @@ package com.jns.orienteering.model.repo;
 
 import java.io.IOException;
 
+import javax.json.stream.JsonParsingException;
+
 import com.gluonhq.connect.GluonObservableList;
 import com.gluonhq.connect.provider.DataProvider;
 import com.jns.orienteering.model.common.AccessType;
 import com.jns.orienteering.model.common.BaseModel;
 import com.jns.orienteering.model.common.CityLookup;
-import com.jns.orienteering.model.common.UrlBuilder;
 import com.jns.orienteering.model.repo.readerwriter.RestMapReader;
 import com.jns.orienteering.util.GluonObservableHelper;
 
@@ -57,12 +58,12 @@ public class CityLookupFBRepo<T extends CityLookup, LT extends BaseModel> extend
         if (userId == null) {
             return GluonObservableHelper.newGluonObservableListInitialized();
         }
-        String idsUrl = buildUrlFromRelativePath(PRIVATE, cityId, userId);
+        String idsUrl = buildFullUrlFromRelativePath(PRIVATE, cityId, userId);
         return retrieveList(idsUrl);
     }
 
     public GluonObservableList<LT> getPublicListAsync(String cityId) {
-        String idsUrl = buildUrlFromRelativePath(PUBLIC, cityId);
+        String idsUrl = buildFullUrlFromRelativePath(PUBLIC, cityId);
         return retrieveList(idsUrl);
     }
 
@@ -73,7 +74,7 @@ public class CityLookupFBRepo<T extends CityLookup, LT extends BaseModel> extend
     public void recreateCityLookup(T lookup) throws IOException {
         createOrUpdate(lookup);
 
-        if (lookup.accessTypeChanged()) {
+        if (lookup.hasAccessTypeChanged()) {
             AccessType newAccessType = lookup.getAccessType();
             AccessType previousAccessType = newAccessType == AccessType.PRIVATE ? AccessType.PUBLIC : AccessType.PRIVATE;
             lookup.setAccessType(previousAccessType);
@@ -85,28 +86,39 @@ public class CityLookupFBRepo<T extends CityLookup, LT extends BaseModel> extend
     }
 
     public void createOrUpdate(T lookup) throws IOException {
-        String lookupPath = lookup.getPath();
-        updateRestClientFromRelativePath(GET, lookupPath);
+        try {
+            String lookupPath = buildLookupPath(lookup);
+            updateRestClientFromRelativePath(GET, lookupPath);
 
-        T existingLookup = retrieveObject(lookupPath);
-        if (existingLookup != null) {
-            if (!existingLookup.containsValue(lookup.getTargetId())) {
-                existingLookup.addValue(lookup.getTargetId());
-                createOrUpdate(existingLookup, lookupPath);
+            T existingLookup = retrieveObject(lookupPath);
+            if (existingLookup != null) {
+                if (!existingLookup.containsValue(lookup.getTargetId())) {
+                    existingLookup.addValue(lookup.getTargetId());
+                    createOrUpdate(existingLookup, lookupPath);
+                }
+            } else {
+                createOrUpdate(lookup, lookupPath);
             }
-        } else {
-            createOrUpdate(lookup, lookupPath);
+        } catch (JsonParsingException e) {
+            super.createOrUpdate(lookup, buildLookupPath(lookup));
         }
     }
 
     public void deleteLookup(T lookup) throws IOException {
-        String path = new UrlBuilder().buildPath(lookup.getPath(), lookupTargetUrl, lookup.getTargetId());
-        updateRestClientFromRelativePath(GET, path);
+        String lookupPath = buildLookupPath(lookup) + "/" + lookupTargetUrl + "/" + lookup.getTargetId();
+        updateRestClientFromRelativePath(GET, lookupPath);
 
-        boolean urlExists = checkIfUrlExists(baseUrl, path);
+        boolean urlExists = checkIfUrlExists(baseUrl, lookupPath);
         if (urlExists) {
-            delete(path);
+            delete(lookupPath);
         }
+    }
+
+    private String buildLookupPath(T lookup) {
+        String cityId = lookup.getId();
+        String access = lookup.getAccessTypeName();
+        String ownerId = lookup.getOwnerId();
+        return buildPath(access, cityId, ownerId);
     }
 
 }
