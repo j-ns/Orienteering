@@ -33,8 +33,6 @@ import static com.jns.orienteering.locale.Localization.localize;
 
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.HashMap;
-import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,9 +41,9 @@ import com.gluonhq.charm.glisten.application.MobileApplication;
 import com.gluonhq.connect.ConnectState;
 import com.gluonhq.connect.GluonObservableList;
 import com.gluonhq.connect.GluonObservableObject;
-import com.jns.orienteering.model.common.ListUpdater;
 import com.jns.orienteering.model.common.StorableImage;
 import com.jns.orienteering.model.dynamic.LocalCityCache;
+import com.jns.orienteering.model.dynamic.LocalMissionCache;
 import com.jns.orienteering.model.persisted.ActiveTaskList;
 import com.jns.orienteering.model.persisted.City;
 import com.jns.orienteering.model.persisted.Mission;
@@ -54,7 +52,6 @@ import com.jns.orienteering.model.persisted.Task;
 import com.jns.orienteering.model.persisted.User;
 import com.jns.orienteering.model.repo.AsyncResultReceiver;
 import com.jns.orienteering.model.repo.LocalRepo;
-import com.jns.orienteering.model.repo.MissionFBRepo;
 import com.jns.orienteering.model.repo.RepoService;
 import com.jns.orienteering.model.repo.UserFBRepo;
 import com.jns.orienteering.model.repo.synchronizer.ActiveMissionSynchronizer;
@@ -92,7 +89,6 @@ public class BaseService {
     private UserFBRepo                      userCloudRepo;
     private LocalRepo<User, User>           userLocalRepo;
 
-    private MissionFBRepo                   missionCloudRepo;
     private LocalRepo<Task, ActiveTaskList> activeTasksLocalRepo;
 
     private ObjectProperty<User>            user              = new SimpleObjectProperty<>();
@@ -114,8 +110,6 @@ public class BaseService {
     private MissionStat                     activeMissionStats;
     private BooleanProperty                 stopMission;
 
-    private Map<String, ListUpdater<?>>     listUpdaters      = new HashMap<>();
-
     private String                          currentView;
     private String                          previousView;
 
@@ -130,7 +124,6 @@ public class BaseService {
                 if (ViewRegistry.HOME.equals(previousView)) {
                     PlatformProvider.getPlatform().removeNodePositionAdjuster();
                     setSelectedMission(null);
-                    clearListUpdaters();
                 }
             }
             currentView = v1.getName();
@@ -155,8 +148,6 @@ public class BaseService {
     private void initRepos() {
         userCloudRepo = repoService.getCloudRepo(User.class);
         userLocalRepo = repoService.getLocalRepo(User.class);
-
-        missionCloudRepo = repoService.getCloudRepo(Mission.class);
         activeTasksLocalRepo = repoService.getLocalRepo(Task.class);
     }
 
@@ -307,9 +298,8 @@ public class BaseService {
             return;
         }
 
-        GluonObservableList<Task> obsActiveTasks = missionCloudRepo.retrieveTasksAsync(mission.getId());
+        GluonObservableList<Task> obsActiveTasks = LocalMissionCache.INSTANCE.retrieveMissionTasksSorted(mission.getId());
         AsyncResultReceiver.create(obsActiveTasks)
-                           // .newDefaultProgressLayer()
                            .defaultProgressLayer()
                            .onSuccess(result ->
                            {
@@ -410,24 +400,11 @@ public class BaseService {
         selectedTask = task;
     }
 
-    @SuppressWarnings("unchecked")
-    public <T> ListUpdater<T> getListUpdater(String name) {
-        return (ListUpdater<T>) listUpdaters.get(name);
-    }
-
-    public void setListUpdater(String name, ListUpdater<?> listUpdater) {
-        listUpdaters.put(name, listUpdater);
-    }
-
-    public void clearListUpdaters() {
-        listUpdaters.clear();
-    }
-
     public String getCurrentView() {
         return currentView;
     }
 
-    public String getPreviousView() {
+    public String getPreviousViewName() {
         return previousView;
     }
 

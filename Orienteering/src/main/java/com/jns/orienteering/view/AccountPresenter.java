@@ -43,13 +43,13 @@ import com.jns.orienteering.common.BaseService;
 import com.jns.orienteering.common.ImageHandler;
 import com.jns.orienteering.control.ChoiceFloatingTextField;
 import com.jns.orienteering.control.FloatingTextField;
+import com.jns.orienteering.control.Icon;
 import com.jns.orienteering.model.common.StorableImage;
 import com.jns.orienteering.model.persisted.City;
 import com.jns.orienteering.model.persisted.User;
 import com.jns.orienteering.model.repo.AsyncResultReceiver;
 import com.jns.orienteering.model.repo.UserFBRepo;
 import com.jns.orienteering.util.Dialogs;
-import com.jns.orienteering.util.Icon;
 
 import javafx.beans.binding.When;
 import javafx.beans.property.ObjectProperty;

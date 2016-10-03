@@ -276,7 +276,7 @@ public class Mission extends BaseSynchronizable implements Postable, UpdatableLi
             result = cityId.compareTo(other.cityId);
         }
         if (result == 0) {
-            result = Integer.compare(maxPoints, other.maxPoints);
+            result = Double.compare(distance, other.distance);
         }
         return result == 0;
     }

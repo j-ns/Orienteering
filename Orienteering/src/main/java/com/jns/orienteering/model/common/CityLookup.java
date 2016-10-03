@@ -64,7 +64,7 @@ public class CityLookup extends MultiIdLookup {
     }
 
     @XmlTransient
-    public boolean hasAccessTypeChanged() {
+    public boolean accessTypeChanged() {
         return assignable.accessTypeChanged();
     }
 
@@ -84,6 +84,10 @@ public class CityLookup extends MultiIdLookup {
     @XmlTransient
     public String getTargetId() {
         return assignable.getId();
+    }
+
+    public String getPath() {
+        return new UrlBuilder().buildPath(getAccessTypeName(), getId(), getOwnerId());
     }
 
 }

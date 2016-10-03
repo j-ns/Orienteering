@@ -29,8 +29,8 @@
 package com.jns.orienteering.control.cell;
 
 import com.jns.orienteering.control.DurationDisplay;
+import com.jns.orienteering.control.Icon;
 import com.jns.orienteering.model.dynamic.Ranking;
-import com.jns.orienteering.util.Icon;
 
 import javafx.geometry.HPos;
 import javafx.geometry.Insets;

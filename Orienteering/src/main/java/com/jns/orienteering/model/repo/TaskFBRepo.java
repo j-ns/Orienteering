@@ -121,7 +121,7 @@ public class TaskFBRepo extends FireBaseRepo<Task> {
             writeLogEntry(task, RepoAction.UPDATE);
 
             if (previousImageId != null) {
-                writeLogEntry(new ImageLogEntry(previousImageId, task.getTimeStamp()), ChangeLogRepo::writeImageLogAsync);
+                getChangeLogRepo().writeImageLogAsync(new ImageLogEntry(previousImageId, task.getTimeStamp()));
             }
         });
     }
@@ -155,14 +155,13 @@ public class TaskFBRepo extends FireBaseRepo<Task> {
 
             writeLogEntry(task, RepoAction.DELETE);
             if (task.getImageId() != null) {
-                writeLogEntry(new ImageLogEntry(task), ChangeLogRepo::writeImageLogAsync);
+                getChangeLogRepo().writeImageLogAsync(new ImageLogEntry(task));
             }
         });
     }
 
     private void writeLogEntry(Task task, RepoAction action) {
-        task.setRepoAction(action);
-        writeLogEntry(task, ChangeLogRepo::writeTaskLogAsync);
+        getChangeLogRepo().writeLog(task, action, ChangeLogRepo::writeTaskLogAsync);
     }
 
 }

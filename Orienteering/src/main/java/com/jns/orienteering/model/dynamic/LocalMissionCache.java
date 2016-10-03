@@ -1,15 +1,13 @@
 package com.jns.orienteering.model.dynamic;
 
+import static com.jns.orienteering.util.Validators.isNullOrEmpty;
+
 import com.gluonhq.connect.GluonObservableList;
 import com.jns.orienteering.model.persisted.Mission;
 import com.jns.orienteering.model.persisted.Task;
-import com.jns.orienteering.model.repo.AsyncResultReceiver;
 import com.jns.orienteering.model.repo.MissionFBRepo;
 import com.jns.orienteering.model.repo.RepoService;
 import com.jns.orienteering.util.GluonObservableHelper;
-import com.jns.orienteering.util.Validators;
-
-import javafx.collections.transformation.SortedList;
 
 public class LocalMissionCache extends LocalCache<Mission> {
 
@@ -17,65 +15,87 @@ public class LocalMissionCache extends LocalCache<Mission> {
 
     private MissionFBRepo                 cloudRepo;
 
-    // private ObservableList<Task> activeTasksBacking;
-    private GluonObservableList<Task>     activeTasksSorted;
-
     private String                        selectedMissionId;
+    private GluonObservableList<Task>     missionTasks;
+    private GluonObservableList<Task>     missionTasksTemp;
 
     private LocalMissionCache() {
         cloudRepo = RepoService.INSTANCE.getCloudRepo(Mission.class);
     }
 
     @Override
-    protected GluonObservableList<Mission> retrievePrivateList(String cityId, String userId) {
+    protected GluonObservableList<Mission> retrievePrivateItems(String cityId, String userId) {
         return cloudRepo.getPrivateMissions(cityId, userId);
     }
 
     @Override
-    protected GluonObservableList<Mission> retrievePublicList(String cityId) {
+    protected GluonObservableList<Mission> retrievePublicItems(String cityId) {
         return cloudRepo.getPublicMissions(cityId);
     }
 
     public GluonObservableList<Task> retrieveMissionTasksSorted(String missionId) {
         if (!missionId.equals(selectedMissionId)) {
-            // activeTasksBacking = null;
-            activeTasksSorted = null;
+            clearMissionTasks();
         }
 
-        if (!Validators.isNullOrEmpty(activeTasksSorted)) {
-            return activeTasksSorted;
+        if (!isNullOrEmpty(missionTasks)) {
+            missionTasksTemp = missionTasks;
+            return missionTasks;
         }
-        // activeTasksBacking= new GluonObservableList<>();
-        activeTasksSorted = new GluonObservableList<>();
-
-        GluonObservableList<Task> obsTasks = cloudRepo.retrieveOrderedTasksAsync(missionId);
-        AsyncResultReceiver.create(obsTasks)
-                           .onSuccess(result ->
-                           {
-                               // activeTasksBacking.setAll(result);
-                               SortedList<Task> sortedList = new SortedList<>(result, (Task t, Task t1) -> Integer.compare(t
-                                                                                                                            .getOrderNumber(),
-                                                                                                                           t1.getOrderNumber()));
-                               activeTasksSorted.setAll(sortedList);
-                               GluonObservableHelper.setInitialized(activeTasksSorted, true);
-
-                           })
-                           .propagateException(activeTasksSorted)
-                           .start();
-
         selectedMissionId = missionId;
-        return activeTasksSorted;
+
+        missionTasks = cloudRepo.retrieveOrderedTasksAsync(missionId);
+        missionTasksTemp = null;
+        return missionTasks;
     }
 
-    public GluonObservableList<Task> getActiveTasksSorted() {
-        return activeTasksSorted;
+    public GluonObservableList<Task> getMissionTasks() {
+        return missionTasks;
+    }
+
+    public GluonObservableList<Task> getMissionTasksTemp() {
+        if (missionTasksTemp == null) {
+            missionTasksTemp = GluonObservableHelper.newGluonObservableListInitialized(missionTasks);
+        }
+        return missionTasksTemp;
+    }
+
+    public void removeMissionAndTasks(Mission mission) {
+        removeItem(mission);
+        missionTasks = null;
+        missionTasksTemp = null;
+    }
+
+    public void udpateMissionTask(Task newTask, Task previousTask) {
+        int idx = missionTasks.indexOf(previousTask);
+        missionTasks.set(idx, newTask);
+    }
+
+    public void updateMissionTasksFromBuffer() {
+        missionTasks.setAll(missionTasksTemp);
+    }
+
+    public void removeTask(Task task) {
+        if (missionTasks != null) {
+            missionTasks.remove(task);
+            missionTasksTemp.remove(task);
+        }
     }
 
     @Override
-    public void removeItem(Mission item) {
-        super.removeItem(item);
-        if (item.getId().equals(selectedMissionId)) {
-            activeTasksSorted = null;
-        }
+    protected void clearPrivateItems() {
+        super.clearPrivateItems();
+        clearMissionTasks();
+    }
+
+    @Override
+    protected void clearPublicItems() {
+        super.clearPublicItems();
+        clearMissionTasks();
+    }
+
+    public void clearMissionTasks() {
+        missionTasks = new GluonObservableList<>();
+        missionTasksTemp = new GluonObservableList<>();
     }
 }

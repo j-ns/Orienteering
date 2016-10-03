@@ -32,8 +32,8 @@ import com.gluonhq.charm.glisten.layout.layer.PopupView;
 import com.jns.orienteering.control.BaseChoiceField;
 import com.jns.orienteering.control.ChoiceMenu;
 import com.jns.orienteering.control.FloatingTextField;
+import com.jns.orienteering.control.Icon;
 import com.jns.orienteering.control.SelectionModelBase;
-import com.jns.orienteering.util.Icon;
 
 import javafx.beans.binding.Bindings;
 import javafx.beans.value.ChangeListener;

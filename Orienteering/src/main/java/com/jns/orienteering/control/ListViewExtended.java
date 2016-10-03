@@ -38,6 +38,7 @@ import com.jns.orienteering.model.common.SelectedObjectProperty;
 
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.SortedList;
+import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 
@@ -49,6 +50,8 @@ public class ListViewExtended<T> extends ListView<T> implements ActivatableDeact
     private Comparator<T>             comparator;
     private ObservableList<T>         backing;
     private SelectedObjectProperty<T> selectedItem;
+
+    private Label                     lblPlaceHolder;
 
     private ListUpdater<T>            listUpdater;
 
@@ -96,6 +99,14 @@ public class ListViewExtended<T> extends ListView<T> implements ActivatableDeact
         }
         listUpdater.setItems(backing != null ? backing : getItems());
         return listUpdater;
+    }
+
+    public Label getPlaceHolder() {
+        if (getPlaceholder() == null) {
+            lblPlaceHolder = new Label();
+            setPlaceholder(lblPlaceHolder);
+        }
+        return lblPlaceHolder;
     }
 
     @Override

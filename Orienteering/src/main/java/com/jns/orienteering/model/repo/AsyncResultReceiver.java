@@ -30,6 +30,7 @@ package com.jns.orienteering.model.repo;
 
 import static com.jns.orienteering.locale.Localization.localize;
 
+import java.net.ConnectException;
 import java.net.UnknownHostException;
 import java.util.Optional;
 import java.util.function.Consumer;
@@ -57,6 +58,7 @@ public class AsyncResultReceiver<T extends GluonObservable> {
 
     private T                                                        observable;
     private Optional<Consumer<T>>                                    consumer               = Optional.empty();
+    private Optional<GluonObservable>                                initializeOnSuccess    = Optional.empty();
 
     private Optional<ProgressLayer>                                  progressLayer          = Optional.empty();
     private Optional<Consumer<Throwable>>                            onException            = Optional.empty();
@@ -88,6 +90,17 @@ public class AsyncResultReceiver<T extends GluonObservable> {
         return this;
     }
 
+    /**
+     * Convenience method to set another GluonObservable initialized, if this AsyncResultReceiver succeeds.
+     *
+     * @param obsValue the GluonObservable which is listening for the result of this AsyncResultReceiver
+     * @return
+     */
+    public AsyncResultReceiver<T> setInitializedOnSuccess(GluonObservable obsValue) {
+        initializeOnSuccess = Optional.of(obsValue);
+        return this;
+    }
+
     public AsyncResultReceiver<T> onException(Trigger onException) {
         return onException(e -> onException.start());
     }
@@ -97,7 +110,7 @@ public class AsyncResultReceiver<T extends GluonObservable> {
         return this;
     }
 
-    public AsyncResultReceiver<T> propagateException(T obsValue) {
+    public AsyncResultReceiver<T> propagateException(GluonObservable obsValue) {
         this.onException = Optional.of(ex -> GluonObservableHelper.setException(obsValue, ex));
         return this;
     }
@@ -164,15 +177,16 @@ public class AsyncResultReceiver<T extends GluonObservable> {
     private ChangeListener<? super Throwable>    exceptionListener   = (obsValue, e, e1) ->
                                                                      {
                                                                          if (e1 != null) {
-                                                                             LOGGER.error("AsyncRestultReceiver exception:", e);
+                                                                             LOGGER.error("AsyncRestultReceiver exception:", e1);
                                                                              onException.ifPresent(c -> c.accept(e1));
                                                                              exceptionMessage.ifPresent(msg -> Dialogs.ok(msg).showAndWait());
-                                                                             startFinalizer();
 
-                                                                             if (e1 instanceof UnknownHostException) {
+                                                                             if (e1 instanceof UnknownHostException || e1 instanceof ConnectException) {
                                                                                  Dialogs.ok(localize("dialog.error.connectionFailed"))
                                                                                         .showAndWait();
                                                                              }
+
+                                                                             startFinalizer();
                                                                          }
                                                                      };
 
@@ -188,6 +202,8 @@ public class AsyncResultReceiver<T extends GluonObservable> {
         } else {
             next.get().start();
         }
+
+        initializeOnSuccess.ifPresent(GluonObservableHelper::setInitialized);
     }
 
     private void removeListeners() {

@@ -44,7 +44,8 @@ import com.jns.orienteering.model.persisted.MissionsByTaskLookup;
 import com.jns.orienteering.model.persisted.Task;
 import com.jns.orienteering.model.persisted.TasksByMissionLookup;
 import com.jns.orienteering.model.repo.readerwriter.RestMapReader;
-import com.jns.orienteering.util.GluonObservableHelper;
+
+import javafx.collections.transformation.SortedList;
 
 public class MissionFBRepo extends FireBaseRepo<Mission> {
 
@@ -98,9 +99,7 @@ public class MissionFBRepo extends FireBaseRepo<Mission> {
         AsyncResultReceiver.create(obsLookup)
                            .onSuccess(result ->
                            {
-                               if (result == null) {
-                                   GluonObservableHelper.setInitialized(obsTasks, true);
-                               } else {
+                               if (result != null) {
                                    try {
                                        @SuppressWarnings("unchecked")
                                        Map<String, Integer> lookupMap = (Map<String, Integer>) mapReader.getMap();
@@ -109,15 +108,16 @@ public class MissionFBRepo extends FireBaseRepo<Mission> {
                                            task.setOrderNumber(lookupMap.get(task.getId()));
                                        }
 
-                                       obsTasks.setAll(result);
-                                       GluonObservableHelper.setInitialized(obsTasks, true);
+                                       SortedList<Task> sortedTasks = new SortedList<>(result, Task.getOrderNumberComparator());
+                                       obsTasks.setAll(sortedTasks);
 
                                    } catch (IOException e) {
                                        e.printStackTrace();
-                                       GluonObservableHelper.setException(obsTasks, e);
+                                       obsTasks.setException(e);
                                    }
                                }
                            })
+                           .setInitializedOnSuccess(obsTasks)
                            .start();
 
         return obsTasks;
@@ -145,8 +145,21 @@ public class MissionFBRepo extends FireBaseRepo<Mission> {
     public GluonObservableObject<Mission> updateMission(Mission mission, Mission previousMission, List<Task> tasks, List<Task> tasksBuffer) {
         return executeAsync(mission, () ->
         {
-            mission.setTimeStamp(createTimeStamp());
-            createOrUpdate(mission, mission.getId());
+            boolean missionChanged = mission.equals(previousMission);
+
+            if (!missionChanged) {
+                mission.setTimeStamp(createTimeStamp());
+                createOrUpdate(mission, mission.getId());
+
+                writeLogEntry(mission, RepoAction.UPDATE);
+
+                if (mission.nameChanged()) {
+                    nameLookupRepo.recreateLookup(previousMission.getMissionName(), mission.createNameLookup());
+                }
+                if (mission.cityChanged() || mission.accessTypeChanged()) {
+                    cityLookupRepo.recreateCityLookup(new MissionsByCityLookup(mission));
+                }
+            }
 
             boolean tasksChanged = false;
 
@@ -168,13 +181,6 @@ public class MissionFBRepo extends FireBaseRepo<Mission> {
                 missionsByTaskLookupRepo.updateLookup(previousTasksByMission, mission);
                 missionStatCloudRepo.deleteAsync(mission.getId());
             }
-            if (mission.nameChanged()) {
-                nameLookupRepo.recreateLookup(previousMission.getMissionName(), mission.createNameLookup());
-            }
-            if (mission.cityChanged() || mission.accessTypeChanged()) {
-                cityLookupRepo.recreateCityLookup(new MissionsByCityLookup(mission));
-            }
-            writeLogEntry(mission, RepoAction.UPDATE);
         });
     }
 
@@ -195,8 +201,7 @@ public class MissionFBRepo extends FireBaseRepo<Mission> {
     }
 
     private void writeLogEntry(Mission mission, RepoAction action) {
-        mission.setRepoAction(action);
-        writeLogEntry(mission, ChangeLogRepo::writeMissionLogAsync);
+        getChangeLogRepo().writeLog(mission, action, ChangeLogRepo::writeMissionLogAsync);
     }
 
 }
