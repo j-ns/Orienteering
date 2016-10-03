@@ -105,9 +105,9 @@ public enum Icon {
     TRIANGLE_DOWN(OctIcon.TRIANGLE_DOWN),
     WATER(FontAwesomeIcon.TINT);
 
-    public static final String   DEFAULT_ICON_SIZE = "24";
+    public static final String DEFAULT_ICON_SIZE = "24";
 
-    private transient GlyphIcons glypIcon;
+    private GlyphIcons         glypIcon;
 
     private Icon(GlyphIcons icon) {
         glypIcon = icon;
@@ -152,15 +152,15 @@ public enum Icon {
         }
 
         public static Button save(EventHandler<ActionEvent> onAction) {
-            return Icon.DONE.button(onAction);
+            return DONE.button(onAction);
         }
 
         public static Button saveAndContinue(EventHandler<ActionEvent> onAction) {
-            return Icon.DONE_ALL.button(onAction);
+            return DONE_ALL.button(onAction);
         }
 
         public static Button delete(EventHandler<ActionEvent> onAction) {
-            return Icon.DELETE.button(onAction);
+            return DELETE.button(onAction);
         }
 
         public static Button back(EventHandler<ActionEvent> onAction) {
@@ -170,7 +170,7 @@ public enum Icon {
         }
 
         public static Button filter(EventHandler<ActionEvent> onAction) {
-            return Icon.FILTER.button(onAction);
+            return FILTER.button(onAction);
         }
 
         public static Button refresh(EventHandler<ActionEvent> onAction) {
