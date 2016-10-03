@@ -162,8 +162,8 @@ public abstract class BasePresenter {
         return MaterialDesignIcon.MENU.button();
     }
 
-    protected void showView(ViewRegistry view) {
-        application.switchView(view.getViewName());
+    protected void showView(ViewRegistry viewRegistry) {
+        application.switchView(viewRegistry.getViewName());
     }
 
     protected void showView(ViewRegistry view, ViewStackPolicy policy) {

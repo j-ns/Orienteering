@@ -423,7 +423,7 @@ public class TaskPresenter extends BasePresenter {
                            {
                                LocalTaskCache.INSTANCE.removeItem(task);
                                if (isMissionEditorModus()) {
-                                   LocalMissionCache.INSTANCE.getMissionTasks().remove(task);
+                                   LocalMissionCache.INSTANCE.removeTask(task);
                                }
                                showPreviousView();
                            })

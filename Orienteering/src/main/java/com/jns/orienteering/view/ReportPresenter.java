@@ -49,7 +49,6 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.SortedList;
 import javafx.fxml.FXML;
-import javafx.scene.control.Label;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 
@@ -88,11 +87,8 @@ public class ReportPresenter extends BasePresenter {
     protected void initialize() {
         super.initialize();
 
-        Label lblPlaceHolderStats = new Label();
-        lblPlaceHolderStats.textProperty().bind(new When(service.userProperty().isNull()).then(USER_NOT_LOGGED_IN)
-                                                                                         .otherwise(NO_STAT_EXISTING));
-
-        lviewMissionStats.setPlaceholder(lblPlaceHolderStats);
+        lviewMissionStat.getPlaceHolder().textProperty().bind(new When(service.userProperty().isNull()).then(USER_NOT_LOGGED_IN)
+                                                                                                       .otherwise(NO_STAT_EXISTING));
 
         lviewMissionStats.setSelectableCellFactory(StatCell::new);
         lviewMissionStat.setCellFactory(listView -> new TimeLineCell());

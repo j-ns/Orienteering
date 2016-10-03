@@ -44,7 +44,6 @@ import com.jns.orienteering.model.persisted.City;
 import javafx.beans.binding.When;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
-import javafx.scene.control.Label;
 
 public abstract class ListViewPresenter<T> extends BasePresenter {
 
@@ -56,7 +55,6 @@ public abstract class ListViewPresenter<T> extends BasePresenter {
 
     @FXML
     protected ListViewExtended<T>      lview;
-    protected Label                    lblPlaceHolder     = new Label();
     protected ScrollEventFilter        scrollEventFilter;
 
     @Inject
@@ -87,18 +85,18 @@ public abstract class ListViewPresenter<T> extends BasePresenter {
         choiceCity.setStringConverter(City::getCityName);
         choiceCity.setMissingDataTitle(localize("dialog.info.noCityOrNoConnection"));
         choiceCity.setItems(service.getCities());
-        choiceCity.getSelectionModel().selectedItemProperty().addListener((obsValue, t, t1) ->
+        choiceCity.getSelectionModel().selectedItemProperty().addListener((obsValue, c, c1) ->
         {
-            if (t1 != null) {
-                service.setSelectedCity(t1);
+            if (c1 != null) {
+                service.setSelectedCity(c1);
                 populateListView();
             }
         });
 
-        lblPlaceHolder.textProperty()
-                      .bind(new When(service.userProperty().isNull()).then(USER_NOT_LOGGED_IN)
-                                                                     .otherwise(getNoDataExistingMessage()));
-        lview.setPlaceholder(lblPlaceHolder);
+        lview.getPlaceHolder().textProperty()
+             .bind(new When(service.userProperty().isNull()).then(USER_NOT_LOGGED_IN)
+                                                            .otherwise(getNoDataExistingMessage()));
+
         scrollEventFilter = new ScrollEventFilter(lview);
         service.getActivatorDeactivatorService().add(getViewName(), lview);
     }

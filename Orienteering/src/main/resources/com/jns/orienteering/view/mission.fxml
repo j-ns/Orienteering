@@ -27,7 +27,7 @@
 	<center>
 		<MobileLayoutPane>
 			<center>
-				<JFXTabPane>
+				<JFXTabPane fx:id="tabPane">
 					<tabs>
 						<Tab fx:id="tabInfo" closable="false" text="%tab.info">
 							<content>

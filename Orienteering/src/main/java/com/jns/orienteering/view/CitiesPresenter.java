@@ -54,7 +54,6 @@ import com.jns.orienteering.util.Dialogs;
 import javafx.application.Platform;
 import javafx.beans.binding.When;
 import javafx.fxml.FXML;
-import javafx.scene.control.Label;
 
 public class CitiesPresenter extends BasePresenter {
 
@@ -65,7 +64,6 @@ public class CitiesPresenter extends BasePresenter {
 
     @FXML
     private ListViewExtended<City>         lview;
-    private Label                          lblPlaceHolder     = new Label();
     private ScrollEventFilter              scrollEventFilter;
 
     @Inject
@@ -84,12 +82,11 @@ public class CitiesPresenter extends BasePresenter {
         tglAccessType = Icon.Buttons.accessType();
         tglAccessType.setOnAction(() -> populateListView());
 
-        lblPlaceHolder.textProperty().bind(new When(service.userProperty()
+        lview.getPlaceHolder().textProperty().bind(new When(service.userProperty()
                                                            .isNull().and(tglAccessType.selectedProperty().not()))
                                                                                                                  .then(USER_NOT_SIGNED_IN)
                                                                                                                  .otherwise(NO_CITY_EXISTING));
 
-        lview.setPlaceholder(lblPlaceHolder);
         lview.setComparator(City::compareTo);
         lview.setOnSelection(this::onSelect);
         scrollEventFilter = new ScrollEventFilter(lview);
@@ -108,7 +105,7 @@ public class CitiesPresenter extends BasePresenter {
     protected void onShown() {
         super.onShown();
 
-        if (ViewRegistry.CITY.equals(service.getPreviousView())) {
+        if (ViewRegistry.CITY.equals(service.getPreviousViewName())) {
             service.setSelectedCity(null);
             lview.refresh();
         } else {

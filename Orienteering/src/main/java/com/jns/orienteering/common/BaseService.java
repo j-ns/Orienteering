@@ -404,7 +404,7 @@ public class BaseService {
         return currentView;
     }
 
-    public String getPreviousView() {
+    public String getPreviousViewName() {
         return previousView;
     }
 

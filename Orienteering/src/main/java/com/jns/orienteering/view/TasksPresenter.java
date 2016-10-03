@@ -69,8 +69,8 @@ public class TasksPresenter extends ListViewPresenter<Task> {
         FloatingActionButton fab = addFab(innerView, e -> onCreateTask());
         fab.visibleProperty().bind(service.userProperty().isNotNull());
 
-        lview.setOnSelection(this::onTaskSelected);
         lview.setComparator(Task::compareTo);
+        lview.setOnSelection(this::onTaskSelected);
 
         initActionBar();
 
@@ -100,11 +100,10 @@ public class TasksPresenter extends ListViewPresenter<Task> {
 
     @Override
     protected void initAppBar() {
-        Button btnBack = isMissionEditorModus() ? createBackButton() : createGoHomeButton();
-        if (ViewRegistry.MISSION.equals(service.getPreviousView())) {
-            setAppBar(btnBack, getTitle(), btnRefresh, tglAccessType);
-        } else {
-            setAppBar(btnBack, getTitle(), btnRefresh, tglAccessType, choiceCity);
+        if (isMissionEditorModus()) {
+            setAppBar(createBackButton(), getTitle(), btnRefresh, tglAccessType);
+        }else {
+            setAppBar(createGoHomeButton(), getTitle(), btnRefresh, tglAccessType, choiceCity);
         }
     }
 
@@ -119,13 +118,13 @@ public class TasksPresenter extends ListViewPresenter<Task> {
     protected void onShown() {
         super.onShown();
 
-        if (ViewRegistry.TASK.equals(service.getPreviousView())) {
+        if (ViewRegistry.TASK.equals(service.getPreviousViewName())) {
             lview.refresh();
             service.setSelectedTask(null);
         } else {
             if (isMissionEditorModus()) {
                 selectedMission = service.getSelectedMission();
-                missionTasks = FXCollections.observableArrayList(LocalMissionCache.INSTANCE.getMissionTasks());
+                missionTasks = FXCollections.observableArrayList(LocalMissionCache.INSTANCE.getMissionTasksTemp());
             }
             populateListView();
         }
@@ -181,8 +180,7 @@ public class TasksPresenter extends ListViewPresenter<Task> {
     }
 
     private void onUpdateMissionTasks() {
-        // service.<Task> getListUpdater(MISSION_TASKS_UPDATER).setAll(missionTasks);
-        LocalMissionCache.INSTANCE.getMissionTasks().setAll(missionTasks);
+        LocalMissionCache.INSTANCE.getMissionTasksTemp().setAll(missionTasks);
         showPreviousView();
     }
 

@@ -88,11 +88,12 @@ public class MissionsPresenter extends ListViewPresenter<Mission> {
     @Override
     protected void onShown() {
         super.onShown();
+
+        service.setSelectedMission(null);
         service.setTempCity(null);
 
-        if (ViewRegistry.MISSION.equals(service.getPreviousView())) {
+        if (ViewRegistry.MISSION.equals(service.getPreviousViewName())) {
             lview.refresh();
-            service.setSelectedMission(null);
         } else {
             populateListView();
         }
@@ -102,14 +103,15 @@ public class MissionsPresenter extends ListViewPresenter<Mission> {
     protected void populateListView() {
         String cityId = service.getSelectedCityId();
         String userId = service.getUserId();
+
         if (cityId == null || userId == null) {
             lview.setItems(FXCollections.emptyObservableList());
             return;
         }
 
-        GluonObservableList<Mission> missions = isPrivateAccess() ? localMissionCache.getPrivateItems(cityId, userId) : localMissionCache
+        GluonObservableList<Mission> obsMissions = isPrivateAccess() ? localMissionCache.getPrivateItems(cityId, userId) : localMissionCache
                                                                                                                                          .getPublicItems(cityId);
-        AsyncResultReceiver.create(missions)
+        AsyncResultReceiver.create(obsMissions)
                            .defaultProgressLayer()
                            .onSuccess(lview::setSortableItems)
                            .start();
@@ -127,13 +129,7 @@ public class MissionsPresenter extends ListViewPresenter<Mission> {
     }
 
     private void onSetActiveMission(Mission mission) {
-        if (service.getUser() == null) {
-            Platform.runLater(() -> Dialogs.ok(localize("view.missions.info.userMustBeLoggedIn")).showAndWait());
-            return;
-        }
-
-        boolean missionContainsTasks = cloudRepo.missionContainsTasks(mission.getId());
-        if (!missionContainsTasks) {
+        if (!cloudRepo.missionContainsTasks(mission.getId())) {
             Platform.runLater(() -> Dialogs.ok(localize("view.missions.info.missionDoesntContainTask")).showAndWait());
             return;
         }
@@ -156,7 +152,7 @@ public class MissionsPresenter extends ListViewPresenter<Mission> {
                                    .defaultProgressLayer()
                                    .onSuccess(e ->
                                    {
-                                       localMissionCache.removeItem(mission);
+                                       localMissionCache.removeMissionAndTasks(mission);
                                        if (mission.equals(service.getActiveMission())) {
                                            service.setActiveMission(null);
                                        }

@@ -7,6 +7,7 @@ import com.jns.orienteering.model.persisted.Mission;
 import com.jns.orienteering.model.persisted.Task;
 import com.jns.orienteering.model.repo.MissionFBRepo;
 import com.jns.orienteering.model.repo.RepoService;
+import com.jns.orienteering.util.GluonObservableHelper;
 
 public class LocalMissionCache extends LocalCache<Mission> {
 
@@ -16,6 +17,7 @@ public class LocalMissionCache extends LocalCache<Mission> {
 
     private String                        selectedMissionId;
     private GluonObservableList<Task>     missionTasks;
+    private GluonObservableList<Task>     missionTasksTemp;
 
     private LocalMissionCache() {
         cloudRepo = RepoService.INSTANCE.getCloudRepo(Mission.class);
@@ -33,16 +35,17 @@ public class LocalMissionCache extends LocalCache<Mission> {
 
     public GluonObservableList<Task> retrieveMissionTasksSorted(String missionId) {
         if (!missionId.equals(selectedMissionId)) {
-            missionTasks = null;
+            clearMissionTasks();
         }
 
         if (!isNullOrEmpty(missionTasks)) {
+            missionTasksTemp = missionTasks;
             return missionTasks;
         }
         selectedMissionId = missionId;
-        missionTasks = new GluonObservableList<>();
 
         missionTasks = cloudRepo.retrieveOrderedTasksAsync(missionId);
+        missionTasksTemp = null;
         return missionTasks;
     }
 
@@ -50,16 +53,49 @@ public class LocalMissionCache extends LocalCache<Mission> {
         return missionTasks;
     }
 
+    public GluonObservableList<Task> getMissionTasksTemp() {
+        if (missionTasksTemp == null) {
+            missionTasksTemp = GluonObservableHelper.newGluonObservableListInitialized(missionTasks);
+        }
+        return missionTasksTemp;
+    }
+
+    public void removeMissionAndTasks(Mission mission) {
+        removeItem(mission);
+        missionTasks = null;
+        missionTasksTemp = null;
+    }
+
     public void udpateMissionTask(Task newTask, Task previousTask) {
         int idx = missionTasks.indexOf(previousTask);
         missionTasks.set(idx, newTask);
     }
 
-    @Override
-    public void removeItem(Mission item) {
-        super.removeItem(item);
-        if (item.getId().equals(selectedMissionId)) {
-            missionTasks = null;
+    public void updateMissionTasksFromBuffer() {
+        missionTasks.setAll(missionTasksTemp);
+    }
+
+    public void removeTask(Task task) {
+        if (missionTasks != null) {
+            missionTasks.remove(task);
+            missionTasksTemp.remove(task);
         }
+    }
+
+    @Override
+    protected void clearPrivateItems() {
+        super.clearPrivateItems();
+        clearMissionTasks();
+    }
+
+    @Override
+    protected void clearPublicItems() {
+        super.clearPublicItems();
+        clearMissionTasks();
+    }
+
+    public void clearMissionTasks() {
+        missionTasks = new GluonObservableList<>();
+        missionTasksTemp = new GluonObservableList<>();
     }
 }

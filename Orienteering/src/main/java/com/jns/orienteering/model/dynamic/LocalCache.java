@@ -8,6 +8,7 @@ import com.gluonhq.connect.GluonObservableList;
 import com.jns.orienteering.model.common.AccessType;
 import com.jns.orienteering.model.common.CityAssignable;
 import com.jns.orienteering.model.repo.AsyncResultReceiver;
+import com.jns.orienteering.util.GluonObservableHelper;
 
 import javafx.collections.ObservableList;
 
@@ -18,6 +19,7 @@ public abstract class LocalCache<E extends CityAssignable> {
 
     private GluonObservableList<E> publicItems  = new GluonObservableList<>();
     private GluonObservableList<E> privateItems = new GluonObservableList<>();
+
 
     public GluonObservableList<E> refreshPrivateItems(String cityId, String userId) {
         privateItems = null;
@@ -93,10 +95,9 @@ public abstract class LocalCache<E extends CityAssignable> {
     }
 
     private void updateItems(E item, BiConsumer<ObservableList<E>, E> action) {
+        ensureItemsInitialized(item.getAccessType());
+
         if (item.getAccessType() == AccessType.PRIVATE) {
-            if (privateItems == null) {
-                privateItems = new GluonObservableList<>();
-            }
             action.accept(privateItems, item);
         } else {
             action.accept(publicItems, item);
@@ -106,11 +107,11 @@ public abstract class LocalCache<E extends CityAssignable> {
     private void ensureItemsInitialized(AccessType accessType) {
         if (accessType == AccessType.PRIVATE) {
             if (privateItems == null) {
-                privateItems = new GluonObservableList<>();
+                privateItems = GluonObservableHelper.newGluonObservableListInitialized();
             }
         } else {
             if (publicItems == null) {
-                publicItems = new GluonObservableList<>();
+                publicItems = GluonObservableHelper.newGluonObservableListInitialized();
             }
         }
     }
@@ -118,16 +119,16 @@ public abstract class LocalCache<E extends CityAssignable> {
     public void clearItems(AccessType accessType) {
         if (accessType == AccessType.PRIVATE) {
             clearPrivateItems();
-        }else {
+        } else {
             clearPublicItems();
         }
     }
 
-    public void clearPrivateItems() {
+    protected void clearPrivateItems() {
         privateItems = new GluonObservableList<>();
     }
 
-    public void clearPublicItems() {
+    protected void clearPublicItems() {
         publicItems = new GluonObservableList<>();
     }
 

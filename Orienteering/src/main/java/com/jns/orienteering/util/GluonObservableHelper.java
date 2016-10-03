@@ -46,7 +46,9 @@ public class GluonObservableHelper {
 
     public static <T> GluonObservableList<T> newGluonObservableListInitialized(Collection<T> items) {
         GluonObservableList<T> gluonObservableList = new GluonObservableList<>();
-        gluonObservableList.setAll(items);
+        if (items != null) {
+            gluonObservableList.setAll(items);
+        }
         setInitialized(gluonObservableList);
         return gluonObservableList;
     }

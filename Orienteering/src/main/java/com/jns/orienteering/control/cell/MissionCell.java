@@ -44,10 +44,13 @@ import javafx.scene.layout.Region;
 
 public class MissionCell extends SelectableListCell<Mission> {
 
-    private Content         content;
-    private SlidingListTile slidingTile;
+    private static LocalCityCache localCityCache = LocalCityCache.INSTANCE;
+    private static String         UNIT           = localize("unit.miles");
 
-    private Mission         mission;
+    private Content               content;
+    private SlidingListTile       slidingTile;
+
+    private Mission               mission;
 
     public MissionCell(ObjectProperty<Mission> selectedItem, Consumer<Mission> consumerLeft, Consumer<Mission> consumerRight,
                        BooleanProperty sliding) {
@@ -62,9 +65,8 @@ public class MissionCell extends SelectableListCell<Mission> {
         slidingTile.slidingProperty().addListener((ov, b, b1) -> sliding.set(b1));
     }
 
-    @Override
-    protected double computePrefWidth(double height) {
-        return -getInsets().getLeft() + getListView().getWidth() - getInsets().getRight();
+    private Mission getMission() {
+        return mission;
     }
 
     @Override
@@ -78,15 +80,14 @@ public class MissionCell extends SelectableListCell<Mission> {
             if (getGraphic() == null) {
                 setGraphic(slidingTile);
             }
+
+            String cityName = localCityCache.getName(mission.getCityId()).orElse(localize("mission.cityDeleted"));
+
             content.lblName.setText(mission.getMissionName());
-            content.lblDistance.setText(mission.getDistanceText() + " " + localize("unit.miles"));
-            content.lblCity.setText(LocalCityCache.INSTANCE.get(mission.getCityId()).getCityName());
+            content.lblDistance.setText(mission.getDistanceText() + " " + UNIT);
+            content.lblCity.setText(cityName);
             content.lblPoints.setText(Integer.toString(mission.getMaxPoints()) + " " + localize("label.points"));
         }
-    }
-
-    private Mission getMission() {
-        return mission;
     }
 
     private class Content extends Region {
@@ -123,13 +124,14 @@ public class MissionCell extends SelectableListCell<Mission> {
         protected void layoutChildren() {
             double width = getWidth();
 
-            double prefHeightName = lblName.prefHeight(-1);
-            double prefHeightCity = lblCity.prefHeight(-1);
             Insets insets = getInsets();
             double left = insets.getLeft();
             double right = insets.getRight();
 
-            double labelWidth = -left + width - lblDistance.prefWidth(-1) - 16 - right;
+            double prefHeightName = lblName.prefHeight(-1);
+            double prefHeightCity = lblCity.prefHeight(-1);
+
+            double labelWidth = -left + width - 16 - lblDistance.prefWidth(-1) - right;
 
             double x = left;
             double currentY = insets.getTop();
@@ -138,7 +140,7 @@ public class MissionCell extends SelectableListCell<Mission> {
             lblName.relocate(x, currentY);
 
             lblDistance.resize(lblDistance.prefWidth(-1), prefHeightName);
-            lblDistance.relocate(width - lblDistance.prefWidth(-1) - right, currentY);
+            lblDistance.relocate(-left + width - lblDistance.prefWidth(-1) - right, currentY);
             currentY += prefHeightName + VERTICAL_SPACING;
 
             lblCity.resize(labelWidth, prefHeightCity);
