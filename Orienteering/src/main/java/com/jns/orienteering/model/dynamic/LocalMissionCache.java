@@ -69,7 +69,9 @@ public class LocalMissionCache extends LocalCache<Mission> {
 
     public void udpateMissionTask(Task newTask, Task previousTask) {
         int idx = missionTasks.indexOf(previousTask);
-        missionTasks.set(idx, newTask);
+        if (idx > -1) {
+            missionTasks.set(idx, newTask);
+        }
     }
 
     public void updateMissionTasksFromBuffer() {
