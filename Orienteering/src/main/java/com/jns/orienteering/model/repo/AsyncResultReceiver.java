@@ -58,9 +58,9 @@ public class AsyncResultReceiver<T extends GluonObservable> {
 
     private T                                                        observable;
     private Optional<Consumer<T>>                                    consumer               = Optional.empty();
-    private Optional<GluonObservable>                                initializeOnSuccess    = Optional.empty();
 
     private Optional<ProgressLayer>                                  progressLayer          = Optional.empty();
+    private Optional<GluonObservable>                                initializeOnSuccess    = Optional.empty();
     private Optional<Consumer<Throwable>>                            onException            = Optional.empty();
     private Optional<String>                                         exceptionMessage       = Optional.empty();
     private Optional<Consumer<T>>                                    finalizer              = Optional.empty();

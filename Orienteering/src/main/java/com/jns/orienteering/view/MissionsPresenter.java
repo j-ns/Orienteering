@@ -91,6 +91,7 @@ public class MissionsPresenter extends ListViewPresenter<Mission> {
 
         service.setSelectedMission(null);
         service.setTempCity(null);
+        localMissionCache.getMissionTasksTemp().clear();
 
         if (ViewRegistry.MISSION.equals(service.getPreviousViewName())) {
             lview.refresh();

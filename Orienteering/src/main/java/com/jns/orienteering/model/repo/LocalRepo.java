@@ -109,7 +109,7 @@ public class LocalRepo<T, L> {
             return reader().readObject();
 
         } catch (IOException e) {
-            LOGGER.error("Error readObject: {} {}", BASE_DIR, fileName, e);
+            LOGGER.error("failed to read file: {} {}", BASE_DIR, fileName, e);
             throw e;
         }
     }
@@ -127,7 +127,7 @@ public class LocalRepo<T, L> {
         try {
             remover().removeObject(null);
         } catch (IOException e) {
-            LOGGER.error("Error deleting: {}", fileName, e);
+            LOGGER.error("failed to delete: {}", fileName, e);
             throw e;
         }
     }

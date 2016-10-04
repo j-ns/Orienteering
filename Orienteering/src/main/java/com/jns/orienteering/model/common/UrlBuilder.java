@@ -43,8 +43,8 @@ public class UrlBuilder {
         String result = "";
 
         for (String child : urlParts) {
-            if (Validators.isNullOrEmpty(child)) { // test:
-                throw new IllegalArgumentException("urlPart cant be empty");
+            if (Validators.isNullOrEmpty(child)) {
+                continue;
             }
 
             if (!child.startsWith("/")) {
@@ -52,6 +52,9 @@ public class UrlBuilder {
             } else {
                 result = result + child;
             }
+        }
+        if (Validators.isNullOrEmpty(result)) {
+            throw new IllegalArgumentException("url can not be empty");
         }
         return result;
     }

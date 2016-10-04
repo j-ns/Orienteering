@@ -125,7 +125,7 @@ public class FloatingTextField extends Control {
             String text = numberFormat().format(number);
             setText(text);
         } catch (ArithmeticException e) {
-            LOGGER.error("Error formating number '{}'", number, e);
+            LOGGER.error("can not format number as string: '{}'", number, e);
             setText("");
         }
     }
@@ -136,7 +136,7 @@ public class FloatingTextField extends Control {
             return parse.doubleValue();
 
         } catch (ParseException e) {
-            LOGGER.error("Error parsing number, returning '0'", e);
+            LOGGER.error("failed to parse text: {}, return '0' instead", getText(), e);
             return 0;
         }
     }

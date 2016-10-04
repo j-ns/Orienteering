@@ -42,6 +42,7 @@ import com.jns.orienteering.model.dynamic.LocalCache;
 import com.jns.orienteering.model.persisted.City;
 
 import javafx.beans.binding.When;
+import javafx.collections.transformation.SortedList;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 
@@ -84,7 +85,7 @@ public abstract class ListViewPresenter<T> extends BasePresenter {
 
         choiceCity.setStringConverter(City::getCityName);
         choiceCity.setMissingDataTitle(localize("dialog.info.noCityOrNoConnection"));
-        choiceCity.setItems(service.getCities());
+        choiceCity.setItems(new SortedList<>(service.getCities(), City::compareTo));
         choiceCity.getSelectionModel().selectedItemProperty().addListener((obsValue, c, c1) ->
         {
             if (c1 != null) {

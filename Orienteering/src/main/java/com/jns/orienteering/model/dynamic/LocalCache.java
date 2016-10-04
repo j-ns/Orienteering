@@ -20,7 +20,6 @@ public abstract class LocalCache<E extends CityAssignable> {
     private GluonObservableList<E> publicItems  = new GluonObservableList<>();
     private GluonObservableList<E> privateItems = new GluonObservableList<>();
 
-
     public GluonObservableList<E> refreshPrivateItems(String cityId, String userId) {
         privateItems = null;
         return getPrivateItems(cityId, userId);
@@ -70,18 +69,23 @@ public abstract class LocalCache<E extends CityAssignable> {
     protected abstract GluonObservableList<E> retrievePublicItems(String cityId);
 
     public void addItem(E item) {
-        if (!item.cityChanged()) {
+        if (item.getCityId().equals(cityId)) {
             ensureItemsInitialized(item.getAccessType());
             updateItems(item, ObservableList<E>::add);
         }
     }
 
     public void updateItem(E newItem, E previousItem) {
-        removeItem(previousItem);
-        addItem(newItem);
+        if (newItem.getCityId().equals(cityId)) {
+            removeItem(previousItem);
+            addItem(newItem);
+        }
     }
 
     public void removeItem(E item) {
+        if (!item.getCityId().equals(cityId)) {
+            return;
+        }
         if (item.getAccessType() == AccessType.PUBLIC) {
             if (publicItems.isEmpty()) {
                 return;
