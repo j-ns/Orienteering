@@ -131,7 +131,7 @@ public class AccountPresenter extends BasePresenter {
 
         choiceDefaultCity.setStringConverter(City::getCityName);
         choiceDefaultCity.setMissingDataTitle(localize("view.account.info.noCityExisting"));
-        choiceDefaultCity.setItems(service.getCities());
+        choiceDefaultCity.setItems(service.getCitiesSorted());
 
         userCloudRepo = service.getRepoService().getCloudRepo(User.class);
 

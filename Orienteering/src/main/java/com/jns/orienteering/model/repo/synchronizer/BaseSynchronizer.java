@@ -49,6 +49,7 @@ import com.jns.orienteering.model.repo.LocalRepo;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.collections.ObservableList;
 
 /**
  * @param <T>
@@ -70,7 +71,7 @@ public abstract class BaseSynchronizer<T extends Synchronizable, L> {
 
     private SyncMetaData                   syncMetaData;
     private ObjectProperty<ConnectState>   syncState = new SimpleObjectProperty<>(ConnectState.READY);
-    private Consumer<List<T>>              onSynced;
+    private Consumer<ObservableList<T>>              onSynced;
 
     public BaseSynchronizer(String listIdentifier) {
         this.listIdentifier = listIdentifier;
@@ -106,11 +107,11 @@ public abstract class BaseSynchronizer<T extends Synchronizable, L> {
         syncState.set(ConnectState.FAILED);
     }
 
-    public Consumer<List<T>> getOnSynced() {
+    public Consumer<ObservableList<T>> getOnSynced() {
         return onSynced;
     }
 
-    public void setOnSynced(Consumer<List<T>> onSynced) {
+    public void setOnSynced(Consumer<ObservableList<T>> onSynced) {
         this.onSynced = onSynced;
     }
 

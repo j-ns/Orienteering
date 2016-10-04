@@ -8,6 +8,7 @@ import com.jns.orienteering.model.persisted.Task;
 import com.jns.orienteering.model.repo.MissionFBRepo;
 import com.jns.orienteering.model.repo.RepoService;
 import com.jns.orienteering.util.GluonObservableHelper;
+import com.jns.orienteering.util.Validators;
 
 public class LocalMissionCache extends LocalCache<Mission> {
 
@@ -54,7 +55,7 @@ public class LocalMissionCache extends LocalCache<Mission> {
     }
 
     public GluonObservableList<Task> getMissionTasksTemp() {
-        if (missionTasksTemp == null) {
+        if (Validators.isNullOrEmpty(missionTasksTemp)) {
             missionTasksTemp = GluonObservableHelper.newGluonObservableListInitialized(missionTasks);
         }
         return missionTasksTemp;

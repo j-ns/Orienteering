@@ -130,7 +130,7 @@ public class MissionPresenter extends BasePresenter {
 
         choiceCity.setStringConverter(City::getCityName);
         choiceCity.getSelectionModel().selectedItemProperty().addListener((obsValue, c, c1) -> onCityChanged(c1));
-        choiceCity.setItems(service.getCities());
+        choiceCity.setItems(service.getCitiesSorted());
 
         choiceAccess.setStringConverter(accessType -> localize(accessType));
         choiceAccess.setItems(FXCollections.observableArrayList(AccessType.values()));
@@ -223,6 +223,8 @@ public class MissionPresenter extends BasePresenter {
                                    })
                                    .start();
             } else {
+                tabPane.getSelectionModel().select(0);
+
                 tasks = localMissionCache.getMissionTasksTemp();
                 lviewMissionTasks.setItems(tasks);
                 mapHelper.setMarkers(tasks);

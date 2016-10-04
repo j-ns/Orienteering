@@ -149,7 +149,7 @@ public class ActiveTasksSynchronizer extends BaseSynchronizer<Task, ActiveTaskLi
                                if (localDataNeedsUpdate) {
                                    localRepo.createOrUpdateListAsync(new ActiveTaskList(localTasksCopy, getSyncMetaData().getCurrentTimeStamp()));
                                }
-                               getOnSynced().accept(localTasksCopy);
+                               getOnSynced().accept(FXCollections.observableArrayList(localTasksCopy));
                                setSucceeded();
                            })
                            .onException(this::setFailed)

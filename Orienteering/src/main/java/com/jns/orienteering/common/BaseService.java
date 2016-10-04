@@ -75,6 +75,7 @@ import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.collections.transformation.SortedList;
 import javafx.scene.image.Image;
 
 public class BaseService {
@@ -95,7 +96,7 @@ public class BaseService {
     private StringProperty                  alias             = new SimpleStringProperty();
     private ObjectProperty<Image>           profileImage      = new SimpleObjectProperty<>();
 
-    private GluonObservableList<City>       cities            = new GluonObservableList<>();
+    private ObservableList<City>            cities            = FXCollections.observableArrayList();
     private ObjectProperty<City>            defaultCity       = new SimpleObjectProperty<>();
     private ObjectProperty<City>            selectedCity      = new SimpleObjectProperty<>();
     private CityTempBuffer                  cityTempBuffer;
@@ -155,7 +156,7 @@ public class BaseService {
         CitySynchronizer citySynchronizer = new CitySynchronizer(repoService.getCloudRepo(City.class), repoService.getLocalRepo(City.class));
         citySynchronizer.setOnSynced(result ->
         {
-            cities.setAll(result);
+            cities = new SortedList<>(result, City::compareTo);
             if (LocalCityCache.INSTANCE.isEmpty()) {
                 LocalCityCache.INSTANCE.createMapping(result, getUserId());
             }
@@ -358,7 +359,7 @@ public class BaseService {
         profileImage.set(image);
     }
 
-    public GluonObservableList<City> getCities() {
+    public ObservableList<City> getCitiesSorted() {
         return cities;
     }
 

@@ -132,7 +132,7 @@ public class TaskPresenter extends BasePresenter {
 
         choiceCity.setStringConverter(City::getCityName);
         choiceCity.setMissingDataTitle(localize("dialog.error.connectionFailed"));
-        choiceCity.setItems(service.getCities());
+        choiceCity.setItems(service.getCitiesSorted());
 
         Label gpsIcon = Icon.GPS_LOCATION.label("22");
         gpsIcon.setPrefWidth(32);
