@@ -37,7 +37,7 @@ import com.jns.orienteering.model.persisted.CitiesByUser;
 import com.jns.orienteering.model.persisted.City;
 import com.jns.orienteering.model.persisted.CityNameLookup;
 import com.jns.orienteering.model.repo.readerwriter.RestMapReader;
-import com.jns.orienteering.util.GluonObservableHelper;
+import com.jns.orienteering.util.GluonObservables;
 
 public class CityFBRepo extends FireBaseRepo<City> {
 
@@ -59,7 +59,7 @@ public class CityFBRepo extends FireBaseRepo<City> {
 
     public GluonObservableList<City> getPrivateListAsync(String userId) {
         if (userId == null) {
-            return GluonObservableHelper.newGluonObservableListInitialized();
+            return GluonObservables.newListInitialized();
         }
 
         String idsUrl = new UrlBuilder().buildUrl(CITIES_BY_USER, userId);

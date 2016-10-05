@@ -59,7 +59,7 @@ import com.jns.orienteering.model.repo.readerwriter.JsonInputConverterExtended;
 import com.jns.orienteering.model.repo.readerwriter.JsonOutputConverterExtended;
 import com.jns.orienteering.model.repo.readerwriter.JsonTreeConverter;
 import com.jns.orienteering.util.ExceptionalTrigger;
-import com.jns.orienteering.util.GluonObservableHelper;
+import com.jns.orienteering.util.GluonObservables;
 import com.jns.orienteering.util.Validators;
 
 import javafx.util.Pair;
@@ -373,7 +373,7 @@ public class FireBaseRepo<T extends Model> {
             try {
                 action.start();
                 sourceObject.ifPresent(result::set);
-                GluonObservableHelper.setInitialized(result);
+                GluonObservables.setInitialized(result);
             } catch (Exception ex) {
                 LOGGER.error("Error on executeAsync", ex);
                 result.setException(ex);
@@ -390,7 +390,7 @@ public class FireBaseRepo<T extends Model> {
         }
 
         private static GluonObservableObject<RemoveObject> observableInstance(String url) {
-            return GluonObservableHelper.newGluonObservable(new RemoveObject(url));
+            return GluonObservables.newObject(new RemoveObject(url));
         }
 
         @Override

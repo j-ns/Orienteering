@@ -44,7 +44,7 @@ import com.jns.orienteering.control.ProgressLayer;
 import com.jns.orienteering.control.ProgressLayer.PauseFadeInHide;
 import com.jns.orienteering.model.common.CountProperty;
 import com.jns.orienteering.util.Dialogs;
-import com.jns.orienteering.util.GluonObservableHelper;
+import com.jns.orienteering.util.GluonObservables;
 import com.jns.orienteering.util.Trigger;
 
 import javafx.beans.value.ChangeListener;
@@ -111,7 +111,7 @@ public class AsyncResultReceiver<T extends GluonObservable> {
     }
 
     public AsyncResultReceiver<T> propagateException(GluonObservable obsValue) {
-        this.onException = Optional.of(ex -> GluonObservableHelper.setException(obsValue, ex));
+        this.onException = Optional.of(ex -> GluonObservables.setException(obsValue, ex));
         return this;
     }
 
@@ -203,7 +203,7 @@ public class AsyncResultReceiver<T extends GluonObservable> {
             next.get().start();
         }
 
-        initializeOnSuccess.ifPresent(GluonObservableHelper::setInitialized);
+        initializeOnSuccess.ifPresent(GluonObservables::setInitialized);
     }
 
     private void removeListeners() {

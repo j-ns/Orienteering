@@ -38,6 +38,7 @@ import javax.inject.Inject;
 
 import com.jns.orienteering.common.BaseService;
 import com.jns.orienteering.control.DurationDisplay;
+import com.jns.orienteering.model.dynamic.LocalCityCache;
 import com.jns.orienteering.model.persisted.Mission;
 import com.jns.orienteering.model.persisted.MissionStat;
 import com.jns.orienteering.util.Dialogs;
@@ -185,6 +186,7 @@ public class HomePresenter extends BasePresenter {
             showView(ViewRegistry.MISSIONS);
         } else {
             ((ListViewPresenter<?>) ViewRegistry.MISSIONS.getPresenter()).setAccessType(service.getActiveMission().getAccessType());
+            service.setSelectedCity(LocalCityCache.INSTANCE.get(service.getActiveMission().getCityId()));
             showView(ViewRegistry.MISSIONS);
         }
     }

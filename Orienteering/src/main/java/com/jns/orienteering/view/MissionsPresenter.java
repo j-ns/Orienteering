@@ -106,12 +106,12 @@ public class MissionsPresenter extends ListViewPresenter<Mission> {
         String userId = service.getUserId();
 
         if (cityId == null || userId == null) {
-            lview.setItems(FXCollections.emptyObservableList());
+            lview.setItems(FXCollections.observableArrayList());
             return;
         }
 
         GluonObservableList<Mission> obsMissions = isPrivateAccess() ? localMissionCache.getPrivateItems(cityId, userId) : localMissionCache
-                                                                                                                                         .getPublicItems(cityId);
+                                                                                                                                            .getPublicItems(cityId);
         AsyncResultReceiver.create(obsMissions)
                            .defaultProgressLayer()
                            .onSuccess(lview::setSortableItems)

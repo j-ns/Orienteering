@@ -38,20 +38,32 @@ import org.slf4j.LoggerFactory;
 
 import com.gluonhq.connect.GluonObservableList;
 import com.jns.orienteering.model.persisted.City;
-import com.jns.orienteering.util.GluonObservableHelper;
+import com.jns.orienteering.model.repo.AsyncResultReceiver;
+import com.jns.orienteering.model.repo.CityFBRepo;
+import com.jns.orienteering.model.repo.RepoService;
+import com.jns.orienteering.util.GluonObservables;
 
+/**
+ * Caches public and private cities during start-up. When there is no internet connection,
+ * when the app is started, the lists will be empty and each subsequent request for a city list
+ * will retry to access the cloud data.
+ */
 public class LocalCityCache {
 
     private static final Logger        LOGGER        = LoggerFactory.getLogger(LocalCityCache.class);
 
     public static final LocalCityCache INSTANCE      = new LocalCityCache();
 
+    private CityFBRepo                 cloudRepo     = RepoService.INSTANCE.getCloudRepo(City.class);
+
     private String                     userId;
-    private Map<String, City>          cityIds       = new HashMap<>();                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             // publicIds?
-    private Map<String, City>          userCityIds   = new HashMap<>();                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             // privateIds?
+    private Map<String, City>          cityIds       = new HashMap<>();                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 // publicIds?
+    private Map<String, City>          userCityIds   = new HashMap<>();                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 // privateIds?
 
     private GluonObservableList<City>  privateCities = new GluonObservableList<>();
     private GluonObservableList<City>  publicCities  = new GluonObservableList<>();
+
+    private boolean                    initialized;
 
     private LocalCityCache() {
     }
@@ -68,29 +80,42 @@ public class LocalCityCache {
             }
         }
 
-        publicCities = GluonObservableHelper.newGluonObservableListInitialized(cityIds.values());
-        privateCities = GluonObservableHelper.newGluonObservableListInitialized(userCityIds.values());
+        publicCities = GluonObservables.newListInitialized(cityIds.values());
+        privateCities = GluonObservables.newListInitialized(userCityIds.values());
+        initialized = true;
     }
 
     public void setUserId(String userId) {
         this.userId = userId;
         userCityIds.clear();
-        privateCities = GluonObservableHelper.newGluonObservableListInitialized();
+        privateCities = GluonObservables.newListInitialized();
     }
 
     public GluonObservableList<City> getPrivateCities() {
         if (privateCities.isEmpty() && userId != null) {
-            for (City city : cityIds.values()) {
-                if (userId.equals(city.getOwnerId())) {
-                    userCityIds.put(city.getId(), city);
-                }
+            // in case there is no internet connection when the app is started
+            if (!initialized) {
+                AsyncResultReceiver.create(getPublicCities())
+                                   .onSuccess(result ->
+                                   {
+                                       for (City city : result) {
+                                           if (userId.equals(city.getOwnerId())) {
+                                               userCityIds.put(city.getId(), city);
+                                           }
+                                       }
+                                       privateCities = GluonObservables.newListInitialized(userCityIds.values());
+                                       initialized = true;
+                                   })
+                                   .start();
             }
-            privateCities = GluonObservableHelper.newGluonObservableListInitialized(userCityIds.values());
         }
         return privateCities;
     }
 
     public GluonObservableList<City> getPublicCities() {
+        if (publicCities.isEmpty()) {
+            publicCities = cloudRepo.getPublicListAsync();
+        }
         return publicCities;
     }
 

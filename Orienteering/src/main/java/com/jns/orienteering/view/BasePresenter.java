@@ -54,13 +54,13 @@ import javafx.scene.control.Button;
  */
 public abstract class BasePresenter {
 
-    private MobileApplication application = MobileApplication.getInstance();
-    private PlatformService   platform    = PlatformProvider.getPlatform();
+    private static final MobileApplication APPLICATION = MobileApplication.getInstance();
+    private static final PlatformService   PLATFORM    = PlatformProvider.getPlatform();
 
     @FXML
-    protected View            view;
-    private AppBar            appBar;
-    private Node              actionBar;
+    protected View                         view;
+    private AppBar                         appBar;
+    private Node                           actionBar;
 
     @FXML
     protected void initialize() {
@@ -70,7 +70,7 @@ public abstract class BasePresenter {
     }
 
     public MobileApplication getApplication() {
-        return application;
+        return APPLICATION;
     }
 
     /**
@@ -85,7 +85,7 @@ public abstract class BasePresenter {
      */
     protected AppBar getAppBar() {
         if (appBar == null) {
-            appBar = application.getAppBar();
+            appBar = APPLICATION.getAppBar();
         }
         return appBar;
     }
@@ -95,7 +95,7 @@ public abstract class BasePresenter {
      *
      */
     protected void showAppBar(boolean visible) {
-        application.getAppBar().setVisible(visible);
+        APPLICATION.getAppBar().setVisible(visible);
     }
 
     /**
@@ -155,7 +155,7 @@ public abstract class BasePresenter {
     }
 
     protected Button createGoHomeButton() {
-        return Icon.Buttons.back(e -> application.goHome());
+        return Icon.Buttons.back(e -> APPLICATION.goHome());
     }
 
     protected Button createMenuButton() {
@@ -163,34 +163,34 @@ public abstract class BasePresenter {
     }
 
     protected void showView(ViewRegistry viewRegistry) {
-        application.switchView(viewRegistry.getViewName());
+        APPLICATION.switchView(viewRegistry.getViewName());
     }
 
     protected void showView(ViewRegistry view, ViewStackPolicy policy) {
-        application.switchView(view.getViewName(), policy);
+        APPLICATION.switchView(view.getViewName(), policy);
     }
 
     protected void showPreviousView() {
-        boolean viewSwitched = application.switchToPreviousView();
+        boolean viewSwitched = APPLICATION.switchToPreviousView();
         if (!viewSwitched) {
-            application.goHome();
+            APPLICATION.goHome();
         }
     }
 
     protected void showHomeView() {
-        application.goHome();
+        APPLICATION.goHome();
     }
 
     protected void addLayer(String name, Layer layer) {
-        application.addLayerFactory(name, () -> layer);
+        APPLICATION.addLayerFactory(name, () -> layer);
     }
 
     protected void showLayer(String name) {
-        application.showLayer(name);
+        APPLICATION.showLayer(name);
     }
 
     protected void hideLayer(String name) {
-        application.hideLayer(name);
+        APPLICATION.hideLayer(name);
     }
 
     protected void onShowing() {
@@ -218,7 +218,7 @@ public abstract class BasePresenter {
     }
 
     protected PlatformService platformService() {
-        return platform;
+        return PLATFORM;
     }
 
 }

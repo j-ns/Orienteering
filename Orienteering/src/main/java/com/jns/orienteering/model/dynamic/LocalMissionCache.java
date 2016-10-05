@@ -7,8 +7,7 @@ import com.jns.orienteering.model.persisted.Mission;
 import com.jns.orienteering.model.persisted.Task;
 import com.jns.orienteering.model.repo.MissionFBRepo;
 import com.jns.orienteering.model.repo.RepoService;
-import com.jns.orienteering.util.GluonObservableHelper;
-import com.jns.orienteering.util.Validators;
+import com.jns.orienteering.util.GluonObservables;
 
 public class LocalMissionCache extends LocalCache<Mission> {
 
@@ -45,8 +44,8 @@ public class LocalMissionCache extends LocalCache<Mission> {
         }
         selectedMissionId = missionId;
 
-        missionTasks = cloudRepo.retrieveOrderedTasksAsync(missionId);
         missionTasksTemp = null;
+        missionTasks = cloudRepo.retrieveOrderedTasksAsync(missionId);
         return missionTasks;
     }
 
@@ -55,8 +54,8 @@ public class LocalMissionCache extends LocalCache<Mission> {
     }
 
     public GluonObservableList<Task> getMissionTasksTemp() {
-        if (Validators.isNullOrEmpty(missionTasksTemp)) {
-            missionTasksTemp = GluonObservableHelper.newGluonObservableListInitialized(missionTasks);
+        if (isNullOrEmpty(missionTasksTemp)) {
+            missionTasksTemp = GluonObservables.newListInitialized(missionTasks);
         }
         return missionTasksTemp;
     }
@@ -83,6 +82,13 @@ public class LocalMissionCache extends LocalCache<Mission> {
             missionTasks.remove(task);
             missionTasksTemp.remove(task);
         }
+    }
+
+    @Override
+    public void clearItems() {
+        clearPrivateItems();
+        clearPublicItems();
+        clearMissionTasks();
     }
 
     @Override

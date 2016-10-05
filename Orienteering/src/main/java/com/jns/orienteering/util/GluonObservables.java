@@ -28,6 +28,8 @@
  */
 package com.jns.orienteering.util;
 
+import static com.jns.orienteering.util.Validators.ifNotNullOrEmpty;
+
 import java.util.Collection;
 
 import com.gluonhq.connect.ConnectState;
@@ -39,33 +41,31 @@ import javafx.application.Platform;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 
-public class GluonObservableHelper {
+public class GluonObservables {
 
-    private GluonObservableHelper() {
+    private GluonObservables() {
     }
 
-    public static <T> GluonObservableList<T> newGluonObservableListInitialized(Collection<T> items) {
+    public static <T> GluonObservableList<T> newListInitialized(Collection<T> items) {
         GluonObservableList<T> gluonObservableList = new GluonObservableList<>();
-        if (items != null) {
-            gluonObservableList.setAll(items);
-        }
+        ifNotNullOrEmpty(items, gluonObservableList::setAll);
         setInitialized(gluonObservableList);
         return gluonObservableList;
     }
 
-    public static <T> GluonObservableList<T> newGluonObservableListInitialized() {
+    public static <T> GluonObservableList<T> newListInitialized() {
         GluonObservableList<T> gluonObservableList = new GluonObservableList<>();
         setInitialized(gluonObservableList);
         return gluonObservableList;
     }
 
-    public static <T> GluonObservableObject<T> newGluonObservableInitialized() {
+    public static <T> GluonObservableObject<T> newObjectInitialized() {
         GluonObservableObject<T> gluonObservableObject = new GluonObservableObject<>();
         setInitialized(gluonObservableObject);
         return gluonObservableObject;
     }
 
-    public static <T> GluonObservableObject<T> newGluonObservable(T obj) {
+    public static <T> GluonObservableObject<T> newObject(T obj) {
         GluonObservableObject<T> gluonObservableObject = new GluonObservableObject<>();
         gluonObservableObject.set(obj);
         return gluonObservableObject;

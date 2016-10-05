@@ -37,7 +37,7 @@ import com.jns.orienteering.model.common.BaseModel;
 import com.jns.orienteering.model.common.CityLookup;
 import com.jns.orienteering.model.common.UrlBuilder;
 import com.jns.orienteering.model.repo.readerwriter.RestMapReader;
-import com.jns.orienteering.util.GluonObservableHelper;
+import com.jns.orienteering.util.GluonObservables;
 
 public class CityLookupFBRepo<T extends CityLookup, LT extends BaseModel> extends FireBaseRepo<T> {
 
@@ -55,7 +55,7 @@ public class CityLookupFBRepo<T extends CityLookup, LT extends BaseModel> extend
 
     public GluonObservableList<LT> getPrivateListAsync(String cityId, String userId) {
         if (userId == null) {
-            return GluonObservableHelper.newGluonObservableListInitialized();
+            return GluonObservables.newListInitialized();
         }
         String idsUrl = buildUrlFromRelativePath(PRIVATE, cityId, userId);
         return retrieveList(idsUrl);

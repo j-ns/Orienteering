@@ -60,7 +60,7 @@ import com.jns.orienteering.model.persisted.Task;
 import com.jns.orienteering.model.repo.AsyncResultReceiver;
 import com.jns.orienteering.model.repo.LocalRepo;
 import com.jns.orienteering.model.repo.MissionFBRepo;
-import com.jns.orienteering.util.GluonObservableHelper;
+import com.jns.orienteering.util.GluonObservables;
 import com.jns.orienteering.util.SpecialCharReplacer;
 import com.jns.orienteering.util.Validators;
 
@@ -210,6 +210,7 @@ public class MissionPresenter extends BasePresenter {
 
         } else {
             if (ViewRegistry.MISSIONS.equals(service.getPreviousViewName())) {
+                tabPane.getSelectionModel().select(0);
 
                 GluonObservableList<Task> obsTasks = localMissionCache.retrieveMissionTasksSorted(mission.getId());
                 AsyncResultReceiver.create(obsTasks)
@@ -223,8 +224,6 @@ public class MissionPresenter extends BasePresenter {
                                    })
                                    .start();
             } else {
-                tabPane.getSelectionModel().select(0);
-
                 tasks = localMissionCache.getMissionTasksTemp();
                 lviewMissionTasks.setItems(tasks);
                 mapHelper.setMarkers(tasks);
@@ -400,7 +399,7 @@ public class MissionPresenter extends BasePresenter {
                                   {
                                       if (result.isInitialized()) {
                                           updateMissionsList(result.get(), mission);
-                                          GluonObservableHelper.setInitialized(obsSuccessful);
+                                          GluonObservables.setInitialized(obsSuccessful);
                                       }
                                   });
     }

@@ -31,6 +31,7 @@ package com.jns.orienteering.util;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
@@ -81,6 +82,18 @@ public class Validators {
 
     public static boolean isNullOrEmpty(Collection<?> items) {
         return items == null || items.isEmpty();
+    }
+
+    public static <E> void ifNullOrEmpty(Collection<E> items, Consumer<Collection<E>> action) {
+        if (isNullOrEmpty(items)) {
+            action.accept(items);
+        }
+    }
+
+    public static <E> void ifNotNullOrEmpty(Collection<E> items, Consumer<Collection<E>> action) {
+        if (!isNullOrEmpty(items)) {
+            action.accept(items);
+        }
     }
 
     public static <T> boolean sizeIsGreaterThan(Collection<T> items, int size) {

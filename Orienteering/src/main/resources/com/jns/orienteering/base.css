@@ -5,7 +5,6 @@
 	-selected-row-color: #F5F5F5;
 
 	-divider-color: #EBEBEB;
-	-accent-color: #DF066D;
 }
 
 /*******************************************************************************
@@ -27,6 +26,7 @@
 .button:hover {
 	-fx-background-color: -color-accent;
 }
+
 .button:pressed {
 	-fx-background-color: -color-accent-dark;
 }

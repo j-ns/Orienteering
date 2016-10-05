@@ -8,7 +8,7 @@ import com.gluonhq.connect.GluonObservableList;
 import com.jns.orienteering.model.common.AccessType;
 import com.jns.orienteering.model.common.CityAssignable;
 import com.jns.orienteering.model.repo.AsyncResultReceiver;
-import com.jns.orienteering.util.GluonObservableHelper;
+import com.jns.orienteering.util.GluonObservables;
 
 import javafx.collections.ObservableList;
 
@@ -32,7 +32,7 @@ public abstract class LocalCache<E extends CityAssignable> {
 
     public GluonObservableList<E> getPrivateItems(String cityId, String userId) {
         if (!cityId.equals(this.cityId) || !userId.equals(this.userId)) {
-            clearPrivateItems();
+            clearItems();
         }
 
         if (isNullOrEmpty(privateItems)) {
@@ -51,7 +51,7 @@ public abstract class LocalCache<E extends CityAssignable> {
 
     public GluonObservableList<E> getPublicItems(String cityId) {
         if (!cityId.equals(this.cityId)) {
-            clearPublicItems();
+            clearItems();
         }
 
         if (isNullOrEmpty(publicItems)) {
@@ -111,13 +111,18 @@ public abstract class LocalCache<E extends CityAssignable> {
     private void ensureItemsInitialized(AccessType accessType) {
         if (accessType == AccessType.PRIVATE) {
             if (privateItems == null) {
-                privateItems = GluonObservableHelper.newGluonObservableListInitialized();
+                privateItems = GluonObservables.newListInitialized();
             }
         } else {
             if (publicItems == null) {
-                publicItems = GluonObservableHelper.newGluonObservableListInitialized();
+                publicItems = GluonObservables.newListInitialized();
             }
         }
+    }
+
+    public void clearItems() {
+        clearPrivateItems();
+        clearPublicItems();
     }
 
     public void clearItems(AccessType accessType) {
