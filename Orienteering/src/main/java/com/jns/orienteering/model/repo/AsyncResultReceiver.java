@@ -191,8 +191,8 @@ public class AsyncResultReceiver<T extends GluonObservable> {
                                                                      };
 
     private void startFinalizer() {
-        finalizer.ifPresent(f -> f.accept(observable));
         removeListeners();
+        finalizer.ifPresent(f -> f.accept(observable));
         runningReceivers.decrement();
 
         if (!next.isPresent()) {

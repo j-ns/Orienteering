@@ -102,7 +102,7 @@ public class ActivatorDeactivatorService {
         activeViewNames.clear();
     }
 
-    private class ActivatorDeactivatorConsumer {
+    private static class ActivatorDeactivatorConsumer {
 
         private Trigger activator;
         private Trigger deactivator;
