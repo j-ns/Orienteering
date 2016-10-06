@@ -77,8 +77,8 @@ public class CitySynchronizer extends BaseSynchronizer<City, LocalCityList> {
 
     @Override
     protected void storeLocally(GluonObservableList<City> cloudData) {
-        super.storeLocally(cloudData);
         localCityCache.createMapping(cloudData, getSyncMetaData().getUserId());
+        super.storeLocally(localCityCache.getPublicCities());
     }
 
     @Override
@@ -87,7 +87,7 @@ public class CitySynchronizer extends BaseSynchronizer<City, LocalCityList> {
         AsyncResultReceiver.create(obsLocalData)
                            .onSuccess(resultLocal ->
                            {
-                               LocalCityCache.INSTANCE.createMapping(resultLocal, getSyncMetaData().getUserId());
+                               localCityCache.createMapping(resultLocal, getSyncMetaData().getUserId());
 
                                if (log != null) {
                                    boolean localDataNeedsUpdate = false;

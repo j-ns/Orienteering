@@ -80,12 +80,14 @@ public class ActiveMissionSynchronizer extends BaseSynchronizer<User, User> {
 
         User user = service.getUser();
         if (user == null) {
+            localRepo.deleteAsync();
             setSucceeded();
             return;
         }
 
         Mission activeMission = user.getActiveMission();
         if (activeMission == null) {
+            localRepo.deleteAsync();
             setSucceeded();
             return;
         }
@@ -124,11 +126,11 @@ public class ActiveMissionSynchronizer extends BaseSynchronizer<User, User> {
                                                                                                                                          .getOwnerId()
                                                                                                                                          .equals(userId)) {
                                                                   service.setActiveMission(null);
-                                                                  setSucceeded();
                                                               } else {
                                                                   service.setActiveMission(resultActiveMission.get());
                                                                   activeTasksSynchronizer.syncNow(getSyncMetaData());
                                                               }
+                                                              setSucceeded();
                                                           })
                                                           .start();
                                        break;
