@@ -48,15 +48,15 @@ import javafx.util.Duration;
 
 public class ProgressLayer extends Layer {
 
-    public static final double DEFAULT_DELAY = 150;
+    public static final double     DEFAULT_DELAY = 150;
 
-    private GlassPane          glassPane     = MobileApplication.getInstance().getGlassPane();
+    private static final GlassPane GLASS_PANE    = MobileApplication.getInstance().getGlassPane();
 
-    private StackPane          root;
+    private StackPane              root;
 
-    private ShowHideTransition showHideTransition;
-    private double             delay         = DEFAULT_DELAY;
-    private boolean            fadeLayer;
+    private ShowHideTransition     showHideTransition;
+    private double                 delay         = DEFAULT_DELAY;
+    private boolean                fadeLayer;
 
     public ProgressLayer() {
         this(PauseFadeInFadeOut::new);
@@ -72,7 +72,7 @@ public class ProgressLayer extends Layer {
         root = new StackPane(progress);
         getChildren().add(root);
 
-        glassPane.getLayers().add(this);
+        GLASS_PANE.getLayers().add(this);
 
         showHideTransition = transitionProvider.apply(this);
         showHideTransition.setOnFinished(() -> super.hide());
@@ -110,7 +110,7 @@ public class ProgressLayer extends Layer {
         if (isShowing()) {
             showHideTransition.startHide();
         }
-        glassPane.setBackgroundFade(0d);
+        GLASS_PANE.setBackgroundFade(0d);
     }
 
     @Override
@@ -121,7 +121,7 @@ public class ProgressLayer extends Layer {
         }
 
         double size = root.prefWidth(-1);
-        resizeRelocate(glassPane.getWidth() / 2, glassPane.getHeight() / 2, size, size);
+        resizeRelocate(GLASS_PANE.getWidth() / 2, GLASS_PANE.getHeight() / 2, size, size);
     }
 
     public abstract static class ShowHideTransition {
@@ -166,7 +166,7 @@ public class ProgressLayer extends Layer {
             {
                 if (progressLayer.isShowing()) {
                     if (progressLayer.fadeLayer) {
-                        progressLayer.glassPane.setBackgroundFade(GlassPane.DEFAULT_BACKGROUND_FADE_LEVEL);
+                        ProgressLayer.GLASS_PANE.setBackgroundFade(GlassPane.DEFAULT_BACKGROUND_FADE_LEVEL);
                     }
                     showTransition.playFromStart();
                     running = true;

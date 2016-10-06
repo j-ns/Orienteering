@@ -102,7 +102,7 @@ public class TasksPresenter extends ListViewPresenter<Task> {
     protected void initAppBar() {
         if (isMissionEditorModus()) {
             setAppBar(createBackButton(), getTitle(), btnRefresh, tglAccessType);
-        }else {
+        } else {
             setAppBar(createGoHomeButton(), getTitle(), btnRefresh, tglAccessType, choiceCity);
         }
     }
@@ -218,16 +218,13 @@ public class TasksPresenter extends ListViewPresenter<Task> {
                                {
                                    localTaskCache.removeItem(task);
 
-                                   if (isMissionEditorModus()) {
-                                       // service.getListUpdater(MISSION_TASKS_UPDATER).remove(task);
-                                       LocalMissionCache.INSTANCE.getMissionTasks().remove(task);
-
-                                       boolean activeMissionContainsTask = selectedMission.equals(service.getActiveMission()) &&
-                                               selectedMission.getTaskIds().contains(task.getId());
-                                       if (activeMissionContainsTask) {
-                                           service.setActiveMission(null);
-                                       }
+                                   if (service.activeMissionContainsTask(task)) {
+                                       service.setActiveMission(null);
                                    }
+                                   if (isMissionEditorModus()) {
+                                       LocalMissionCache.INSTANCE.removeTask(task);
+                                   }
+
                                })
                                .exceptionMessage(localize("view.tasks.error.deleteTask"))
                                .start();

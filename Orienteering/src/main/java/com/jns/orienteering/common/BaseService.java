@@ -61,6 +61,7 @@ import com.jns.orienteering.model.repo.synchronizer.RepoSynchronizer;
 import com.jns.orienteering.model.repo.synchronizer.SyncMetaData;
 import com.jns.orienteering.platform.PlatformProvider;
 import com.jns.orienteering.util.Dialogs;
+import com.jns.orienteering.util.Validators;
 import com.jns.orienteering.view.ViewRegistry;
 
 import javafx.application.Platform;
@@ -154,13 +155,7 @@ public class BaseService {
 
     private void initSynchronizers() {
         CitySynchronizer citySynchronizer = new CitySynchronizer(repoService.getCloudRepo(City.class), repoService.getLocalRepo(City.class));
-        citySynchronizer.setOnSynced(result ->
-        {
-            cities = new SortedList<>(result, City::compareTo);
-            if (LocalCityCache.INSTANCE.isEmpty()) {
-                LocalCityCache.INSTANCE.createMapping(result, getUserId());
-            }
-        });
+        citySynchronizer.setOnSynced(result -> cities = new SortedList<>(result, City::compareTo));
 
         ActiveMissionSynchronizer missionSynchronizer = new ActiveMissionSynchronizer(this);
         ImageSynchronizer imageSynchronizer = new ImageSynchronizer();
@@ -424,6 +419,10 @@ public class BaseService {
 
     public StringProperty activeMissionNameProperty() {
         return activeMissionName;
+    }
+
+    public boolean activeMissionContainsTask(Task task) {
+        return Validators.isNullOrEmpty(activeTasks) ? false : activeTasks.contains(task);
     }
 
     public ObservableList<Task> getActiveTasks() {

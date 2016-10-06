@@ -377,7 +377,7 @@ public class MissionPresenter extends BasePresenter {
                                                            LocalRepo<Task, ActiveTaskList> localTasksRepo = service.getRepoService().getLocalRepo(
                                                                                                                                                   Task.class);
                                                            localTasksRepo.createOrUpdateListAsync(new ActiveTaskList(tasks));
-                                                           localMissionCache.updateMissionTasksFromBuffer();
+                                                           localMissionCache.updateMissionTasksWithBuffer();
                                                        }
                                                    })
                                                    .start();
@@ -466,6 +466,12 @@ public class MissionPresenter extends BasePresenter {
                            .onSuccess(e ->
                            {
                                localMissionCache.removeMissionAndTasks(mission);
+
+                               Mission activeMission = service.getActiveMission();
+                               if (activeMission != null && activeMission.getId().equals(mission)) {
+                                   service.setActiveMission(null);
+                               }
+
                                showView(ViewRegistry.MISSIONS);
                            })
                            .exceptionMessage(localize("view.mission.error.delete"))

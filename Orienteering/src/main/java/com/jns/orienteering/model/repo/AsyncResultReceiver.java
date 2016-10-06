@@ -54,7 +54,7 @@ public class AsyncResultReceiver<T extends GluonObservable> {
     private static final Logger                                      LOGGER                 = LoggerFactory.getLogger(AsyncResultReceiver.class);
 
     private static final ProgressLayer                               DEFAULT_PROGRESS_LAYER = new ProgressLayer(PauseFadeInHide::new);
-    private static CountProperty                                     runningReceivers       = new CountProperty();
+    private static CountProperty                                     runningInstances       = new CountProperty();
 
     private T                                                        observable;
     private Optional<Consumer<T>>                                    consumer               = Optional.empty();
@@ -93,7 +93,8 @@ public class AsyncResultReceiver<T extends GluonObservable> {
     /**
      * Convenience method to set another GluonObservable initialized, if this AsyncResultReceiver succeeds.
      *
-     * @param obsValue the GluonObservable which is listening for the result of this AsyncResultReceiver
+     * @param obsValue
+     *            the GluonObservable which is listening for the result of this AsyncResultReceiver
      * @return
      */
     public AsyncResultReceiver<T> setInitializedOnSuccess(GluonObservable obsValue) {
@@ -130,7 +131,7 @@ public class AsyncResultReceiver<T extends GluonObservable> {
     }
 
     public void start() {
-        runningReceivers.increment();
+        runningInstances.increment();
 
         if (observable.isInitialized()) {
             consumer.ifPresent(c -> c.accept(observable));
@@ -181,7 +182,8 @@ public class AsyncResultReceiver<T extends GluonObservable> {
                                                                              onException.ifPresent(c -> c.accept(e1));
                                                                              exceptionMessage.ifPresent(msg -> Dialogs.ok(msg).showAndWait());
 
-                                                                             if (e1 instanceof UnknownHostException || e1 instanceof ConnectException) {
+                                                                             if (e1 instanceof UnknownHostException ||
+                                                                                     e1 instanceof ConnectException) {
                                                                                  Dialogs.ok(localize("dialog.error.connectionFailed"))
                                                                                         .showAndWait();
                                                                              }
@@ -193,10 +195,10 @@ public class AsyncResultReceiver<T extends GluonObservable> {
     private void startFinalizer() {
         removeListeners();
         finalizer.ifPresent(f -> f.accept(observable));
-        runningReceivers.decrement();
+        runningInstances.decrement();
 
         if (!next.isPresent()) {
-            if (runningReceivers.get() == 0) {
+            if (runningInstances.get() == 0) {
                 progressLayer.ifPresent(ProgressLayer::hide);
             }
         } else {

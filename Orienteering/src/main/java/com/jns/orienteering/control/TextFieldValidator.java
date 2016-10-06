@@ -29,7 +29,6 @@
 package com.jns.orienteering.control;
 
 import java.text.DecimalFormatSymbols;
-import java.text.NumberFormat;
 import java.util.regex.Pattern;
 
 import javafx.beans.NamedArg;
@@ -38,11 +37,10 @@ import javafx.scene.control.TextFormatter.Change;
 
 public class TextFieldValidator {
 
-    private static final String      CURRENCY_SYMBOL   = DecimalFormatSymbols.getInstance().getCurrencySymbol();
-    private static final char        DECIMAL_SEPARATOR = DecimalFormatSymbols.getInstance().getDecimalSeparator();
-    public static final NumberFormat numberFormat      = NumberFormat.getInstance();
+    private static final String CURRENCY_SYMBOL   = DecimalFormatSymbols.getInstance().getCurrencySymbol();
+    private static final char   DECIMAL_SEPARATOR = DecimalFormatSymbols.getInstance().getDecimalSeparator();
 
-    private final Pattern            INPUT_PATTERN;
+    private final Pattern       INPUT_PATTERN;
 
     public TextFieldValidator(@NamedArg("modus") ValidationModus modus, @NamedArg("countOf") int countOf) {
         this(modus.createPattern(countOf));

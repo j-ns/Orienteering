@@ -27,6 +27,7 @@
  */
 package com.jns.orienteering.common;
 
+import static com.jns.orienteering.util.GluonObservables.setInitialized;
 import static com.jns.orienteering.util.Validators.isNullOrEmpty;
 
 import java.io.File;
@@ -48,8 +49,6 @@ import com.jns.orienteering.model.common.FireBaseStorage;
 import com.jns.orienteering.model.common.StorableImage;
 import com.jns.orienteering.model.persisted.ChangeLogEntry;
 import com.jns.orienteering.platform.PlatformProvider;
-import com.jns.orienteering.util.GluonObservables;
-import com.jns.orienteering.util.Trigger;
 
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -61,12 +60,6 @@ public class ImageHandler {
     /**
      * https://commons.wikimedia.org/wiki/File:WikiFont_uniE600_-_userAvatar_-_blue.svg
      * By User:MGalloway (WMF) (mw:Design/WikiFont) [CC BY-SA 3.0 (http://creativecommons.org/licenses/by-sa/3.0)], via Wikimedia
-     * Commons
-     */
-
-    /**
-     * https://commons.wikimedia.org/wiki/File:Flakturm-Volkspark-Humboldthain-Berlin-Gesundbrunnen-Denis-Apel-3.JPG
-     * By User:Denis Apel [CC BY-SA 3.0 (http://creativecommons.org/licenses/by-sa/3.0)], via Wikimedia
      * Commons
      */
 
@@ -106,8 +99,7 @@ public class ImageHandler {
     }
 
     public static GluonObservableObject<Image> storeImageAsync(StorableImage storableImage) {
-        return executeAsync(() -> storeImage(storableImage), obsImage -> GluonObservables.setInitialized(obsImage, storableImage.get(),
-                                                                                                              true));
+        return executeAsync(storableImage, ImageHandler::storeImage);
     }
 
     public static boolean storeImage(StorableImage storableImage) {
@@ -126,9 +118,7 @@ public class ImageHandler {
     }
 
     public static GluonObservableObject<Image> updateImageAsync(StorableImage storableImage, String oldUrl) {
-        return executeAsync(() -> updateImage(storableImage, oldUrl), obsImage -> GluonObservables.setInitialized(obsImage, storableImage
-                                                                                                                                              .get(),
-                                                                                                                       true));
+        return executeAsync(storableImage, i -> updateImage(i, oldUrl));
     }
 
     public static void updateImage(StorableImage storableImage, String oldUrl) {
@@ -142,7 +132,7 @@ public class ImageHandler {
         GluonObservableObject<Image> obsImage = new GluonObservableObject<>();
 
         if (isNullOrEmpty(url)) {
-            GluonObservables.setInitialized(obsImage, placeHolder, true);
+            setInitialized(obsImage, placeHolder, true);
             return obsImage;
         }
 
@@ -150,11 +140,11 @@ public class ImageHandler {
         {
             Image localImage = imageCache.getImage(url);
             if (localImage != null) {
-                GluonObservables.setInitialized(obsImage, localImage, true);
+                setInitialized(obsImage, localImage, true);
 
             } else {
                 StorableImage cloudImage = retrieveImageFromCloud(url);
-                GluonObservables.setInitialized(obsImage, cloudImage.get(), true);
+                setInitialized(obsImage, cloudImage.get(), true);
 
                 imageCache.add(cloudImage);
             }
@@ -189,7 +179,7 @@ public class ImageHandler {
     }
 
     public static GluonObservableObject<Image> deleteImageAsync(String url) {
-        return executeAsync(() -> deleteImage(url), GluonObservables::setInitialized);
+        return executeAsync(StorableImage.emptyInstance(), e -> deleteImage(url));
     }
 
     public static void deleteImage(String url) {
@@ -249,14 +239,14 @@ public class ImageHandler {
         });
     }
 
-    private static GluonObservableObject<Image> executeAsync(Trigger action, Consumer<GluonObservableObject<Image>> onSuccess) {
+    private static GluonObservableObject<Image> executeAsync(StorableImage image, Consumer<StorableImage> action) {
         GluonObservableObject<Image> obsImage = new GluonObservableObject<>();
 
         executor.execute(() ->
         {
             try {
-                action.start();
-                onSuccess.accept(obsImage);
+                action.accept(image);
+                setInitialized(obsImage, image.get(), true);
             } catch (StorageException ex) {
                 obsImage.setException(ex);
             }
@@ -303,7 +293,7 @@ public class ImageHandler {
                 storeImageLocal(storableImage, target);
                 cache.put(targetUrl, storableImage.get());
 
-                LOGGER.debug("image cached {}", targetUrl);
+                LOGGER.debug("image cached: {}", targetUrl);
             } catch (IOException e) {
                 LOGGER.error("failed to cache image: {}", targetUrl, e);
                 return false;
@@ -326,7 +316,7 @@ public class ImageHandler {
 
                 } else {
                     cache.put(url, storedImage);
-                    LOGGER.debug("image found on disk, and cached {}", url);
+                    LOGGER.debug("image found on disk, and cached: {}", url);
                     return storedImage;
                 }
             }

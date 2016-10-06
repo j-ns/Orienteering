@@ -39,13 +39,12 @@ public class LocalMissionCache extends LocalCache<Mission> {
         }
 
         if (!isNullOrEmpty(missionTasks)) {
-            missionTasksTemp = missionTasks;
             return missionTasks;
         }
-        selectedMissionId = missionId;
 
         missionTasksTemp = null;
         missionTasks = cloudRepo.retrieveOrderedTasksAsync(missionId);
+        selectedMissionId = missionId;
         return missionTasks;
     }
 
@@ -71,15 +70,22 @@ public class LocalMissionCache extends LocalCache<Mission> {
         if (idx > -1) {
             missionTasks.set(idx, newTask);
         }
+
+        int idxTemp = missionTasksTemp.indexOf(previousTask);
+        if (idxTemp > -1) {
+            missionTasksTemp.set(idxTemp, newTask);
+        }
     }
 
-    public void updateMissionTasksFromBuffer() {
+    public void updateMissionTasksWithBuffer() {
         missionTasks.setAll(missionTasksTemp);
     }
 
     public void removeTask(Task task) {
         if (missionTasks != null) {
             missionTasks.remove(task);
+        }
+        if (missionTasksTemp != null) {
             missionTasksTemp.remove(task);
         }
     }

@@ -40,6 +40,7 @@ import org.slf4j.LoggerFactory;
 
 import com.gluonhq.connect.GluonObservableList;
 import com.jns.orienteering.model.common.RepoAction;
+import com.jns.orienteering.model.dynamic.LocalMissionCache;
 import com.jns.orienteering.model.persisted.ActiveTaskList;
 import com.jns.orienteering.model.persisted.ChangeLogEntry;
 import com.jns.orienteering.model.persisted.Mission;
@@ -94,7 +95,11 @@ public class ActiveTasksSynchronizer extends BaseSynchronizer<Task, ActiveTaskLi
     @Override
     protected void retrieveCloudDataAndStoreLocally() {
         MissionFBRepo missionCloudRepo = RepoService.INSTANCE.getCloudRepo(Mission.class);
-        GluonObservableList<Task> obsTasks = missionCloudRepo.retrieveOrderedTasksAsync(getSyncMetaData().getActiveMission().getId());
+        GluonObservableList<Task> obsTasks =
+                missionCloudRepo.retrieveOrderedTasksAsync(getSyncMetaData().getActiveMission().getId());
+
+        // GluonObservableList<Task> obsTasks =
+        // LocalMissionCache.INSTANCE.retrieveMissionTasksSorted(getSyncMetaData().getActiveMission().getId());
 
         AsyncResultReceiver.create(obsTasks)
                            .onSuccess(this::storeLocally)

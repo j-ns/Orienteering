@@ -151,9 +151,9 @@ public class FloatingTextFieldSkin extends SkinBase<FloatingTextField> {
 
     @Override
     protected double computePrefWidth(double height, double topInset, double rightInset, double bottomInset, double leftInset) {
-        double tfWidth = textField.prefWidth(-1);
+        double textFieldWidth = textField.prefWidth(-1);
         double graphicWidth = !containsGraphic() ? 0 : getSkinnable().getGraphic().prefWidth(-1);
-        return leftInset + tfWidth + graphicWidth + rightInset;
+        return leftInset + textFieldWidth + graphicWidth + rightInset;
     }
 
     @Override

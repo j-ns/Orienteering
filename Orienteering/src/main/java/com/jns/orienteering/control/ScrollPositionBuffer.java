@@ -76,7 +76,7 @@ public class ScrollPositionBuffer implements ActivatableDeactivatable {
      * @param scrollPane
      *            the ScrollPane whose vertical position should be buffered and restored
      * @param triggerNode
-     *            Node which triggers the buffering of the vertical position of <code>scrollPane</code>
+     *            Node which triggers the buffering of the vertical position of <code>scrollPane</code>, when it is clicked
      */
     public ScrollPositionBuffer(ScrollPane scrollPane, Node... triggerNode) {
         this.scrollPane = scrollPane;

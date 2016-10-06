@@ -364,7 +364,7 @@ public class TaskPresenter extends BasePresenter {
                 if (_image == null) {
                     ImageHandler.deleteImageAsync(task.getImageUrl());
                 } else {
-                    saveImage(_image, newTask.getImageUrl(), sImage -> ImageHandler.updateImage(sImage, task.getImageUrl()));
+                    saveImage(_image, newTask.getImageUrl(), sImage -> ImageHandler.updateImageAsync(sImage, task.getImageUrl()));
                 }
             }
 
@@ -375,7 +375,7 @@ public class TaskPresenter extends BasePresenter {
                                .onSuccess(e ->
                                {
                                    if (image.get() != null) {
-                                       saveImage(image.get(), newTask.getImageUrl(), ImageHandler::storeImage);
+                                       saveImage(image.get(), newTask.getImageUrl(), ImageHandler::storeImageAsync);
                                    }
                                })
                                .start();
@@ -397,6 +397,10 @@ public class TaskPresenter extends BasePresenter {
     private void updateTasksList(Task newTask, Task previousTask) {
         if (isEditorModus()) {
             LocalTaskCache.INSTANCE.updateItem(newTask, previousTask);
+
+            if (service.activeMissionContainsTask(task)) {
+                service.setActiveMission(null);
+            }
         } else {
             LocalTaskCache.INSTANCE.addItem(newTask);
         }
@@ -422,8 +426,13 @@ public class TaskPresenter extends BasePresenter {
                            .onSuccess(e ->
                            {
                                LocalTaskCache.INSTANCE.removeItem(task);
+
+                               if (service.activeMissionContainsTask(task)) {
+                                   service.setActiveMission(null);
+                               }
                                if (isMissionEditorModus()) {
                                    LocalMissionCache.INSTANCE.removeTask(task);
+
                                }
                                showPreviousView();
                            })
