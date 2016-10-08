@@ -40,7 +40,6 @@ import java.util.function.Consumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.gluonhq.charm.down.common.PlatformFactory;
 import com.gluonhq.charm.down.common.cache.Cache;
 import com.gluonhq.connect.GluonObservableList;
 import com.gluonhq.connect.GluonObservableObject;
@@ -269,8 +268,8 @@ public class ImageHandler {
         private Cache<String, Image> cache;
 
         private ImageCache() {
-            imageStore = PlatformProvider.getPlatform().getStorage().getPrivateFile(IMAGES_DIR);
-            cache = PlatformFactory.getPlatform().getCacheManager().createCache("image_cache");
+            imageStore = PlatformProvider.getPlatformService().getStorage().getPrivateFile(IMAGES_DIR);
+            cache = PlatformProvider.getPlatform().getCacheManager().createCache("image_cache");
 
             LOGGER.debug("imageStore: {}", imageStore);
         }

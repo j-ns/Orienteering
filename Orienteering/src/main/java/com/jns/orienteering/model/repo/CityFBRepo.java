@@ -130,7 +130,7 @@ public class CityFBRepo extends FireBaseRepo<City> {
     }
 
     private void writeLogEntry(City city, RepoAction action) {
-        getChangeLogRepo().writeLog(city, action, ChangeLogRepo::writeCityLogAsync);
+        getChangeLogRepo().writeLogAsync(city, action, CITIES);
     }
 
 }

@@ -9,9 +9,9 @@ import com.jns.orienteering.model.repo.MissionFBRepo;
 import com.jns.orienteering.model.repo.RepoService;
 import com.jns.orienteering.util.GluonObservables;
 
-public class LocalMissionCache extends LocalCache<Mission> {
+public class MissionCache extends ModelCache<Mission> {
 
-    public static final LocalMissionCache INSTANCE = new LocalMissionCache();
+    public static final MissionCache INSTANCE = new MissionCache();
 
     private MissionFBRepo                 cloudRepo;
 
@@ -19,7 +19,7 @@ public class LocalMissionCache extends LocalCache<Mission> {
     private GluonObservableList<Task>     missionTasks;
     private GluonObservableList<Task>     missionTasksTemp;
 
-    private LocalMissionCache() {
+    private MissionCache() {
         cloudRepo = RepoService.INSTANCE.getCloudRepo(Mission.class);
     }
 

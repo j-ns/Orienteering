@@ -35,7 +35,6 @@ import java.util.Iterator;
 
 import javax.inject.Inject;
 
-import com.gluonhq.charm.down.common.PlatformFactory;
 import com.gluonhq.charm.down.common.Position;
 import com.gluonhq.maps.MapView;
 import com.jns.orienteering.common.BaseService;
@@ -50,6 +49,7 @@ import com.jns.orienteering.model.persisted.Task;
 import com.jns.orienteering.model.persisted.TaskStat;
 import com.jns.orienteering.model.persisted.TrackData;
 import com.jns.orienteering.model.repo.MissionStatFBRepo;
+import com.jns.orienteering.platform.PlatformProvider;
 import com.jns.orienteering.platform.PositionServiceExtended;
 import com.jns.orienteering.util.Dialogs;
 import com.jns.orienteering.util.Dialogs.DialogAnswer;
@@ -232,7 +232,7 @@ public class ActiveMissionPresenter extends BasePresenter {
     }
 
     private void scanBarcode() {
-        barcode = PlatformFactory.getPlatform().getScanService().scan();
+        barcode = PlatformProvider.getPlatform().getScanService().scan();
         barcode.addListener(barcodeListener);
     }
 

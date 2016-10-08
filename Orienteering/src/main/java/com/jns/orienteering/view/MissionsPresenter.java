@@ -34,8 +34,8 @@ import com.gluonhq.charm.glisten.layout.layer.FloatingActionButton;
 import com.gluonhq.connect.GluonObservableList;
 import com.gluonhq.connect.GluonObservableObject;
 import com.jns.orienteering.control.cell.MissionCell;
-import com.jns.orienteering.model.dynamic.LocalCache;
-import com.jns.orienteering.model.dynamic.LocalMissionCache;
+import com.jns.orienteering.model.dynamic.ModelCache;
+import com.jns.orienteering.model.dynamic.MissionCache;
 import com.jns.orienteering.model.persisted.Mission;
 import com.jns.orienteering.model.repo.AsyncResultReceiver;
 import com.jns.orienteering.model.repo.MissionFBRepo;
@@ -47,7 +47,7 @@ import javafx.collections.FXCollections;
 public class MissionsPresenter extends ListViewPresenter<Mission> {
 
     private MissionFBRepo     cloudRepo;
-    private LocalMissionCache localMissionCache;
+    private MissionCache localMissionCache;
 
     @Override
     protected void initialize() {
@@ -62,7 +62,7 @@ public class MissionsPresenter extends ListViewPresenter<Mission> {
         lview.setOnSelection(this::onSelectMission);
 
         cloudRepo = service.getRepoService().getCloudRepo(Mission.class);
-        localMissionCache = LocalMissionCache.INSTANCE;
+        localMissionCache = MissionCache.INSTANCE;
     }
 
     @Override
@@ -81,7 +81,7 @@ public class MissionsPresenter extends ListViewPresenter<Mission> {
     }
 
     @Override
-    protected LocalCache<?> getLocalCache() {
+    protected ModelCache<?> getLocalCache() {
         return localMissionCache;
     }
 

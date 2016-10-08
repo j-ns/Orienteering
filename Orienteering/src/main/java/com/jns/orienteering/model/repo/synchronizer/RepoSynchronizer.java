@@ -34,10 +34,10 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.gluonhq.charm.down.common.PlatformFactory;
 import com.gluonhq.charm.down.common.SettingService;
 import com.gluonhq.connect.ConnectState;
 import com.jns.orienteering.model.common.CountProperty;
+import com.jns.orienteering.platform.PlatformProvider;
 
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
@@ -50,7 +50,7 @@ public class RepoSynchronizer {
 
     private static final String                       LAST_SYNCED_PROPERTY = "lastSync";
 
-    private SettingService                            settingService       = PlatformFactory.getPlatform().getSettingService();
+    private SettingService                            settingService       = PlatformProvider.getPlatform().getSettingService();
 
     private Map<String, BaseSynchronizer<?, ?>>       synchronizers        = new HashMap<>();
     private SyncMetaData                              syncMetaData;

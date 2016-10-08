@@ -161,7 +161,7 @@ public class TaskFBRepo extends FireBaseRepo<Task> {
     }
 
     private void writeLogEntry(Task task, RepoAction action) {
-        getChangeLogRepo().writeLog(task, action, ChangeLogRepo::writeTaskLogAsync);
+        getChangeLogRepo().writeLogAsync(task, action, TASKS);
     }
 
 }

@@ -201,7 +201,7 @@ public class MissionFBRepo extends FireBaseRepo<Mission> {
     }
 
     private void writeLogEntry(Mission mission, RepoAction action) {
-        getChangeLogRepo().writeLog(mission, action, ChangeLogRepo::writeMissionLogAsync);
+        getChangeLogRepo().writeLogAsync(mission, action, MISSIONS);
     }
 
 }

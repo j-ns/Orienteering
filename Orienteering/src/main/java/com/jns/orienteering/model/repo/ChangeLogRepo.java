@@ -28,7 +28,12 @@
  */
 package com.jns.orienteering.model.repo;
 
-import java.util.function.BiConsumer;
+import static com.jns.orienteering.model.repo.QueryParameters.endAt;
+import static com.jns.orienteering.model.repo.QueryParameters.shallow;
+import static com.jns.orienteering.model.repo.QueryParameters.startAt;
+
+import java.util.Arrays;
+import java.util.List;
 
 import com.gluonhq.connect.GluonObservableList;
 import com.gluonhq.connect.GluonObservableObject;
@@ -41,69 +46,62 @@ import javafx.util.Pair;
 public class ChangeLogRepo extends FireBaseRepo<ChangeLogEntry> {
 
     private static final String CHANGE_LOG        = "change_log";
+
     private static final String CITIES            = "cities";
     private static final String TASKS             = "tasks";
-    private static final String IMAGES            = "images";
     private static final String MISSIONS          = "missions";
+    private static final String IMAGES            = "images";
+
     private static final String TIME_STAMP_FILTER = "timeStamp";
 
     public ChangeLogRepo() {
         super(ChangeLogEntry.class, CHANGE_LOG);
     }
 
-    public void writeLog(Synchronizable obj, RepoAction action, BiConsumer<ChangeLogRepo, ChangeLogEntry> logWriter) {
-        obj.setRepoAction(action);
-        ChangeLogEntry changeLogEntry = new ChangeLogEntry(obj);
-        logWriter.accept(this, changeLogEntry);
-    }
-
-    public void writeCityLogAsync(ChangeLogEntry entry) {
-        writeAsync(entry, CITIES, entry.getId());
-    }
-
-    public void writeMissionLogAsync(ChangeLogEntry entry) {
-        writeAsync(entry, MISSIONS, entry.getId());
-    }
-
-    public void writeTaskLogAsync(ChangeLogEntry entry) {
-        writeAsync(entry, TASKS, entry.getId());
-    }
-
     public void writeImageLogAsync(ChangeLogEntry entry) {
-        writeAsync(entry, IMAGES, entry.getId());
+        createOrUpdateAsync(entry, IMAGES, entry.getId());
     }
 
-    public GluonObservableObject<ChangeLogEntry> writeAsync(ChangeLogEntry entry, String... urlParts) {
-        return createOrUpdateAsync(entry, urlParts);
+    public void writeLogAsync(Synchronizable synchronizable, RepoAction action, String baseUrl) {
+        synchronizable.setRepoAction(action);
+        ChangeLogEntry changeLogEntry = new ChangeLogEntry(synchronizable);
+        createOrUpdateAsync(changeLogEntry, baseUrl, changeLogEntry.getId());
     }
 
     public GluonObservableList<ChangeLogEntry> readListAsync(long lastSynced, String... urlParts) {
-        return retrieveListFilteredAsync(TIME_STAMP_FILTER, startAt(lastSynced),
-                                         urlParts);
+        return retrieveListFilteredAsync(TIME_STAMP_FILTER, startAt(lastSynced), urlParts);
     }
 
     public GluonObservableObject<ChangeLogEntry> readObjectAsync(long lastSynced, String... urlParts) {
-        return retrieveObjectFilteredAsync(TIME_STAMP_FILTER, startAt(lastSynced),
-                                           urlParts);
+        return retrieveObjectFilteredAsync(TIME_STAMP_FILTER, startAt(lastSynced), urlParts);
     }
 
-    public void removeLogEntriesBefore(long timeStamp) {
-        GluonObservableList<ChangeLogEntry> obsCityLogEntries = retrieveListFilteredAsync(TIME_STAMP_FILTER, new Pair<String, String>("endAt", String
-                                                                                                                                                     .valueOf(
-                                                                                                                                                              timeStamp)),
-                                                                                          CITIES);
+    // todo:delete log entries of the previous month but one. If lastSync was at that time, reload all data
+    // limit the max number of delete operations for a single user, to distribute the changeLog cleanup operations amongst all
+    // users
+    public void removeLogEntriesUntil(long timeStamp) {
+        removeLogEntries(CITIES, getLogEntriesBefore(CITIES, timeStamp));
+        removeLogEntries(TASKS, getLogEntriesBefore(TASKS, timeStamp));
+        removeLogEntries(MISSIONS, getLogEntriesBefore(MISSIONS, timeStamp));
+        removeLogEntries(IMAGES, getLogEntriesBefore(IMAGES, timeStamp));
+    }
 
-        AsyncResultReceiver.create(obsCityLogEntries)
+    private GluonObservableList<ChangeLogEntry> getLogEntriesBefore(String url, long timeStamp) {
+        List<Pair<String, String>> params = Arrays.asList(endAt(timeStamp), shallow());
+
+        return retrieveListFilteredAsync(TIME_STAMP_FILTER, params, url);
+
+    }
+
+    private void removeLogEntries(String url, GluonObservableList<ChangeLogEntry> logEntries) {
+        AsyncResultReceiver.create(logEntries)
                            .onSuccess(result ->
                            {
-                               for (ChangeLogEntry candidate : obsCityLogEntries) {
-                                   deleteAsync(CITIES, candidate.getId());
+                               for (ChangeLogEntry candidate : logEntries) {
+                                   deleteAsync(url, candidate.getId());
                                }
                            })
                            .start();
     }
 
-    private Pair<String, String> startAt(long lastSynced) {
-        return new Pair<String, String>("startAt", Long.toString(lastSynced));
-    }
 }

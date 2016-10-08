@@ -38,7 +38,7 @@ import com.jns.orienteering.control.ScrollEventFilter;
 import com.jns.orienteering.control.SelectState;
 import com.jns.orienteering.control.StateButton;
 import com.jns.orienteering.model.common.AccessType;
-import com.jns.orienteering.model.dynamic.LocalCache;
+import com.jns.orienteering.model.dynamic.ModelCache;
 import com.jns.orienteering.model.persisted.City;
 
 import javafx.beans.binding.When;
@@ -107,7 +107,7 @@ public abstract class ListViewPresenter<T> extends BasePresenter {
 
     protected abstract String getNoDataExistingMessage();
 
-    protected abstract LocalCache<?> getLocalCache();
+    protected abstract ModelCache<?> getLocalCache();
 
     protected abstract void populateListView();
 

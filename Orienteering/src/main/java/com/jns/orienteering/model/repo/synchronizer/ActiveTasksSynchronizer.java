@@ -81,7 +81,6 @@ public class ActiveTasksSynchronizer extends BaseSynchronizer<Task, ActiveTaskLi
 
         if (!fileExists) {
             if (getSyncMetaData().getActiveMission() == null) {
-                getOnSynced().accept(FXCollections.observableArrayList());
                 setSucceeded();
             } else {
                 retrieveCloudDataAndStoreLocally();

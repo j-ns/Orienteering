@@ -40,7 +40,7 @@ import com.gluonhq.maps.MapView;
 import com.jns.orienteering.control.Icon;
 import com.jns.orienteering.control.ScrollListener;
 import com.jns.orienteering.model.persisted.Task;
-import com.jns.orienteering.util.PositionHelper;
+import com.jns.orienteering.platform.PositionHelper;
 
 import javafx.css.PseudoClass;
 import javafx.scene.Node;

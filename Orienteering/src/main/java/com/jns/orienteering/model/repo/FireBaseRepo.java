@@ -206,6 +206,7 @@ public class FireBaseRepo<T extends Model> {
         client.method(POST);
         client.path(buildUrlFromRelativePath(urlParts));
         client.queryParam(OVERRIDE_PARAMETER, "Delete");
+        client.queryParam("shallow", "true");
 
         DataProvider.removeObject(obs, remover(client));
         return obs;
@@ -276,13 +277,13 @@ public class FireBaseRepo<T extends Model> {
         return DataProvider.retrieveList(listReader(client));
     }
 
-    public GluonObservableList<T> retrieveListFilteredAsync(String orderBy, List<Pair<String, String>> filters, String... urlParts) {
+    public GluonObservableList<T> retrieveListFilteredAsync(String orderBy, List<Pair<String, String>> params, String... urlParts) {
         RestClient client = createRestClient();
         client.method(GET);
         client.path(buildUrlFromRelativePath(urlParts));
         client.queryParam("orderBy", "\"" + orderBy + "\"");
 
-        for (Pair<String, String> filter : filters) {
+        for (Pair<String, String> filter : params) {
             client.queryParam(filter.getKey(), filter.getValue());
         }
 
@@ -381,7 +382,7 @@ public class FireBaseRepo<T extends Model> {
         });
     }
 
-    public static class RemoveObject {
+    private static class RemoveObject {
 
         private final String url;
 

@@ -32,37 +32,27 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.gluonhq.charm.down.common.JavaFXPlatform;
+import com.gluonhq.charm.down.common.Platform;
+import com.gluonhq.charm.down.common.PlatformFactory;
 
 public class PlatformProvider {
-
-    private static final String JAVAFX_PLATFORM = "javafx.platform";
 
     private static final Logger    LOGGER = LoggerFactory.getLogger(PlatformProvider.class);
 
     private static PlatformService platformService;
+    private static Platform        platform;
 
     private PlatformProvider() {
     }
 
-    public static PlatformService getPlatform(String platform) {
-        switch (platform) {
-            case "android":
-                System.setProperty(JAVAFX_PLATFORM, "android");
-                break;
-            case "desktop":
-                System.setProperty(JAVAFX_PLATFORM, "desktop");
-                break;
-            case "ios":
-                System.setProperty(JAVAFX_PLATFORM, "ios");
-                break;
-            default:
-                throw new IllegalArgumentException("Unknown platform");
-
+    public static Platform getPlatform() {
+        if (platform == null) {
+            platform = PlatformFactory.getPlatform();
         }
-        return getPlatform();
+        return platform;
     }
 
-    public static PlatformService getPlatform() {
+    public static PlatformService getPlatformService() {
         if (platformService == null) {
             try {
                 platformService = (PlatformService) Class.forName(getPlatformClassName()).newInstance();

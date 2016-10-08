@@ -53,13 +53,14 @@ import com.jns.orienteering.control.ScrollPositionBuffer;
 import com.jns.orienteering.model.common.AccessType;
 import com.jns.orienteering.model.common.StorableImage;
 import com.jns.orienteering.model.dynamic.LocalCityCache;
-import com.jns.orienteering.model.dynamic.LocalMissionCache;
-import com.jns.orienteering.model.dynamic.LocalTaskCache;
+import com.jns.orienteering.model.dynamic.MissionCache;
+import com.jns.orienteering.model.dynamic.TaskCache;
 import com.jns.orienteering.model.persisted.City;
 import com.jns.orienteering.model.persisted.Task;
 import com.jns.orienteering.model.repo.AsyncResultReceiver;
 import com.jns.orienteering.model.repo.TaskFBRepo;
-import com.jns.orienteering.util.PositionHelper;
+import com.jns.orienteering.platform.PositionHelper;
+import com.jns.orienteering.util.Dialogs;
 import com.jns.orienteering.util.SpecialCharReplacer;
 import com.jns.orienteering.util.Validators;
 
@@ -287,6 +288,13 @@ public class TaskPresenter extends BasePresenter {
     }
 
     private boolean validateTask() {
+        try {
+            getPosition();
+        } catch (Exception ex) {
+            Dialogs.ok(localize("view.task.error.invalidCoordinates"), localize("view.task.error.validCoordinates")).showAndWait();
+            return false;
+        }
+
         Validator<String> nameDoesntExistValidator = new Validator<>(name -> !cloudRepo.checkIfTaskNameExists(name),
                                                                      localize("view.task.info.nameAlreadyExists"));
 
@@ -294,9 +302,6 @@ public class TaskPresenter extends BasePresenter {
         validator.addCheck(Validators::isNotNullOrEmpty, localize("view.task.info.taskNameCantBeEmpty"));
         validator.addCheck(e -> choiceCity.getSelectedItem() != null, localize("view.task.info.selectCity")); // possible?
         validator.addCheck(SpecialCharReplacer::validateInput, localize("view.error.invalidCharEntered"));
-        // validator.addCheck(e -> Validators.isNotNullOrEmpty(txtPosition.getText()) &&
-        // GPS_PATTERN.matcher(txtPosition.getText()).matches(), localize(
-        // "view.task.info.gpsDataInvalid"));
         validator.addCheck(name ->
         {
             if (isEditorModus()) {
@@ -311,6 +316,10 @@ public class TaskPresenter extends BasePresenter {
         });
 
         return validator.check(txtName.getText());
+    }
+
+    public static boolean validateCoordinates(double latitude, double longitude) {
+        return latitude >= -90 && latitude <= 90 && longitude >= -180 && longitude <= 180;
     }
 
     private AsyncResultReceiver<GluonObservableObject<Task>> saveResultReceiver() {
@@ -396,17 +405,17 @@ public class TaskPresenter extends BasePresenter {
 
     private void updateTasksList(Task newTask, Task previousTask) {
         if (isEditorModus()) {
-            LocalTaskCache.INSTANCE.updateItem(newTask, previousTask);
+            TaskCache.INSTANCE.updateItem(newTask, previousTask);
 
             if (service.activeMissionContainsTask(task)) {
                 service.setActiveMission(null);
             }
         } else {
-            LocalTaskCache.INSTANCE.addItem(newTask);
+            TaskCache.INSTANCE.addItem(newTask);
         }
 
         if (isEditorModus() && isMissionEditorModus()) {
-            LocalMissionCache.INSTANCE.udpateMissionTask(newTask, previousTask);
+            MissionCache.INSTANCE.udpateMissionTask(newTask, previousTask);
         }
     }
 
@@ -425,13 +434,13 @@ public class TaskPresenter extends BasePresenter {
                            .defaultProgressLayer()
                            .onSuccess(e ->
                            {
-                               LocalTaskCache.INSTANCE.removeItem(task);
+                               TaskCache.INSTANCE.removeItem(task);
 
                                if (service.activeMissionContainsTask(task)) {
                                    service.setActiveMission(null);
                                }
                                if (isMissionEditorModus()) {
-                                   LocalMissionCache.INSTANCE.removeTask(task);
+                                   MissionCache.INSTANCE.removeTask(task);
 
                                }
                                showPreviousView();

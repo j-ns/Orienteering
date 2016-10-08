@@ -64,7 +64,7 @@ public class LocalRepo<T, L> {
     private JsonOutputConverterExtended<T> outputConverter;
 
     static {
-        BASE_DIR = PlatformProvider.getPlatform().getStorage().getPrivate();
+        BASE_DIR = PlatformProvider.getPlatformService().getStorage().getPrivate();
     }
 
     public LocalRepo(Class<T> targetClass, Class<L> localClass, String fileName) {

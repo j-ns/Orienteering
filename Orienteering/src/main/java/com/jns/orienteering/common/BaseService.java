@@ -43,7 +43,7 @@ import com.gluonhq.connect.GluonObservableList;
 import com.gluonhq.connect.GluonObservableObject;
 import com.jns.orienteering.model.common.StorableImage;
 import com.jns.orienteering.model.dynamic.LocalCityCache;
-import com.jns.orienteering.model.dynamic.LocalMissionCache;
+import com.jns.orienteering.model.dynamic.MissionCache;
 import com.jns.orienteering.model.persisted.ActiveTaskList;
 import com.jns.orienteering.model.persisted.City;
 import com.jns.orienteering.model.persisted.Mission;
@@ -124,7 +124,7 @@ public class BaseService {
                 previousView = v.getName();
 
                 if (ViewRegistry.HOME.equals(previousView)) {
-                    PlatformProvider.getPlatform().removeNodePositionAdjuster();
+                    PlatformProvider.getPlatformService().removeNodePositionAdjuster();
                     setSelectedMission(null);
                 }
             }
@@ -294,7 +294,7 @@ public class BaseService {
             return;
         }
 
-        GluonObservableList<Task> obsActiveTasks = LocalMissionCache.INSTANCE.retrieveMissionTasksSorted(mission.getId());
+        GluonObservableList<Task> obsActiveTasks = MissionCache.INSTANCE.retrieveMissionTasksSorted(mission.getId());
         AsyncResultReceiver.create(obsActiveTasks)
                            .defaultProgressLayer()
                            .onSuccess(result ->

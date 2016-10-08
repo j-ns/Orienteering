@@ -54,8 +54,8 @@ import javafx.scene.control.Button;
  */
 public abstract class BasePresenter {
 
-    private static final MobileApplication APPLICATION = MobileApplication.getInstance();
-    private static final PlatformService   PLATFORM    = PlatformProvider.getPlatform();
+    private static final MobileApplication APPLICATION      = MobileApplication.getInstance();
+    private static final PlatformService   PLATFORM_SERVICE = PlatformProvider.getPlatformService();
 
     @FXML
     protected View                         view;
@@ -218,7 +218,7 @@ public abstract class BasePresenter {
     }
 
     protected PlatformService platformService() {
-        return PLATFORM;
+        return PLATFORM_SERVICE;
     }
 
 }

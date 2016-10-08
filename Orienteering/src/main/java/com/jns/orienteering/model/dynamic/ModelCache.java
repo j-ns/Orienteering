@@ -12,7 +12,7 @@ import com.jns.orienteering.util.GluonObservables;
 
 import javafx.collections.ObservableList;
 
-public abstract class LocalCache<E extends CityAssignable> {
+public abstract class ModelCache<E extends CityAssignable> {
 
     private String                 cityId;
     private String                 userId;

@@ -52,7 +52,7 @@ import com.jns.orienteering.control.ScrollEventFilter;
 import com.jns.orienteering.control.cell.TaskCellSmall;
 import com.jns.orienteering.model.common.AccessType;
 import com.jns.orienteering.model.dynamic.LocalCityCache;
-import com.jns.orienteering.model.dynamic.LocalMissionCache;
+import com.jns.orienteering.model.dynamic.MissionCache;
 import com.jns.orienteering.model.persisted.ActiveTaskList;
 import com.jns.orienteering.model.persisted.City;
 import com.jns.orienteering.model.persisted.Mission;
@@ -114,7 +114,7 @@ public class MissionPresenter extends BasePresenter {
     @Inject
     private BaseService                         service;
     private MissionFBRepo                       cloudRepo;
-    private LocalMissionCache                   localMissionCache;
+    private MissionCache                   localMissionCache;
 
     private Mission                             mission;
     private GluonObservableList<Task>           tasks;
@@ -153,7 +153,7 @@ public class MissionPresenter extends BasePresenter {
 
         service.getActivatorDeactivatorService().add(ViewRegistry.MISSION.getViewName(), lviewMissionTasks);
         cloudRepo = service.getRepoService().getCloudRepo(Mission.class);
-        localMissionCache = LocalMissionCache.INSTANCE;
+        localMissionCache = MissionCache.INSTANCE;
     }
 
     @Override

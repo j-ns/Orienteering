@@ -5,13 +5,13 @@ import com.jns.orienteering.model.persisted.Task;
 import com.jns.orienteering.model.repo.RepoService;
 import com.jns.orienteering.model.repo.TaskFBRepo;
 
-public class LocalTaskCache extends LocalCache<Task> {
+public class TaskCache extends ModelCache<Task> {
 
-    public static final LocalTaskCache INSTANCE = new LocalTaskCache();
+    public static final TaskCache INSTANCE = new TaskCache();
 
-    private TaskFBRepo                 cloudRepo;
+    private TaskFBRepo            cloudRepo;
 
-    private LocalTaskCache() {
+    private TaskCache() {
         cloudRepo = RepoService.INSTANCE.getCloudRepo(Task.class);
     }
 

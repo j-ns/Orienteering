@@ -127,11 +127,17 @@ public class ActiveMissionSynchronizer extends BaseSynchronizer<User, User> {
                                                                                                                                          .equals(userId)) {
                                                                   service.setActiveMission(null);
                                                               } else {
-                                                                  service.setActiveMission(resultActiveMission.get());
-                                                                  activeTasksSynchronizer.syncNow(getSyncMetaData());
+                                                                  if (!service.getActiveMission().equals(resultActiveMission.get())) {
+                                                                      // activeTasks will be updated by activeMissionListener in
+                                                                      // service class:
+                                                                      service.setActiveMission(resultActiveMission.get());
+                                                                  } else {
+                                                                      activeTasksSynchronizer.syncNow(getSyncMetaData());
+                                                                  }
                                                               }
                                                               setSucceeded();
                                                           })
+                                                          .onException(this::setFailed)
                                                           .start();
                                        break;
 
