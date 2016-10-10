@@ -38,7 +38,6 @@ public class Lookup extends BaseModel {
 
     @JsonDefaultConstructor
     public Lookup() {
-        super();
     }
 
     public Lookup(String lookupName, String lookupId) {

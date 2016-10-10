@@ -28,14 +28,9 @@
  */
 package com.jns.orienteering.model.persisted;
 
-import javax.xml.bind.annotation.XmlElement;
-
 import com.jns.orienteering.model.common.JsonDefaultConstructor;
-import com.jns.orienteering.model.common.Postable;
 
-public class City extends BaseSynchronizable implements Postable, Comparable<City> {
-
-    private String postId;
+public class City extends BasePostableSynchronizable implements Comparable<City> {
 
     private String cityName;
     private String ownerId;
@@ -47,17 +42,6 @@ public class City extends BaseSynchronizable implements Postable, Comparable<Cit
     public City(String name, String ownerId) {
         cityName = name;
         this.ownerId = ownerId;
-    }
-
-    @Override
-    @XmlElement(name = "name")
-    public String getPostId() {
-        return postId;
-    }
-
-    @Override
-    public void setPostId(String name) {
-        postId = name;
     }
 
     public String getCityName() {

@@ -41,7 +41,7 @@ public class ListUpdater<E> {
     private AccessType        accessType;
 
     public ListUpdater(Comparator<E> comparator) {
-        Objects.requireNonNull(comparator, "comparator can't be null");
+        Objects.requireNonNull(comparator, "comparator can not be null");
         this.comparator = comparator;
     }
 

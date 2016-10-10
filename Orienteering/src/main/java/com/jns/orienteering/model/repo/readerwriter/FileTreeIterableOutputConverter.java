@@ -34,10 +34,10 @@ import java.io.IOException;
 import java.util.List;
 
 import com.gluonhq.connect.converter.JsonOutputConverter;
-import com.jns.orienteering.model.common.BaseModel;
+import com.jns.orienteering.model.common.Model;
 import com.jns.orienteering.util.Validators;
 
-public class FileTreeIterableOutputConverter<E extends BaseModel> {
+public class FileTreeIterableOutputConverter<E extends Model> {
 
     private static final String    JSON = ".json";
 

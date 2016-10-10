@@ -65,14 +65,6 @@ public class MissionStat extends Stat implements Postable {
         setStart(start);
     }
 
-    public String getMissionId() {
-        return missionId;
-    }
-
-    public void setMissionId(String missionId) {
-        this.missionId = missionId;
-    }
-
     @Override
     @XmlElement(name = "name")
     public String getPostId() {
@@ -82,6 +74,14 @@ public class MissionStat extends Stat implements Postable {
     @Override
     public void setPostId(String name) {
         postId = name;
+    }
+
+    public String getMissionId() {
+        return missionId;
+    }
+
+    public void setMissionId(String missionId) {
+        this.missionId = missionId;
     }
 
     public Mission getMission() {

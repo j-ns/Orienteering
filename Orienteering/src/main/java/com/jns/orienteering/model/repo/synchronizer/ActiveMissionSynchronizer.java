@@ -60,7 +60,6 @@ public class ActiveMissionSynchronizer extends BaseSynchronizer<User, User> {
         activeTasksSynchronizer = new ActiveTasksSynchronizer(service.getRepoService().getCloudRepo(Task.class),
                                                               service.getRepoService().getLocalRepo(Task.class));
 
-        activeTasksSynchronizer.setOnSynced(result -> service.getActiveTasks().setAll(result));
         activeTasksSynchronizer.syncStateProperty().addListener((obsValue, st, st1) ->
         {
             if (st1 != ConnectState.RUNNING) {
@@ -128,8 +127,6 @@ public class ActiveMissionSynchronizer extends BaseSynchronizer<User, User> {
                                                                   service.setActiveMission(null);
                                                               } else {
                                                                   if (!service.getActiveMission().equals(resultActiveMission.get())) {
-                                                                      // activeTasks will be updated by activeMissionListener in
-                                                                      // service class:
                                                                       service.setActiveMission(resultActiveMission.get());
                                                                   } else {
                                                                       activeTasksSynchronizer.syncNow(getSyncMetaData());

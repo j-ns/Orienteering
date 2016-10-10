@@ -90,7 +90,7 @@ public class MissionsPresenter extends ListViewPresenter<Mission> {
         super.onShown();
 
         service.setSelectedMission(null);
-        service.setTempCity(null);
+        service.setCityBuffer(null);
         localMissionCache.getMissionTasksTemp().clear();
 
         if (ViewRegistry.MISSION.equals(service.getPreviousViewName())) {

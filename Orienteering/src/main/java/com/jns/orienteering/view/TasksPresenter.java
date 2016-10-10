@@ -30,16 +30,18 @@ package com.jns.orienteering.view;
 
 import static com.jns.orienteering.util.Dialogs.confirmDeleteAnswer;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.gluonhq.charm.glisten.layout.MobileLayoutPane;
 import com.gluonhq.charm.glisten.layout.layer.FloatingActionButton;
 import com.gluonhq.connect.GluonObservableList;
 import com.gluonhq.connect.GluonObservableObject;
 import com.jns.orienteering.control.Icon;
 import com.jns.orienteering.control.cell.TaskCellSmall;
-import com.jns.orienteering.model.dynamic.ModelCache;
 import com.jns.orienteering.model.dynamic.MissionCache;
+import com.jns.orienteering.model.dynamic.ModelCache;
 import com.jns.orienteering.model.dynamic.TaskCache;
-import com.jns.orienteering.model.persisted.Mission;
 import com.jns.orienteering.model.persisted.Task;
 import com.jns.orienteering.model.repo.AsyncResultReceiver;
 import com.jns.orienteering.model.repo.TaskFBRepo;
@@ -47,20 +49,18 @@ import com.jns.orienteering.util.Dialogs;
 
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 
 public class TasksPresenter extends ListViewPresenter<Task> {
 
     @FXML
-    private MobileLayoutPane     innerView;
+    private MobileLayoutPane innerView;
 
-    private TaskFBRepo           cloudRepo;
-    private TaskCache       localTaskCache;
+    private TaskFBRepo       cloudRepo;
+    private TaskCache        taskCache;
 
-    private Mission              selectedMission;
-    private ObservableList<Task> missionTasks;
+    private List<Task>       missionTasks;
 
     @Override
     protected void initialize() {
@@ -75,7 +75,7 @@ public class TasksPresenter extends ListViewPresenter<Task> {
         initActionBar();
 
         cloudRepo = service.getRepoService().getCloudRepo(Task.class);
-        localTaskCache = TaskCache.INSTANCE;
+        taskCache = TaskCache.INSTANCE;
     }
 
     @Override
@@ -95,7 +95,7 @@ public class TasksPresenter extends ListViewPresenter<Task> {
 
     @Override
     protected ModelCache<?> getLocalCache() {
-        return localTaskCache;
+        return taskCache;
     }
 
     @Override
@@ -123,8 +123,7 @@ public class TasksPresenter extends ListViewPresenter<Task> {
             service.setSelectedTask(null);
         } else {
             if (isMissionEditorModus()) {
-                selectedMission = service.getSelectedMission();
-                missionTasks = FXCollections.observableArrayList(MissionCache.INSTANCE.getMissionTasksTemp());
+                missionTasks = new ArrayList<>(MissionCache.INSTANCE.getMissionTasksTemp());
             }
             populateListView();
         }
@@ -136,7 +135,7 @@ public class TasksPresenter extends ListViewPresenter<Task> {
         updateCellFactory();
 
         // todo:
-        String cityId = isMissionEditorModus() ? service.getTempCity() == null ? null : service.getTempCity().getTempCityId()
+        String cityId = isMissionEditorModus() ? service.getCityBuffer() == null ? null : service.getCityBuffer().getCurrentCityId()
                 : service.getSelectedCityId();
         if (cityId == null || service.getUserId() == null) {
             lview.setItems(FXCollections.observableArrayList());
@@ -144,7 +143,7 @@ public class TasksPresenter extends ListViewPresenter<Task> {
         }
 
         GluonObservableList<Task> obsTasks =
-                isPrivateAccess() ? localTaskCache.getPrivateItems(cityId, service.getUserId()) : localTaskCache.getPublicItems(cityId);
+                isPrivateAccess() ? taskCache.getPrivateItems(cityId, service.getUserId()) : taskCache.getPublicItems(cityId);
 
         AsyncResultReceiver.create(obsTasks)
                            .defaultProgressLayer()
@@ -179,14 +178,14 @@ public class TasksPresenter extends ListViewPresenter<Task> {
         }
     }
 
-    private void onUpdateMissionTasks() {
-        MissionCache.INSTANCE.getMissionTasksTemp().setAll(missionTasks);
-        showPreviousView();
-    }
-
     private void onRemoveMissionTasks() {
         missionTasks.clear();
         lview.refresh();
+    }
+
+    private void onUpdateMissionTasks() {
+        MissionCache.INSTANCE.getMissionTasksTemp().setAll(missionTasks);
+        showPreviousView();
     }
 
     private void onTaskSelected(Task task) {
@@ -216,9 +215,9 @@ public class TasksPresenter extends ListViewPresenter<Task> {
                                .defaultProgressLayer()
                                .onSuccess(e ->
                                {
-                                   localTaskCache.removeItem(task);
+                                   taskCache.removeItem(task);
 
-                                   if (service.activeMissionContainsTask(task)) {
+                                   if (MissionCache.INSTANCE.containsTask(task)) {
                                        service.setActiveMission(null);
                                    }
                                    if (isMissionEditorModus()) {

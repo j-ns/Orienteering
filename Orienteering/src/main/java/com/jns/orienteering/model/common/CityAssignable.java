@@ -36,8 +36,7 @@ public interface CityAssignable extends Sharable {
 
     boolean cityChanged();
 
-    String getOwnerId();
+    boolean nameChanged();
 
-    CityLookup createCityLookup();
 
 }

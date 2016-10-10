@@ -28,6 +28,8 @@
  */
 package com.jns.orienteering.model.repo;
 
+import static com.jns.orienteering.model.repo.BaseUrls.*;
+
 import java.io.IOException;
 import java.util.Set;
 
@@ -36,9 +38,6 @@ import com.jns.orienteering.model.persisted.MissionsByTaskLookup;
 import com.jns.orienteering.model.persisted.TasksByMissionLookup;
 
 public class MissionsByTaskRepo extends FireBaseRepo<MissionsByTaskLookup> {
-
-    private static final String MISSIONS         = "missions";
-    private static final String MISSIONS_BY_TASK = "missions_by_task";
 
     public MissionsByTaskRepo() {
         super(MissionsByTaskLookup.class, MISSIONS_BY_TASK);

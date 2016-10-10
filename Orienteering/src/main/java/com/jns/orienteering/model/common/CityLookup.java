@@ -50,6 +50,20 @@ public class CityLookup extends MultiIdLookup {
     }
 
     @XmlTransient
+    public String getOwnerId() {
+        return accessType == AccessType.PRIVATE ? assignable.getOwnerId() : null;
+    }
+
+    @XmlTransient
+    public String getTargetId() {
+        return assignable.getId();
+    }
+
+    public String getPreviousId() {
+        return assignable.getPreviousCityId();
+    }
+
+    @XmlTransient
     public AccessType getAccessType() {
         return accessType;
     }
@@ -68,26 +82,12 @@ public class CityLookup extends MultiIdLookup {
         return assignable.accessTypeChanged();
     }
 
-    public String getPreviousId() {
-        return assignable.getPreviousCityId();
-    }
-
-    public boolean hasCityChanged() {
+    public boolean cityChanged() {
         return assignable.cityChanged();
     }
 
-    @XmlTransient
-    public String getOwnerId() {
-        return accessType == AccessType.PRIVATE ? assignable.getOwnerId() : null;
-    }
-
-    @XmlTransient
-    public String getTargetId() {
-        return assignable.getId();
-    }
-
     public String getPath() {
-        return new UrlBuilder().buildPath(getAccessTypeName(), getId(), getOwnerId());
+        return UrlBuilder.buildPath(getAccessTypeName(), getId(), getOwnerId());
     }
 
 }

@@ -11,13 +11,13 @@ import com.jns.orienteering.util.GluonObservables;
 
 public class MissionCache extends ModelCache<Mission> {
 
-    public static final MissionCache INSTANCE = new MissionCache();
+    public static final MissionCache  INSTANCE = new MissionCache();
 
-    private MissionFBRepo                 cloudRepo;
+    private MissionFBRepo             cloudRepo;
 
-    private String                        selectedMissionId;
-    private GluonObservableList<Task>     missionTasks;
-    private GluonObservableList<Task>     missionTasksTemp;
+    private String                    selectedMissionId;
+    private GluonObservableList<Task> missionTasks;
+    private GluonObservableList<Task> missionTasksTemp;
 
     private MissionCache() {
         cloudRepo = RepoService.INSTANCE.getCloudRepo(Mission.class);
@@ -39,6 +39,7 @@ public class MissionCache extends ModelCache<Mission> {
         }
 
         if (!isNullOrEmpty(missionTasks)) {
+            missionTasksTemp = GluonObservables.newListInitialized(missionTasks);
             return missionTasks;
         }
 
@@ -53,7 +54,7 @@ public class MissionCache extends ModelCache<Mission> {
     }
 
     public GluonObservableList<Task> getMissionTasksTemp() {
-        if (isNullOrEmpty(missionTasksTemp)) {
+        if (missionTasksTemp == null) {
             missionTasksTemp = GluonObservables.newListInitialized(missionTasks);
         }
         return missionTasksTemp;
@@ -61,7 +62,7 @@ public class MissionCache extends ModelCache<Mission> {
 
     public void removeMissionAndTasks(Mission mission) {
         removeItem(mission);
-        missionTasks = null;
+        missionTasks.clear();
         missionTasksTemp = null;
     }
 
@@ -88,6 +89,13 @@ public class MissionCache extends ModelCache<Mission> {
         if (missionTasksTemp != null) {
             missionTasksTemp.remove(task);
         }
+    }
+
+    public boolean containsTask(Task task) {
+        if (isNullOrEmpty(missionTasks)) {
+            return false;
+        }
+        return missionTasks.contains(task);
     }
 
     @Override

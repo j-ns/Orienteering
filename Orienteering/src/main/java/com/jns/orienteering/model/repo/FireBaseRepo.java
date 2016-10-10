@@ -113,7 +113,7 @@ public class FireBaseRepo<T extends Model> {
     }
 
     protected void updateRestClientUrl(String method, String... urlParts) {
-        updateRestClient(method, urlBuilder.buildUrl(urlParts));
+        updateRestClient(method, UrlBuilder.buildUrl(urlParts));
     }
 
     protected void updateRestClientFromRelativePath(String method, String... urlParts) {
@@ -134,7 +134,7 @@ public class FireBaseRepo<T extends Model> {
     }
 
     protected String buildPath(String... urlParts) {
-        return urlBuilder.buildPath(urlParts);
+        return UrlBuilder.buildPath(urlParts);
     }
 
     public boolean checkIfUrlExists(String... urlParts) {
@@ -144,7 +144,7 @@ public class FireBaseRepo<T extends Model> {
             RestClient client = createRestClient();
 
             client.method(GET);
-            client.path(urlBuilder.buildUrl(urlParts));
+            client.path(UrlBuilder.buildUrl(urlParts));
             client.queryParam("shallow", "true");
 
             RestDataSource createRestDataSource = client.createRestDataSource();

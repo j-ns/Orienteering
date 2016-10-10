@@ -28,6 +28,8 @@
  */
 package com.jns.orienteering.model.repo;
 
+import static com.jns.orienteering.model.repo.BaseUrls.*;
+
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
@@ -48,13 +50,6 @@ import com.jns.orienteering.model.repo.readerwriter.RestMapReader;
 import javafx.collections.transformation.SortedList;
 
 public class MissionFBRepo extends FireBaseRepo<Mission> {
-
-    private static final String                             MISSIONS                 = "missions";
-    private static final String                             MISSION_NAMES            = "mission_names";
-    private static final String                             MISSIONS_BY_CITY         = "missions_by_city";
-
-    private static final String                             TASKS                    = "tasks";
-    private static final String                             TASKS_BY_MISSION         = "tasks_by_mission";
 
     private NameLookupFBRepo<MissionNameLookup>             nameLookupRepo           = new NameLookupFBRepo<>(MissionNameLookup.class, MISSION_NAMES);
 

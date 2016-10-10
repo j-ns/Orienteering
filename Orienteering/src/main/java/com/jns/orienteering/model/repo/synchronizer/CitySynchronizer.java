@@ -35,7 +35,7 @@ import org.slf4j.LoggerFactory;
 
 import com.gluonhq.connect.GluonObservableList;
 import com.jns.orienteering.model.common.RepoAction;
-import com.jns.orienteering.model.dynamic.LocalCityCache;
+import com.jns.orienteering.model.dynamic.CityCache;
 import com.jns.orienteering.model.persisted.ChangeLogEntry;
 import com.jns.orienteering.model.persisted.City;
 import com.jns.orienteering.model.persisted.LocalCityList;
@@ -50,11 +50,11 @@ public class CitySynchronizer extends BaseSynchronizer<City, LocalCityList> {
     public static final String  NAME                 = "city_synchronizer";
     private static final String CITY_LIST_IDENTIFIER = "cities";
 
-    private LocalCityCache          localCityCache;
+    private CityCache           localCityCache;
 
     public CitySynchronizer(CityFBRepo cloudRepo, LocalRepo<City, LocalCityList> localRepo) {
         super(cloudRepo, localRepo, LocalCityList::new, CITY_LIST_IDENTIFIER);
-        localCityCache = LocalCityCache.INSTANCE;
+        localCityCache = CityCache.INSTANCE;
     }
 
     @Override
@@ -121,7 +121,6 @@ public class CitySynchronizer extends BaseSynchronizer<City, LocalCityList> {
                                        localRepo.createOrUpdateListAsync(new LocalCityList(localCityCache.getPublicCities()));
                                    }
                                }
-                               getOnSynced().accept(localCityCache.getPublicCities());
                                setSucceeded();
                            })
                            .onException(this::setFailed)

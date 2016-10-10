@@ -42,7 +42,7 @@ import com.gluonhq.connect.ConnectState;
 import com.gluonhq.connect.GluonObservableList;
 import com.gluonhq.connect.GluonObservableObject;
 import com.jns.orienteering.model.common.StorableImage;
-import com.jns.orienteering.model.dynamic.LocalCityCache;
+import com.jns.orienteering.model.dynamic.CityCache;
 import com.jns.orienteering.model.dynamic.MissionCache;
 import com.jns.orienteering.model.persisted.ActiveTaskList;
 import com.jns.orienteering.model.persisted.City;
@@ -61,7 +61,6 @@ import com.jns.orienteering.model.repo.synchronizer.RepoSynchronizer;
 import com.jns.orienteering.model.repo.synchronizer.SyncMetaData;
 import com.jns.orienteering.platform.PlatformProvider;
 import com.jns.orienteering.util.Dialogs;
-import com.jns.orienteering.util.Validators;
 import com.jns.orienteering.view.ViewRegistry;
 
 import javafx.application.Platform;
@@ -74,9 +73,7 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
-import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.collections.transformation.SortedList;
 import javafx.scene.image.Image;
 
 public class BaseService {
@@ -97,23 +94,22 @@ public class BaseService {
     private StringProperty                  alias             = new SimpleStringProperty();
     private ObjectProperty<Image>           profileImage      = new SimpleObjectProperty<>();
 
-    private ObservableList<City>            cities            = FXCollections.observableArrayList();
+    private CityCache                       cityCache         = CityCache.INSTANCE;
     private ObjectProperty<City>            defaultCity       = new SimpleObjectProperty<>();
     private ObjectProperty<City>            selectedCity      = new SimpleObjectProperty<>();
-    private CityTempBuffer                  cityTempBuffer;
+    private CityBuffer                      cityBuffer;
 
+    private MissionCache                    missionCache      = MissionCache.INSTANCE;
     private ObjectProperty<Mission>         activeMission     = new SimpleObjectProperty<>();
     private StringProperty                  activeMissionName = new SimpleStringProperty();
     private ObjectProperty<Mission>         selectedMission   = new SimpleObjectProperty<>();
+    private MissionStat                     activeMissionStats;
 
-    private ObservableList<Task>            activeTasks       = FXCollections.observableArrayList();
     private Task                            selectedTask;
 
-    private MissionStat                     activeMissionStats;
     private BooleanProperty                 stopMission;
 
-    private String                          currentView;
-    private String                          previousView;
+    private String                          previousViewName;
 
     private BooleanProperty                 initialized       = new SimpleBooleanProperty(false);
 
@@ -121,14 +117,13 @@ public class BaseService {
         MobileApplication.getInstance().viewProperty().addListener((obsValue, v, v1) ->
         {
             if (v != null) {
-                previousView = v.getName();
+                previousViewName = v.getName();
 
-                if (ViewRegistry.HOME.equals(previousView)) {
+                if (ViewRegistry.HOME.equals(previousViewName)) {
                     PlatformProvider.getPlatformService().removeNodePositionAdjuster();
                     setSelectedMission(null);
                 }
             }
-            currentView = v1.getName();
         });
 
         repoSynchronizer.syncStateProperty().addListener((obsValue, st, st1) ->
@@ -155,7 +150,6 @@ public class BaseService {
 
     private void initSynchronizers() {
         CitySynchronizer citySynchronizer = new CitySynchronizer(repoService.getCloudRepo(City.class), repoService.getLocalRepo(City.class));
-        citySynchronizer.setOnSynced(result -> cities = new SortedList<>(result, City::compareTo));
 
         ActiveMissionSynchronizer missionSynchronizer = new ActiveMissionSynchronizer(this);
         ImageSynchronizer imageSynchronizer = new ImageSynchronizer();
@@ -182,6 +176,7 @@ public class BaseService {
                                    alias.set(_user.getAlias());
                                    setDefaultCity(_user.getDefaultCity());
                                    setActiveMission(_user.getActiveMission());
+                                   updateActiveTasks(getActiveMission());
 
                                    StorableImage image = ImageHandler.retrieveImage(_user.getImageUrl(),
                                                                                     ImageHandler.AVATAR_PLACE_HOLDER);
@@ -196,8 +191,8 @@ public class BaseService {
 
     private void postUserInit() {
         user.addListener(userListener);
-        activeMission.addListener(activeMissionListener);
         defaultCity.addListener(defaultCityListener);
+        activeMission.addListener(activeMissionListener);
 
         if (internectConnectionEstablished()) {
             SyncMetaData syncMetaData = new SyncMetaData().userId(getUserId())
@@ -246,21 +241,19 @@ public class BaseService {
                                                                           setDefaultCity(null);
                                                                           setActiveMission(null);
                                                                       }
-                                                                      LocalCityCache.INSTANCE.setUserId(u1 == null ? null : u1.getId());
+                                                                      CityCache.INSTANCE.setUserId(u1 == null ? null : u1.getId());
                                                                       userListenerActive = false;
                                                                   };
 
     private ChangeListener<? super City>    defaultCityListener   = (ov, c, c1) ->
                                                                   {
-                                                                      if (userListenerActive) {
-                                                                          return;
+                                                                      if (!userListenerActive) {
+                                                                          User _user = getUser();
+                                                                          _user.setDefaultCity(c1);
+
+                                                                          userCloudRepo.createOrUpdateAsync(_user, _user.getId());
+                                                                          userLocalRepo.createOrUpdateAsync(_user);
                                                                       }
-
-                                                                      User _user = getUser();
-                                                                      _user.setDefaultCity(c1);
-
-                                                                      userCloudRepo.createOrUpdateAsync(_user, _user.getId());
-                                                                      userLocalRepo.createOrUpdateAsync(_user);
                                                                   };
 
     private ChangeListener<? super Mission> activeMissionListener = (ov, m, m1) ->
@@ -280,29 +273,25 @@ public class BaseService {
 
                                                                       if (m1 != null) {
                                                                           activeMissionName.set(m1.getMissionName());
-                                                                          updateActiveTasksFromCloud(m1);
+                                                                          updateActiveTasks(m1);
                                                                           LOGGER.debug("activeMission set to: {}", m1.getMissionName());
 
                                                                       } else {
                                                                           activeMissionName.set(null);
+                                                                          missionCache.clearItems();
                                                                           activeTasksLocalRepo.deleteAsync();
                                                                       }
                                                                   };
 
-    private void updateActiveTasksFromCloud(Mission mission) {
-        if (mission == null) {
-            return;
-        }
-
-        GluonObservableList<Task> obsActiveTasks = MissionCache.INSTANCE.retrieveMissionTasksSorted(mission.getId());
+    private void updateActiveTasks(Mission mission) {
+        GluonObservableList<Task> obsActiveTasks = missionCache.retrieveMissionTasksSorted(mission.getId());
         AsyncResultReceiver.create(obsActiveTasks)
                            .defaultProgressLayer()
                            .onSuccess(result ->
                            {
                                activeTasksLocalRepo.createOrUpdateListAsync(new ActiveTaskList(result));
 
-                               activeTasks = result;
-                               for (Task task : activeTasks) {
+                               for (Task task : result) {
                                    ImageHandler.cacheImageAsync(task.getImageUrl());
                                }
                            })
@@ -354,12 +343,12 @@ public class BaseService {
         profileImage.set(image);
     }
 
-    public ObservableList<City> getCitiesSorted() {
-        return cities;
+    public ObservableValue<String> aliasProperty() {
+        return alias;
     }
 
-    public City getDefaultCity() {
-        return defaultCity.get();
+    public ObservableList<City> getCitiesSorted() {
+        return cityCache.getCitiesSorted();
     }
 
     public void setDefaultCity(City city) {
@@ -370,6 +359,10 @@ public class BaseService {
 
     public void setSelectedCity(City city) {
         selectedCity.set(city);
+    }
+
+    public void setSelectedCityById(String cityId) {
+        selectedCity.set(cityCache.get(cityId));
     }
 
     public City getSelectedCity() {
@@ -396,14 +389,6 @@ public class BaseService {
         selectedTask = task;
     }
 
-    public String getCurrentView() {
-        return currentView;
-    }
-
-    public String getPreviousViewName() {
-        return previousView;
-    }
-
     public ObjectProperty<Mission> activeMissionProperty() {
         return activeMission;
     }
@@ -422,11 +407,11 @@ public class BaseService {
     }
 
     public boolean activeMissionContainsTask(Task task) {
-        return Validators.isNullOrEmpty(activeTasks) ? false : activeTasks.contains(task);
+        return missionCache.containsTask(task);
     }
 
     public ObservableList<Task> getActiveTasks() {
-        return activeTasks;
+        return missionCache.getMissionTasks();
     }
 
     public MissionStat getActiveMissionStats() {
@@ -444,34 +429,38 @@ public class BaseService {
         return stopMission;
     }
 
-    public CityTempBuffer getTempCity() {
-        return cityTempBuffer;
+    public String getPreviousViewName() {
+        return previousViewName;
     }
 
-    public void setTempCity(CityTempBuffer buffer) {
-        if (cityTempBuffer != null && buffer != null) {
-            cityTempBuffer.setTempCityId(buffer.getTempCityId());
+    public CityBuffer getCityBuffer() {
+        return cityBuffer;
+    }
+
+    public void setCityBuffer(CityBuffer buffer) {
+        if (cityBuffer != null && buffer != null) {
+            cityBuffer.setCurrentCityId(buffer.getCurrentCityId());
         } else {
-            cityTempBuffer = buffer;
+            cityBuffer = buffer;
         }
     }
 
-    public static class CityTempBuffer {
+    public static class CityBuffer {
 
-        private String tempCityId;
+        private String currentCityId;
         private String originalCityId;
 
-        public CityTempBuffer(String tempCityId, String originalCityId) {
-            this.tempCityId = tempCityId;
+        public CityBuffer(String currentCityId, String originalCityId) {
+            this.currentCityId = currentCityId;
             this.originalCityId = originalCityId;
         }
 
-        public void setTempCityId(String id) {
-            tempCityId = id;
+        public String getCurrentCityId() {
+            return currentCityId;
         }
 
-        public String getTempCityId() {
-            return tempCityId;
+        public void setCurrentCityId(String id) {
+            currentCityId = id;
         }
 
         public String getOriginalCityId() {
@@ -479,7 +468,4 @@ public class BaseService {
         }
     }
 
-    public ObservableValue<String> aliasProperty() {
-        return alias;
-    }
 }

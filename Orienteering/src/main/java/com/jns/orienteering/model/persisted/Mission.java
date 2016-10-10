@@ -37,18 +37,14 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
-import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlTransient;
 
 import com.jns.orienteering.model.common.AccessType;
+import com.jns.orienteering.model.common.CityAssignable;
 import com.jns.orienteering.model.common.JsonDefaultConstructor;
 import com.jns.orienteering.model.common.LookupSupplier;
-import com.jns.orienteering.model.common.Postable;
-import com.jns.orienteering.model.common.UpdatableListItem;
 
-public class Mission extends BaseSynchronizable implements Postable, UpdatableListItem, LookupSupplier, Comparable<Mission> {
-
-    private String               postId;
+public class Mission extends BasePostableSynchronizable implements CityAssignable, LookupSupplier, Comparable<Mission> {
 
     private String               missionName;
     private String               cityId;
@@ -135,17 +131,6 @@ public class Mission extends BaseSynchronizable implements Postable, UpdatableLi
 
     private void ensurePreviousMission() {
         Objects.requireNonNull(previousMission, "previousMission must not be null");
-    }
-
-    @Override
-    @XmlElement(name = "name")
-    public String getPostId() {
-        return postId;
-    }
-
-    @Override
-    public void setPostId(String name) {
-        postId = name;
     }
 
     @Override

@@ -46,12 +46,12 @@ import javafx.scene.layout.StackPane;
 
 public class BaseChoiceFieldSkin<T, C extends BaseChoiceField<T>> extends SkinBase<C> {
 
-    protected Node                displayNode;
+    private Node                  displayNode;
     private TextField             textField;
 
-    protected StackPane           pneOpenButton;
+    private StackPane             pneOpenButton;
     private Label                 openButton;
-    protected ChoiceMenu<T>       choiceMenu;
+    private ChoiceMenu<T>         choiceMenu;
     private PopupView             popup;
 
     private SelectionModelBase<T> selectionModel;
@@ -71,7 +71,8 @@ public class BaseChoiceFieldSkin<T, C extends BaseChoiceField<T>> extends SkinBa
             updateDisplay(selectionModel.getSelectedItem());
         }
 
-        control.addEventHandler(MouseEvent.MOUSE_CLICKED, e -> {
+        control.addEventHandler(MouseEvent.MOUSE_CLICKED, e ->
+        {
             if (!control.isDisabled()) {
                 choiceMenu.show();
             }
@@ -112,7 +113,8 @@ public class BaseChoiceFieldSkin<T, C extends BaseChoiceField<T>> extends SkinBa
     }
 
     private ChangeListener<T> selectedItemListener() {
-        return (ov, t, t1) -> {
+        return (ov, t, t1) ->
+        {
             updateDisplay(t1);
             choiceMenu.hide();
         };

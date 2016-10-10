@@ -28,6 +28,8 @@
  */
 package com.jns.orienteering.model.repo;
 
+import static com.jns.orienteering.model.repo.BaseUrls.*;
+
 import com.gluonhq.connect.GluonObservableList;
 import com.gluonhq.connect.GluonObservableObject;
 import com.gluonhq.connect.provider.DataProvider;
@@ -41,12 +43,7 @@ import com.jns.orienteering.util.GluonObservables;
 
 public class CityFBRepo extends FireBaseRepo<City> {
 
-    private static final String              CITIES             = "cities";
-    private static final String              CITY_NAMES         = "city_names";
-    private static final String              CITIES_BY_USER     = "cities_by_user";
 
-    private static final String              MISSIONS_BY_CITY   = "missions_by_city";
-    private static final String              TASKS_BY_CITY      = "tasks_by_city";
     private static final String              PUBLIC             = "public";
     private static final String              PRIVATE            = "private";
 
@@ -62,7 +59,7 @@ public class CityFBRepo extends FireBaseRepo<City> {
             return GluonObservables.newListInitialized();
         }
 
-        String idsUrl = new UrlBuilder().buildUrl(CITIES_BY_USER, userId);
+        String idsUrl = UrlBuilder.buildUrl(CITIES_BY_USER, userId);
         return DataProvider.retrieveList(new RestMapReader<>(createRestClient(), CitiesByUser.class, idsUrl, City.class, CITIES));
     }
 

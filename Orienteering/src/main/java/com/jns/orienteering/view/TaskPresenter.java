@@ -52,7 +52,7 @@ import com.jns.orienteering.control.ScrollListener;
 import com.jns.orienteering.control.ScrollPositionBuffer;
 import com.jns.orienteering.model.common.AccessType;
 import com.jns.orienteering.model.common.StorableImage;
-import com.jns.orienteering.model.dynamic.LocalCityCache;
+import com.jns.orienteering.model.dynamic.CityCache;
 import com.jns.orienteering.model.dynamic.MissionCache;
 import com.jns.orienteering.model.dynamic.TaskCache;
 import com.jns.orienteering.model.persisted.City;
@@ -84,9 +84,6 @@ import javafx.util.Duration;
 public class TaskPresenter extends BasePresenter {
 
     private static final Image                  NO_PLACEHOLDER = null;
-
-    // private static final Pattern GPS_PATTERN = Pattern.compile(
-    // "^([-+]?)([\\d]{1,2})(((\\.)(\\d+\\s*)(,\\s*)))(([-+]?)([\\d]{1,3})((\\.)(\\d+))?)$");
 
     @FXML
     private ChoiceFloatingTextField<City>       choiceCity;
@@ -218,7 +215,7 @@ public class TaskPresenter extends BasePresenter {
     }
 
     private void setFields(Task task) {
-        City city = LocalCityCache.INSTANCE.get(task.getCityId());
+        City city = CityCache.INSTANCE.get(task.getCityId());
 
         choiceCity.getSelectionModel().select(city);
         txtName.setText(task.getTaskName());
@@ -343,7 +340,6 @@ public class TaskPresenter extends BasePresenter {
         if (isEditorModus()) {
             newTask.setId(task.getId());
             newTask.setPreviousTask(task);
-            newTask.setAccessTypeChanged(task.getAccessType() != newTask.getAccessType());
 
             if (!imageChanged) {
                 newTask.setImageId(service.getSelectedTask().getImageId());

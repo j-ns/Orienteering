@@ -28,6 +28,7 @@
 package com.jns.orienteering.model.repo;
 
 import static com.jns.orienteering.locale.Localization.localize;
+import static com.jns.orienteering.model.repo.BaseUrls.*;
 
 import java.io.IOException;
 
@@ -47,10 +48,6 @@ import com.jns.orienteering.util.GluonObservables;
 public class MissionStatFBRepo extends FireBaseRepo<MissionStat> {
 
     private static final Logger         LOGGER            = LoggerFactory.getLogger(MissionStatFBRepo.class);
-
-    private static final String         MISSION_STATS     = "mission_stats";
-    private static final String         STATS_BY_MISSION  = "stats_by_mission";
-    private static final String         STATS_BY_USER     = "stats_by_user";
 
     private FireBaseRepo<StatByMission> statByMissionRepo = new FireBaseRepo<>(StatByMission.class, STATS_BY_MISSION);
     private FireBaseRepo<StatByUser>    statByUserRepo    = new FireBaseRepo<>(StatByUser.class, STATS_BY_USER);

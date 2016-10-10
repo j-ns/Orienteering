@@ -80,7 +80,7 @@ public class TaskStat extends Stat {
         if (this == obj) {
             return true;
         }
-        if (obj == null) {
+        if (!(obj instanceof TaskStat)) {
             return false;
         }
         TaskStat other = (TaskStat) obj;

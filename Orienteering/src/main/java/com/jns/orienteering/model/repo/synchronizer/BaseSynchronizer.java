@@ -71,7 +71,9 @@ public abstract class BaseSynchronizer<T extends Synchronizable, L> {
 
     private SyncMetaData                   syncMetaData;
     private ObjectProperty<ConnectState>   syncState = new SimpleObjectProperty<>(ConnectState.READY);
-    private Consumer<ObservableList<T>>              onSynced;
+    private Consumer<ObservableList<T>>    onSynced  = e ->
+                                                     {
+                                                     };
 
     public BaseSynchronizer(String listIdentifier) {
         this.listIdentifier = listIdentifier;

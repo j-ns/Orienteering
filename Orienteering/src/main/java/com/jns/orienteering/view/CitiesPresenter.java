@@ -43,7 +43,7 @@ import com.jns.orienteering.control.ScrollEventFilter;
 import com.jns.orienteering.control.StateButton;
 import com.jns.orienteering.control.cell.CityCell;
 import com.jns.orienteering.model.common.AccessType;
-import com.jns.orienteering.model.dynamic.LocalCityCache;
+import com.jns.orienteering.model.dynamic.CityCache;
 import com.jns.orienteering.model.persisted.City;
 import com.jns.orienteering.model.persisted.LocalCityList;
 import com.jns.orienteering.model.repo.AsyncResultReceiver;
@@ -70,7 +70,7 @@ public class CitiesPresenter extends BasePresenter {
     private BaseService                    service;
     private CityFBRepo                     cloudRepo;
     private LocalRepo<City, LocalCityList> localRepo;
-    private LocalCityCache                 localCityCache     = LocalCityCache.INSTANCE;
+    private CityCache                 localCityCache     = CityCache.INSTANCE;
 
     @Override
     protected void initialize() {
@@ -172,7 +172,7 @@ public class CitiesPresenter extends BasePresenter {
                                .defaultProgressLayer()
                                .onSuccess(e ->
                                {
-                                   localRepo.createOrUpdateListAsync(new LocalCityList(LocalCityCache.INSTANCE.getPublicCities()));
+                                   localRepo.createOrUpdateListAsync(new LocalCityList(CityCache.INSTANCE.getPublicCities()));
                                    localCityCache.remove(city);
                                })
                                .start();

@@ -41,7 +41,7 @@ import com.gluonhq.connect.GluonObservableList;
 import com.gluonhq.connect.GluonObservableObject;
 import com.gluonhq.maps.MapView;
 import com.jns.orienteering.common.BaseService;
-import com.jns.orienteering.common.BaseService.CityTempBuffer;
+import com.jns.orienteering.common.BaseService.CityBuffer;
 import com.jns.orienteering.common.MultiValidator;
 import com.jns.orienteering.common.Validator;
 import com.jns.orienteering.control.ChoiceFloatingTextField;
@@ -51,7 +51,7 @@ import com.jns.orienteering.control.ListViewExtended;
 import com.jns.orienteering.control.ScrollEventFilter;
 import com.jns.orienteering.control.cell.TaskCellSmall;
 import com.jns.orienteering.model.common.AccessType;
-import com.jns.orienteering.model.dynamic.LocalCityCache;
+import com.jns.orienteering.model.dynamic.CityCache;
 import com.jns.orienteering.model.dynamic.MissionCache;
 import com.jns.orienteering.model.persisted.ActiveTaskList;
 import com.jns.orienteering.model.persisted.City;
@@ -114,7 +114,7 @@ public class MissionPresenter extends BasePresenter {
     @Inject
     private BaseService                         service;
     private MissionFBRepo                       cloudRepo;
-    private MissionCache                   localMissionCache;
+    private MissionCache                   missionCache;
 
     private Mission                             mission;
     private GluonObservableList<Task>           tasks;
@@ -153,7 +153,7 @@ public class MissionPresenter extends BasePresenter {
 
         service.getActivatorDeactivatorService().add(ViewRegistry.MISSION.getViewName(), lviewMissionTasks);
         cloudRepo = service.getRepoService().getCloudRepo(Mission.class);
-        localMissionCache = MissionCache.INSTANCE;
+        missionCache = MissionCache.INSTANCE;
     }
 
     @Override
@@ -212,19 +212,19 @@ public class MissionPresenter extends BasePresenter {
             if (ViewRegistry.MISSIONS.equals(service.getPreviousViewName())) {
                 tabPane.getSelectionModel().select(0);
 
-                GluonObservableList<Task> obsTasks = localMissionCache.retrieveMissionTasksSorted(mission.getId());
+                GluonObservableList<Task> obsTasks = missionCache.retrieveMissionTasksSorted(mission.getId());
                 AsyncResultReceiver.create(obsTasks)
                                    .defaultProgressLayer()
                                    .onSuccess(result ->
                                    {
-                                       tasks = localMissionCache.getMissionTasksTemp();
+                                       tasks = missionCache.getMissionTasksTemp();
                                        lviewMissionTasks.setItems(tasks);
                                        mapHelper.setMarkers(tasks);
                                        setFields(mission);
                                    })
                                    .start();
             } else {
-                tasks = localMissionCache.getMissionTasksTemp();
+                tasks = missionCache.getMissionTasksTemp();
                 lviewMissionTasks.setItems(tasks);
                 mapHelper.setMarkers(tasks);
                 service.setSelectedMission(null);
@@ -238,7 +238,7 @@ public class MissionPresenter extends BasePresenter {
     }
 
     private void setFields(Mission mission) {
-        choiceCity.getSelectionModel().select(LocalCityCache.INSTANCE.get(mission.getCityId()));
+        choiceCity.getSelectionModel().select(CityCache.INSTANCE.get(mission.getCityId()));
         txtName.setText(mission.getMissionName());
         txtDistance.setDoubleAsText(mission.getDistance());
         choiceAccess.getSelectionModel().select(mission.getAccessType());
@@ -246,12 +246,12 @@ public class MissionPresenter extends BasePresenter {
 
     private void onCityChanged(City city) {
         if (city != null) {
-            if (service.getTempCity() != null && !city.getId().equals(service.getTempCity().getOriginalCityId())) {
+            if (service.getCityBuffer() != null && !city.getId().equals(service.getCityBuffer().getOriginalCityId())) {
                 tasks.clear();
             } else {
-                tasks.setAll(localMissionCache.getMissionTasks());
+                tasks.setAll(missionCache.getMissionTasks());
             }
-            service.setTempCity(new CityTempBuffer(city.getId(), mission.getCityId()));
+            service.setCityBuffer(createCityBuffer());
         }
     }
 
@@ -281,7 +281,7 @@ public class MissionPresenter extends BasePresenter {
         if (isEditorModus() && mission.getOwnerId().equals(service.getUserId())) {
             service.setSelectedMission(createMission());
         }
-        service.setTempCity(new CityTempBuffer(getSelectedCityId(), mission.getCityId()));
+        service.setCityBuffer(createCityBuffer());
         showView(ViewRegistry.TASK);
     }
 
@@ -289,7 +289,7 @@ public class MissionPresenter extends BasePresenter {
         if (!isEditorModus() || isEditorModus() && mission.getOwnerId().equals(service.getUserId())) {
             service.setSelectedMission(createMission());
         }
-        service.setTempCity(new CityTempBuffer(getSelectedCityId(), mission.getCityId()));
+        service.setCityBuffer(createCityBuffer());
         showView(ViewRegistry.TASKS);
     }
 
@@ -317,7 +317,7 @@ public class MissionPresenter extends BasePresenter {
         saveReceiver()
                       .onSuccess(e ->
                       {
-                          localMissionCache.clearMissionTasks();
+                          missionCache.clearMissionTasks();
 
                           mission = new Mission();
                           tasks = new GluonObservableList<>();
@@ -364,7 +364,7 @@ public class MissionPresenter extends BasePresenter {
         GluonObservable obsSuccessful = new GluonObservableObject<>();
 
         if (isEditorModus()) {
-            GluonObservableObject<Mission> obsMission = cloudRepo.updateMission(newMission, mission, tasks, localMissionCache.getMissionTasks());
+            GluonObservableObject<Mission> obsMission = cloudRepo.updateMission(newMission, mission, tasks, missionCache.getMissionTasks());
             saveReceiver(obsMission, obsSuccessful)
                                                    .onSuccess(result ->
                                                    {
@@ -377,7 +377,7 @@ public class MissionPresenter extends BasePresenter {
                                                            LocalRepo<Task, ActiveTaskList> localTasksRepo = service.getRepoService().getLocalRepo(
                                                                                                                                                   Task.class);
                                                            localTasksRepo.createOrUpdateListAsync(new ActiveTaskList(tasks));
-                                                           localMissionCache.updateMissionTasksWithBuffer();
+                                                           missionCache.updateMissionTasksWithBuffer();
                                                        }
                                                    })
                                                    .start();
@@ -431,10 +431,18 @@ public class MissionPresenter extends BasePresenter {
 
     private void updateMissionsList(Mission newMission, Mission previousMission) {
         if (isEditorModus()) {
-            localMissionCache.updateItem(newMission, previousMission);
+            missionCache.updateItem(newMission, previousMission);
         } else {
-            localMissionCache.addItem(newMission);
+            missionCache.addItem(newMission);
         }
+    }
+
+    private CityBuffer createCityBuffer() {
+        return new CityBuffer(getSelectedCityId(), mission.getCityId());
+    }
+
+    private String getSelectedCityId() {
+        return choiceCity.getSelectedItem() != null ? choiceCity.getSelectedItem().getId() : null;
     }
 
     private boolean isEditorModus() {
@@ -443,10 +451,6 @@ public class MissionPresenter extends BasePresenter {
 
     private boolean isReorderModus() {
         return tglSort.isSelected();
-    }
-
-    private String getSelectedCityId() {
-        return choiceCity.getSelectedItem() != null ? choiceCity.getSelectedItem().getId() : null;
     }
 
     private void onDelete() {
@@ -458,14 +462,14 @@ public class MissionPresenter extends BasePresenter {
             return;
         }
 
-        mission.updateTasksMap(localMissionCache.getMissionTasks());
+        mission.updateTasksMap(missionCache.getMissionTasks());
 
         GluonObservableObject<Mission> obsMission = cloudRepo.deleteMissionAsync(mission);
         AsyncResultReceiver.create(obsMission)
                            .defaultProgressLayer()
                            .onSuccess(e ->
                            {
-                               localMissionCache.removeMissionAndTasks(mission);
+                               missionCache.removeMissionAndTasks(mission);
 
                                Mission activeMission = service.getActiveMission();
                                if (activeMission != null && activeMission.getId().equals(mission)) {

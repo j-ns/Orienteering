@@ -34,38 +34,35 @@ import static com.jns.orienteering.util.DateTimeFormatters.createTimeStamp;
 import java.util.Comparator;
 import java.util.Objects;
 
-import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlTransient;
 
 import com.gluonhq.charm.down.common.Position;
 import com.gluonhq.maps.MapPoint;
 import com.jns.orienteering.locale.Localization;
 import com.jns.orienteering.model.common.AccessType;
+import com.jns.orienteering.model.common.CityAssignable;
 import com.jns.orienteering.model.common.JsonDefaultConstructor;
 import com.jns.orienteering.model.common.LookupSupplier;
-import com.jns.orienteering.model.common.Postable;
-import com.jns.orienteering.model.common.UpdatableListItem;
 
-public class Task extends BaseSynchronizable implements Postable, UpdatableListItem, LookupSupplier, Comparable<Task> {
+public class Task extends BasePostableSynchronizable implements CityAssignable, LookupSupplier, Comparable<Task> {
 
     private static Comparator<Task> orderNumberComparator = (t, t1) -> Integer.compare(t.getOrderNumber(), t1.getOrderNumber());
 
-    private String                  postId;
-
     private String                  cityId;
+    private String                  ownerId;
+
+    private AccessType              accessType;
+
     private String                  taskName;
     private String                  description;
     private String                  scancode;
     private int                     points;
     private double                  longitude;
     private double                  latitude;
-    private AccessType              accessType;
-    private String                  ownerId;
-    private String                  imageId;
     private boolean                 createImageId;
+    private String                  imageId;
 
     private boolean                 completed;
-    private boolean                 accessTypeChanged;
 
     private Task                    previousTask;
 
@@ -106,17 +103,6 @@ public class Task extends BaseSynchronizable implements Postable, UpdatableListI
 
     private String createImageId() {
         return id + "_" + createTimeStamp() + ".jpg";
-    }
-
-    @Override
-    @XmlElement(name = "name")
-    public String getPostId() {
-        return postId;
-    }
-
-    @Override
-    public void setPostId(String name) {
-        postId = name;
     }
 
     @XmlTransient
@@ -233,11 +219,7 @@ public class Task extends BaseSynchronizable implements Postable, UpdatableListI
 
     @Override
     public boolean accessTypeChanged() {
-        return accessTypeChanged;
-    }
-
-    public void setAccessTypeChanged(boolean accessTypeChanged) {
-        this.accessTypeChanged = accessTypeChanged;
+        return previousTask != null && previousTask.accessType != accessType;
     }
 
     @XmlTransient
@@ -258,14 +240,8 @@ public class Task extends BaseSynchronizable implements Postable, UpdatableListI
         this.orderNumber = orderNumber;
     }
 
-    @Override
-    public TaskNameLookup createNameLookup() {
-        return new TaskNameLookup(taskName, id);
-    }
-
-    @Override
-    public CityTaskLookup createCityLookup() {
-        return new CityTaskLookup(this);
+    public static Comparator<Task> getOrderNumberComparator() {
+        return orderNumberComparator;
     }
 
     public MapPoint getMapPoint() {
@@ -292,8 +268,14 @@ public class Task extends BaseSynchronizable implements Postable, UpdatableListI
         Objects.requireNonNull(previousTask, "previousTask must not be null");
     }
 
-    public static Comparator<Task> getOrderNumberComparator() {
-        return orderNumberComparator;
+    @Override
+    public TaskNameLookup createNameLookup() {
+        return new TaskNameLookup(taskName, id);
+    }
+
+    @Override
+    public CityTaskLookup createCityLookup() {
+        return new CityTaskLookup(this);
     }
 
     @Override
@@ -301,7 +283,7 @@ public class Task extends BaseSynchronizable implements Postable, UpdatableListI
         if (this == obj) {
             return true;
         }
-        if (obj == null) {
+        if (!(obj instanceof Task)) {
             return false;
         }
         Task other = (Task) obj;

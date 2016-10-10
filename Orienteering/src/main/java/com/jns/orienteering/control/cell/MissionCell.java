@@ -33,7 +33,7 @@ import static com.jns.orienteering.locale.Localization.localize;
 import java.util.function.Consumer;
 
 import com.gluonhq.charm.glisten.visual.MaterialDesignIcon;
-import com.jns.orienteering.model.dynamic.LocalCityCache;
+import com.jns.orienteering.model.dynamic.CityCache;
 import com.jns.orienteering.model.persisted.Mission;
 
 import javafx.beans.property.BooleanProperty;
@@ -44,7 +44,7 @@ import javafx.scene.layout.Region;
 
 public class MissionCell extends SelectableListCell<Mission> {
 
-    private static LocalCityCache localCityCache = LocalCityCache.INSTANCE;
+    private static CityCache localCityCache = CityCache.INSTANCE;
     private static String         UNIT           = localize("unit.miles");
 
     private Content               content;

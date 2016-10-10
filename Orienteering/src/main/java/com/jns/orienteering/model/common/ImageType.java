@@ -54,7 +54,7 @@ public enum ImageType {
         } else if (url.endsWith(".jpg") || url.endsWith(".jpeg")) {
             return JPG;
         }
-        throw new IllegalArgumentException("Cant get contentType from url: " + url);
+        throw new IllegalArgumentException("Can not get contentType from url: " + url);
     }
 
 }

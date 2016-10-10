@@ -78,7 +78,7 @@ public class CityLookupFBRepo<T extends CityLookup, LT extends BaseModel> extend
             AccessType previousAccessType = newAccessType == AccessType.PRIVATE ? AccessType.PUBLIC : AccessType.PRIVATE;
             lookup.setAccessType(previousAccessType);
         }
-        if (lookup.hasCityChanged()) {
+        if (lookup.cityChanged()) {
             lookup.setId(lookup.getPreviousId());
         }
         deleteLookup(lookup);
@@ -100,7 +100,7 @@ public class CityLookupFBRepo<T extends CityLookup, LT extends BaseModel> extend
     }
 
     public void deleteLookup(T lookup) throws IOException {
-        String path = new UrlBuilder().buildPath(lookup.getPath(), lookupTargetUrl, lookup.getTargetId());
+        String path = UrlBuilder.buildPath(lookup.getPath(), lookupTargetUrl, lookup.getTargetId());
         updateRestClientFromRelativePath(GET, path);
 
         boolean urlExists = checkIfUrlExists(baseUrl, path);

@@ -28,6 +28,7 @@
  */
 package com.jns.orienteering.model.repo;
 
+import static com.jns.orienteering.model.repo.BaseUrls.*;
 import static com.jns.orienteering.model.repo.QueryParameters.endAt;
 import static com.jns.orienteering.model.repo.QueryParameters.shallow;
 import static com.jns.orienteering.model.repo.QueryParameters.startAt;
@@ -47,11 +48,6 @@ public class ChangeLogRepo extends FireBaseRepo<ChangeLogEntry> {
 
     private static final String CHANGE_LOG        = "change_log";
 
-    private static final String CITIES            = "cities";
-    private static final String TASKS             = "tasks";
-    private static final String MISSIONS          = "missions";
-    private static final String IMAGES            = "images";
-
     private static final String TIME_STAMP_FILTER = "timeStamp";
 
     public ChangeLogRepo() {
@@ -59,7 +55,7 @@ public class ChangeLogRepo extends FireBaseRepo<ChangeLogEntry> {
     }
 
     public void writeImageLogAsync(ChangeLogEntry entry) {
-        createOrUpdateAsync(entry, IMAGES, entry.getId());
+        createOrUpdateAsync(entry, BaseUrls.IMAGES, entry.getId());
     }
 
     public void writeLogAsync(Synchronizable synchronizable, RepoAction action, String baseUrl) {
@@ -90,7 +86,6 @@ public class ChangeLogRepo extends FireBaseRepo<ChangeLogEntry> {
         List<Pair<String, String>> params = Arrays.asList(endAt(timeStamp), shallow());
 
         return retrieveListFilteredAsync(TIME_STAMP_FILTER, params, url);
-
     }
 
     private void removeLogEntries(String url, GluonObservableList<ChangeLogEntry> logEntries) {

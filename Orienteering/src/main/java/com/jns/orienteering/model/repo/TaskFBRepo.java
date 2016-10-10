@@ -28,6 +28,8 @@
  */
 package com.jns.orienteering.model.repo;
 
+import static com.jns.orienteering.model.repo.BaseUrls.*;
+
 import java.util.Iterator;
 
 import com.gluonhq.connect.GluonObservableList;
@@ -45,12 +47,7 @@ import com.jns.orienteering.model.repo.readerwriter.RestMapReader;
 
 public class TaskFBRepo extends FireBaseRepo<Task> {
 
-    private static final String                        TASKS                    = "tasks";
-    private static final String                        TASK_NAMES_LOOKUP        = "task_names";
-    private static final String                        TASKS_BY_CITY            = "tasks_by_city";
-    private static final String                        TASKS_BY_MISSION         = "tasks_by_mission";
-
-    private NameLookupFBRepo<TaskNameLookup>           namelookupRepo           = new NameLookupFBRepo<>(TaskNameLookup.class, TASK_NAMES_LOOKUP);
+    private NameLookupFBRepo<TaskNameLookup>           namelookupRepo           = new NameLookupFBRepo<>(TaskNameLookup.class, TASK_NAMES);
 
     private CityLookupFBRepo<CityTaskLookup, Task>     cityLookupRepo           =
             new CityLookupFBRepo<>(CityTaskLookup.class, Task.class, TASKS_BY_CITY, TASKS);

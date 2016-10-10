@@ -75,7 +75,7 @@ public class LocalRepo<T, L> {
         inputConverter = new JsonInputConverterExtended<>(targetClass);
         outputConverter = new JsonOutputConverterExtended<>(targetClass);
 
-        initFileClient(fileName);
+        fileClient = FileClient.create(new File(BASE_DIR, fileName));
     }
 
     public boolean fileExists() {
@@ -86,7 +86,7 @@ public class LocalRepo<T, L> {
         try {
             writer().writeObject(obj);
         } catch (IOException e) {
-            LOGGER.error("Error createOrUpdate: {} {}", BASE_DIR, fileName, e);
+            LOGGER.error("failed to create or update file: {}/{}", BASE_DIR, fileName, e);
             throw e;
         }
     }
@@ -95,13 +95,13 @@ public class LocalRepo<T, L> {
         return DataProvider.storeObject(obj, writer());
     }
 
+    public <E extends BaseModel> void createOrUpdateList(Class<E> targetClass, String baseDir, List<E> items) {
+        new FileTreeIterableOutputConverter<>(targetClass, baseDir, items).writeObjects();
+    }
+
     public GluonObservableObject<L> createOrUpdateListAsync(L items) {
         ObjectDataWriter<L> writer = fileClient.createObjectDataWriter(new JsonOutputConverterExtended<>(localClass));
         return DataProvider.storeObject(items, writer);
-    }
-
-    public <E extends BaseModel> void createOrUpdateList(Class<E> targetClass, String baseDir, List<E> items) {
-        new FileTreeIterableOutputConverter<>(targetClass, baseDir, items).writeObjects();
     }
 
     public T retrieveObject() throws IOException {
@@ -136,10 +136,6 @@ public class LocalRepo<T, L> {
         GluonObservableObject<T> obs = new GluonObservableObject<>();
         DataProvider.removeObject(obs, remover());
         return obs;
-    }
-
-    private void initFileClient(String fileName) {
-        fileClient = FileClient.create(new File(BASE_DIR, fileName));
     }
 
     private ObjectDataWriter<T> writer() {

@@ -38,7 +38,7 @@ import com.jns.orienteering.common.BaseService;
 import com.jns.orienteering.common.MultiValidator;
 import com.jns.orienteering.control.FloatingTextField;
 import com.jns.orienteering.control.Icon;
-import com.jns.orienteering.model.dynamic.LocalCityCache;
+import com.jns.orienteering.model.dynamic.CityCache;
 import com.jns.orienteering.model.persisted.City;
 import com.jns.orienteering.model.persisted.LocalCityList;
 import com.jns.orienteering.model.repo.AsyncResultReceiver;
@@ -59,7 +59,7 @@ public class CityPresenter extends BasePresenter {
     private BaseService                    service;
     private CityFBRepo                     cloudRepo;
     private LocalRepo<City, LocalCityList> localRepo;
-    private LocalCityCache                 localCityCache;
+    private CityCache                 localCityCache;
 
     private City                           city;
 
@@ -70,7 +70,7 @@ public class CityPresenter extends BasePresenter {
 
         cloudRepo = service.getRepoService().getCloudRepo(City.class);
         localRepo = service.getRepoService().getLocalRepo(City.class);
-        localCityCache = LocalCityCache.INSTANCE;
+        localCityCache = CityCache.INSTANCE;
     }
 
     @Override
