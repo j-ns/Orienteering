@@ -42,14 +42,15 @@ import com.gluonhq.connect.GluonObservableObject;
 import com.jns.orienteering.common.BaseService;
 import com.jns.orienteering.common.ImageHandler;
 import com.jns.orienteering.control.ChoiceFloatingTextField;
+import com.jns.orienteering.control.Dialogs;
 import com.jns.orienteering.control.FloatingTextField;
 import com.jns.orienteering.control.Icon;
+import com.jns.orienteering.control.Message;
 import com.jns.orienteering.model.common.StorableImage;
 import com.jns.orienteering.model.persisted.City;
 import com.jns.orienteering.model.persisted.User;
 import com.jns.orienteering.model.repo.AsyncResultReceiver;
 import com.jns.orienteering.model.repo.UserFBRepo;
-import com.jns.orienteering.util.Dialogs;
 
 import javafx.beans.binding.When;
 import javafx.beans.property.ObjectProperty;
@@ -130,7 +131,7 @@ public class AccountPresenter extends BasePresenter {
                                                                                   .otherwise(localize("view.account.button.signup")));
 
         choiceDefaultCity.setStringConverter(City::getCityName);
-        choiceDefaultCity.setMissingDataTitle(localize("view.account.info.noCityExisting"));
+        choiceDefaultCity.setMissingDataMessage(Message.create().title(localize("view.account.info.noCityExisting")));
         choiceDefaultCity.setItems(service.getCitiesSorted());
 
         userCloudRepo = service.getRepoService().getCloudRepo(User.class);
@@ -193,7 +194,7 @@ public class AccountPresenter extends BasePresenter {
         if (!validatePassword()) {
             return;
         }
-        if (service.getUser() != null) {
+        if (isEditorModus()) {
             update();
         } else {
             signUp();
@@ -205,8 +206,6 @@ public class AccountPresenter extends BasePresenter {
         if (!imageChanged) {
             updatedUser.setImageId(service.getUser().getImageId());
         }
-
-        updatedUser.setActiveMission(service.getActiveMission());
 
         GluonObservableObject<User> obsUser = userCloudRepo.createOrUpdateAsync(updatedUser, updatedUser.getId());
         AsyncResultReceiver.create(obsUser)
@@ -240,10 +239,11 @@ public class AccountPresenter extends BasePresenter {
                            .defaultProgressLayer()
                            .onSuccess(result ->
                            {
-                               if (image.get() != null) {
-                                   Image savedImage = saveImage(getImage(), result.get().getImageUrl(), ImageHandler::storeImageAsync);
+                               Image _image = getImage();
+                               if (_image != null) {
+                                   Image savedImage = saveImage(_image, result.get().getImageUrl(), ImageHandler::storeImageAsync);
                                    if (savedImage != null) {
-                                       service.setProfileImage(getImage());
+                                       service.setProfileImage(_image);
                                    }
                                }
 
@@ -253,6 +253,25 @@ public class AccountPresenter extends BasePresenter {
                            })
                            .exceptionMessage(localize("view.account.error.signupUser"))
                            .start();
+    }
+
+    private User createUser() {
+        String password = isEditorModus() ? storedPassword : txtPassword.getText();
+
+        User user = new User(txtUserName.getText(),
+                             txtAlias.getText(),
+                             txtEmailAdress.getText(),
+                             choiceDefaultCity.getSelectedItem(),
+                             password);
+        user.setTimeStamp(userCloudRepo.createTimeStamp());
+
+        if (getImage() == null) {
+            user.setImageId(null);
+        }
+        if (isEditorModus()) {
+            user.setActiveMission(service.getActiveMission());
+        }
+        return user;
     }
 
     private Image saveImage(Image image, String imageUrl, Consumer<StorableImage> imageHandler) {
@@ -286,7 +305,7 @@ public class AccountPresenter extends BasePresenter {
             return false;
         }
 
-        if (isUpdateModus()) {
+        if (isEditorModus()) {
             try {
                 User user = userCloudRepo.retrieveObject(service.getUserId());
                 storedPassword = user.getPassword();
@@ -325,27 +344,12 @@ public class AccountPresenter extends BasePresenter {
         return true;
     }
 
-    private User createUser() {
-        String password = isUpdateModus() ? storedPassword : txtPassword.getText();
-
-        User user = new User(txtUserName.getText(),
-                             txtAlias.getText(),
-                             txtEmailAdress.getText(),
-                             password,
-                             choiceDefaultCity.getSelectedItem());
-
-        if (image.get() == null) {
-            user.setImageId(null);
-        }
-        return user;
-    }
-
-    private boolean isUpdateModus() {
-        return service.getUser() != null;
-    }
-
     private Image getImage() {
         return image.get();
+    }
+
+    private boolean isEditorModus() {
+        return service.getUser() != null;
     }
 
     @Override

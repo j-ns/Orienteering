@@ -42,8 +42,8 @@ public class SpecialCharReplacer {
         ae("\u00E4", "ae"),
         ue("\u00FC", "ue"),
         oe("\u00F6", "oe"),
-        // sz("\u00DF", "ss"), zu INVALID pattern hinzufügen
         whiteSpace(" ", "@"),
+        // sz("\u00DF", "ss"), zu INVALID pattern hinzufügen
         // point(".",""),
         // dollar("$", ""),
         // hash("#", ""),

@@ -86,7 +86,7 @@ public abstract class Stat extends BaseModel implements Comparable<Stat> {
     }
 
     public String getDistanceText() {
-        return Double.toString(distance);
+        return Float.toString(distance);
     }
 
     public void addPoints(int points) {
@@ -116,7 +116,7 @@ public abstract class Stat extends BaseModel implements Comparable<Stat> {
             result = Long.compare(end, other.end);
         }
         if (result == 0) {
-            result = Double.compare(distance, other.distance);
+            result = Float.compare(distance, other.distance);
         }
         return result;
     }

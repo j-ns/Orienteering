@@ -27,7 +27,7 @@
  */
 package com.jns.orienteering.view;
 
-import static com.jns.orienteering.util.Dialogs.confirmDeleteAnswer;
+import static com.jns.orienteering.control.Dialogs.confirmDeleteAnswer;
 
 import java.util.function.Consumer;
 
@@ -37,6 +37,7 @@ import com.gluonhq.charm.glisten.layout.layer.FloatingActionButton;
 import com.gluonhq.connect.GluonObservableList;
 import com.gluonhq.connect.GluonObservableObject;
 import com.jns.orienteering.common.BaseService;
+import com.jns.orienteering.control.Dialogs;
 import com.jns.orienteering.control.Icon;
 import com.jns.orienteering.control.ListViewExtended;
 import com.jns.orienteering.control.ScrollEventFilter;
@@ -49,7 +50,6 @@ import com.jns.orienteering.model.persisted.LocalCityList;
 import com.jns.orienteering.model.repo.AsyncResultReceiver;
 import com.jns.orienteering.model.repo.CityFBRepo;
 import com.jns.orienteering.model.repo.LocalRepo;
-import com.jns.orienteering.util.Dialogs;
 
 import javafx.application.Platform;
 import javafx.beans.binding.When;

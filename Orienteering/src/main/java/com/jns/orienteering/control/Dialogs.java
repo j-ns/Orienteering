@@ -26,13 +26,14 @@
  *  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  *  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package com.jns.orienteering.util;
+package com.jns.orienteering.control;
 
 import static com.jns.orienteering.locale.Localization.localize;
 
 import java.util.Optional;
 
 import com.gluonhq.charm.glisten.control.Dialog;
+import com.jns.orienteering.util.Calculations;
 
 import javafx.scene.Node;
 import javafx.scene.control.Button;
@@ -44,13 +45,22 @@ public class Dialogs {
     private Dialogs() {
     }
 
+    public static Dialog<ButtonType> ok(Message message) {
+        String title = message.getTitle();
+
+        Node lblTitle = title == null ? null : new Label(title);
+        Node content = message.getText() == null ? contentPlaceHolder(title) : new Label(message.getText());
+
+        return ok(lblTitle, content);
+    }
+
     public static Dialog<ButtonType> ok(String title) {
         return ok(new Label(title), contentPlaceHolder(title));
     }
 
-    public static Dialog<ButtonType> ok(String title, String message) {
+    public static Dialog<ButtonType> ok(String title, String text) {
         Node lblTitle = title == null ? null : new Label(title);
-        Node content = message == null ? contentPlaceHolder(title) : new Label(message);
+        Node content = text == null ? contentPlaceHolder(title) : new Label(text);
         return ok(lblTitle, content);
     }
 
@@ -108,9 +118,9 @@ public class Dialogs {
         return new DialogAnswer(dialog).isYesOrOk();
     }
 
-    private static Label contentPlaceHolder(String titleText) {
+    private static Label contentPlaceHolder(String title) {
         Label label = new Label();
-        label.setPrefWidth(Math.max(Calculations.textWidth(titleText), 280));
+        label.setPrefWidth(Math.max(Calculations.textWidth(title), 280));
         label.setMinHeight(16);
         label.setPrefHeight(16);
         return label;

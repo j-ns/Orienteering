@@ -40,13 +40,13 @@ public class LocalCityList extends LocalList<City> {
     }
 
     public LocalCityList(List<City> cities) {
-        setObjects(cities);
+        setItems(cities);
     }
 
     @Override
     @XmlElement(name = "cities")
-    public List<City> getObjects() {
-        return super.getObjects();
+    public List<City> getItems() {
+        return super.getItems();
     }
 
 }

@@ -28,6 +28,13 @@
  */
 package com.jns.orienteering.model.common;
 
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+
 public enum AccessType {
     PRIVATE, PUBLIC;
+
+    public static ObservableList<AccessType> observableValues(){
+        return FXCollections.observableArrayList(values());
+    }
 }

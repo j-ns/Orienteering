@@ -41,6 +41,7 @@ import com.gluonhq.charm.glisten.application.MobileApplication;
 import com.gluonhq.connect.ConnectState;
 import com.gluonhq.connect.GluonObservableList;
 import com.gluonhq.connect.GluonObservableObject;
+import com.jns.orienteering.control.Dialogs;
 import com.jns.orienteering.model.common.StorableImage;
 import com.jns.orienteering.model.dynamic.CityCache;
 import com.jns.orienteering.model.dynamic.MissionCache;
@@ -60,7 +61,6 @@ import com.jns.orienteering.model.repo.synchronizer.ImageSynchronizer;
 import com.jns.orienteering.model.repo.synchronizer.RepoSynchronizer;
 import com.jns.orienteering.model.repo.synchronizer.SyncMetaData;
 import com.jns.orienteering.platform.PlatformProvider;
-import com.jns.orienteering.util.Dialogs;
 import com.jns.orienteering.view.ViewRegistry;
 
 import javafx.application.Platform;
@@ -71,7 +71,6 @@ import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
-import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
 import javafx.scene.image.Image;
@@ -89,6 +88,8 @@ public class BaseService {
     private LocalRepo<User, User>           userLocalRepo;
 
     private LocalRepo<Task, ActiveTaskList> activeTasksLocalRepo;
+
+    private boolean                         userListenerActive;
 
     private ObjectProperty<User>            user              = new SimpleObjectProperty<>();
     private StringProperty                  alias             = new SimpleStringProperty();
@@ -190,9 +191,9 @@ public class BaseService {
     }
 
     private void postUserInit() {
-        user.addListener(userListener);
-        defaultCity.addListener(defaultCityListener);
-        activeMission.addListener(activeMissionListener);
+        user.addListener((ov, u, u1) -> onUserChanged(u1));
+        defaultCity.addListener((ov, c, c1) -> onCityChanged(c1));
+        activeMission.addListener((ov, m, m1) -> onActiveMissionChanged(m1));
 
         if (internectConnectionEstablished()) {
             SyncMetaData syncMetaData = new SyncMetaData().userId(getUserId())
@@ -218,73 +219,73 @@ public class BaseService {
         return connectionEstablished;
     }
 
-    private boolean                         userListenerActive;
-    private ChangeListener<? super User>    userListener          = (ov, u, u1) ->
-                                                                  {
-                                                                      userListenerActive = true;
-                                                                      if (u1 != null) {
-                                                                          userLocalRepo.createOrUpdateAsync(u1);
+    private void onUserChanged(User user) {
+        userListenerActive = true;
 
-                                                                          setDefaultCity(u1.getDefaultCity());
-                                                                          if (u1.getDefaultCity() == null) {
-                                                                              Platform.runLater(() -> Dialogs.ok("baseService.info.selectDefaultCity")
-                                                                                                             .showAndWait());
-                                                                          }
-                                                                          alias.set(u1.getAlias());
+        if (user != null) {
+            userLocalRepo.createOrUpdateAsync(user);
 
-                                                                          setActiveMission(u1.getActiveMission());
-                                                                          LOGGER.debug("user logged in: {}", u1.getAlias());
+            setDefaultCity(user.getDefaultCity());
+            if (user.getDefaultCity() == null) {
+                Platform.runLater(() -> Dialogs.ok("baseService.info.selectDefaultCity")
+                                               .showAndWait());
+            }
+            alias.set(user.getAlias());
 
-                                                                      } else {
-                                                                          userLocalRepo.deleteAsync();
-                                                                          alias.set(localize("navigationdrawer.login"));
-                                                                          setDefaultCity(null);
-                                                                          setActiveMission(null);
-                                                                      }
-                                                                      CityCache.INSTANCE.setUserId(u1 == null ? null : u1.getId());
-                                                                      userListenerActive = false;
-                                                                  };
+            setActiveMission(user.getActiveMission());
+            LOGGER.debug("user logged in: {}", user.getAlias());
 
-    private ChangeListener<? super City>    defaultCityListener   = (ov, c, c1) ->
-                                                                  {
-                                                                      if (!userListenerActive) {
-                                                                          User _user = getUser();
-                                                                          _user.setDefaultCity(c1);
+        } else {
+            userLocalRepo.deleteAsync();
+            alias.set(localize("navigationdrawer.login"));
+            setDefaultCity(null);
+            setActiveMission(null);
+        }
+        CityCache.INSTANCE.setUserId(user == null ? null : user.getId());
 
-                                                                          userCloudRepo.createOrUpdateAsync(_user, _user.getId());
-                                                                          userLocalRepo.createOrUpdateAsync(_user);
-                                                                      }
-                                                                  };
+        userListenerActive = false;
+    }
 
-    private ChangeListener<? super Mission> activeMissionListener = (ov, m, m1) ->
-                                                                  {
-                                                                      if (!userListenerActive) {
-                                                                          User _user = getUser();
-                                                                          _user.setActiveMission(m1);
-                                                                          _user.setTimeStamp(userCloudRepo.createTimeStamp());
+    private void onCityChanged(City city) {
+        if (!userListenerActive) {
+            User _user = getUser();
+            _user.setDefaultCity(city);
 
-                                                                          AsyncResultReceiver.create(userCloudRepo.createOrUpdateAsync(_user,
-                                                                                                                                       _user.getId()))
-                                                                                             .defaultProgressLayer()
-                                                                                             .start();
+            userCloudRepo.createOrUpdateAsync(_user, _user.getId());
+            userLocalRepo.createOrUpdateAsync(_user);
+        }
+    }
 
-                                                                          userLocalRepo.createOrUpdateAsync(_user);
-                                                                      }
+    private void onActiveMissionChanged(Mission mission) {
+        if (!userListenerActive) {
+            User _user = getUser();
+            _user.setActiveMission(mission);
+            _user.setTimeStamp(userCloudRepo.createTimeStamp());
 
-                                                                      if (m1 != null) {
-                                                                          activeMissionName.set(m1.getMissionName());
-                                                                          updateActiveTasks(m1);
-                                                                          LOGGER.debug("activeMission set to: {}", m1.getMissionName());
+            AsyncResultReceiver.create(userCloudRepo.createOrUpdateAsync(_user, _user.getId()))
+                               .defaultProgressLayer()
+                               .onSuccess(result -> userLocalRepo.createOrUpdateAsync(result.get()))
+                               .start();
+        }
 
-                                                                      } else {
-                                                                          activeMissionName.set(null);
-                                                                          missionCache.clearItems();
-                                                                          activeTasksLocalRepo.deleteAsync();
-                                                                      }
-                                                                  };
+        if (mission != null) {
+            activeMissionName.set(mission.getMissionName());
+            updateActiveTasks(mission);
+            LOGGER.debug("activeMission set to: {}", mission.getMissionName());
+
+        } else {
+            activeMissionName.set(null);
+            activeMissionStats = null;
+            missionCache.clearActiveMissionTasks();
+            activeTasksLocalRepo.deleteAsync();
+        }
+    }
 
     private void updateActiveTasks(Mission mission) {
-        GluonObservableList<Task> obsActiveTasks = missionCache.retrieveMissionTasksSorted(mission.getId());
+        if (mission == null) {
+            return;
+        }
+        GluonObservableList<Task> obsActiveTasks = missionCache.retrieveActiveMissionTasksOrdered(mission.getId());
         AsyncResultReceiver.create(obsActiveTasks)
                            .defaultProgressLayer()
                            .onSuccess(result ->
@@ -407,11 +408,11 @@ public class BaseService {
     }
 
     public boolean activeMissionContainsTask(Task task) {
-        return missionCache.containsTask(task);
+        return missionCache.containsActiveTask(task);
     }
 
     public ObservableList<Task> getActiveTasks() {
-        return missionCache.getMissionTasks();
+        return missionCache.getActiveMissionTasks();
     }
 
     public MissionStat getActiveMissionStats() {

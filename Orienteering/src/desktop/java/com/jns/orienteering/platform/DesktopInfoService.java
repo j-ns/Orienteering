@@ -29,7 +29,7 @@
 
 package com.jns.orienteering.platform;
 
-import com.jns.orienteering.util.Dialogs;
+import com.jns.orienteering.control.Dialogs;
 
 public class DesktopInfoService implements InfoService {
 

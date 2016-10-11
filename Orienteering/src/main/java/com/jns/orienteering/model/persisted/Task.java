@@ -46,38 +46,30 @@ import com.jns.orienteering.model.common.LookupSupplier;
 
 public class Task extends BasePostableSynchronizable implements CityAssignable, LookupSupplier, Comparable<Task> {
 
-    private static Comparator<Task> orderNumberComparator = (t, t1) -> Integer.compare(t.getOrderNumber(), t1.getOrderNumber());
+    private static final Comparator<Task> orderNumberComparator = (t, t1) -> Integer.compare(t.getOrderNumber(), t1.getOrderNumber());
 
-    private String                  cityId;
-    private String                  ownerId;
+    private String                        cityId;
+    private String                        ownerId;
+    private AccessType                    accessType            = AccessType.PRIVATE;
 
-    private AccessType              accessType;
+    private String                        taskName;
+    private String                        description;
+    private double                        longitude;
+    private double                        latitude;
+    private boolean                       createImageId;
+    private String                        imageId;
+    private String                        scancode;
+    private int                           points;
 
-    private String                  taskName;
-    private String                  description;
-    private String                  scancode;
-    private int                     points;
-    private double                  longitude;
-    private double                  latitude;
-    private boolean                 createImageId;
-    private String                  imageId;
+    private int                           orderNumber;
 
-    private boolean                 completed;
+    private boolean                       completed;
 
-    private Task                    previousTask;
+    private Task                          previousTask;
 
-    private int                     orderNumber;
 
     @JsonDefaultConstructor
     public Task() {
-        accessType = AccessType.PRIVATE;
-    }
-
-    public static Task finishedInstance(boolean completed) {
-        Task task = new Task();
-        task.taskName = localize("mission.finished");
-        task.setCompleted(completed);
-        return task;
     }
 
     public Task(String cityId, String name, String description, Position position, int points, AccessType accessType, String ownerId,
@@ -91,6 +83,13 @@ public class Task extends BasePostableSynchronizable implements CityAssignable, 
         this.accessType = accessType;
         this.ownerId = ownerId;
         this.createImageId = createImageId;
+    }
+
+    public static Task finishedInstance(boolean completed) {
+        Task task = new Task();
+        task.taskName = localize("mission.finished");
+        task.setCompleted(completed);
+        return task;
     }
 
     @Override
@@ -260,12 +259,8 @@ public class Task extends BasePostableSynchronizable implements CityAssignable, 
 
     @Override
     public boolean nameChanged() {
-        ensurePreviousTask();
-        return !previousTask.getTaskName().equals(taskName);
-    }
-
-    private void ensurePreviousTask() {
         Objects.requireNonNull(previousTask, "previousTask must not be null");
+        return !previousTask.getTaskName().equals(taskName);
     }
 
     @Override

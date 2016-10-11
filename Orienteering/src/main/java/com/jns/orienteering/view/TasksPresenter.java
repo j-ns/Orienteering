@@ -28,7 +28,7 @@
  */
 package com.jns.orienteering.view;
 
-import static com.jns.orienteering.util.Dialogs.confirmDeleteAnswer;
+import static com.jns.orienteering.control.Dialogs.confirmDeleteAnswer;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -37,6 +37,7 @@ import com.gluonhq.charm.glisten.layout.MobileLayoutPane;
 import com.gluonhq.charm.glisten.layout.layer.FloatingActionButton;
 import com.gluonhq.connect.GluonObservableList;
 import com.gluonhq.connect.GluonObservableObject;
+import com.jns.orienteering.control.Dialogs;
 import com.jns.orienteering.control.Icon;
 import com.jns.orienteering.control.cell.TaskCellSmall;
 import com.jns.orienteering.model.dynamic.MissionCache;
@@ -45,7 +46,6 @@ import com.jns.orienteering.model.dynamic.TaskCache;
 import com.jns.orienteering.model.persisted.Task;
 import com.jns.orienteering.model.repo.AsyncResultReceiver;
 import com.jns.orienteering.model.repo.TaskFBRepo;
-import com.jns.orienteering.util.Dialogs;
 
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
@@ -70,7 +70,7 @@ public class TasksPresenter extends ListViewPresenter<Task> {
         fab.visibleProperty().bind(service.userProperty().isNotNull());
 
         lview.setComparator(Task::compareTo);
-        lview.setOnSelection(this::onTaskSelected);
+        lview.setOnSelection(this::onSelectTask);
 
         initActionBar();
 
@@ -94,7 +94,7 @@ public class TasksPresenter extends ListViewPresenter<Task> {
     }
 
     @Override
-    protected ModelCache<?> getLocalCache() {
+    protected ModelCache<?> getCache() {
         return taskCache;
     }
 
@@ -137,6 +137,7 @@ public class TasksPresenter extends ListViewPresenter<Task> {
         // todo:
         String cityId = isMissionEditorModus() ? service.getCityBuffer() == null ? null : service.getCityBuffer().getCurrentCityId()
                 : service.getSelectedCityId();
+
         if (cityId == null || service.getUserId() == null) {
             lview.setItems(FXCollections.observableArrayList());
             return;
@@ -166,6 +167,47 @@ public class TasksPresenter extends ListViewPresenter<Task> {
         return service.getSelectedMission() != null;
     }
 
+    private void onCreateTask() {
+        showView(ViewRegistry.TASK);
+    }
+
+    private void onSelectTask(Task task) {
+        if (task != null) {
+            service.setSelectedTask(task);
+            showView(ViewRegistry.TASK);
+        }
+    }
+
+    private void onDeleteTask(Task task) {
+        Platform.runLater(() ->
+        {
+            if (!task.getOwnerId().equals(service.getUserId())) {
+                Dialogs.ok(localize("view.tasks.info.taskCanOnlyBeDeletedByOwner")).showAndWait();
+                return;
+            }
+            if (!confirmDeleteAnswer(localize("view.tasks.question.deleteTask")).isYesOrOk()) {
+                return;
+            }
+    
+            GluonObservableObject<Task> obsTask = cloudRepo.deleteTaskAsync(task);
+            AsyncResultReceiver.create(obsTask)
+                               .defaultProgressLayer()
+                               .onSuccess(e ->
+                               {
+                                   taskCache.removeItem(task);
+    
+                                   if (service.activeMissionContainsTask(task)) {
+                                       service.setActiveMission(null);
+                                   }
+                                   if (isMissionEditorModus()) {
+                                       MissionCache.INSTANCE.removeTask(task);
+                                   }
+                               })
+                               .exceptionMessage(localize("view.tasks.error.deleteTask"))
+                               .start();
+        });
+    }
+
     private boolean isPartOfMission(Task task) {
         return missionTasks.contains(task);
     }
@@ -186,48 +228,6 @@ public class TasksPresenter extends ListViewPresenter<Task> {
     private void onUpdateMissionTasks() {
         MissionCache.INSTANCE.getMissionTasksTemp().setAll(missionTasks);
         showPreviousView();
-    }
-
-    private void onTaskSelected(Task task) {
-        if (task != null) {
-            service.setSelectedTask(task);
-            onCreateTask();
-        }
-    }
-
-    private void onCreateTask() {
-        showView(ViewRegistry.TASK);
-    }
-
-    private void onDeleteTask(Task task) {
-        Platform.runLater(() ->
-        {
-            if (!task.getOwnerId().equals(service.getUserId())) {
-                Dialogs.ok(localize("view.tasks.info.taskCanOnlyBeDeletedByOwner")).showAndWait();
-                return;
-            }
-            if (!confirmDeleteAnswer(localize("view.tasks.question.deleteTask")).isYesOrOk()) {
-                return;
-            }
-
-            GluonObservableObject<Task> obsTask = cloudRepo.deleteTaskAsync(task);
-            AsyncResultReceiver.create(obsTask)
-                               .defaultProgressLayer()
-                               .onSuccess(e ->
-                               {
-                                   taskCache.removeItem(task);
-
-                                   if (MissionCache.INSTANCE.containsTask(task)) {
-                                       service.setActiveMission(null);
-                                   }
-                                   if (isMissionEditorModus()) {
-                                       MissionCache.INSTANCE.removeTask(task);
-                                   }
-
-                               })
-                               .exceptionMessage(localize("view.tasks.error.deleteTask"))
-                               .start();
-        });
     }
 
     @Override

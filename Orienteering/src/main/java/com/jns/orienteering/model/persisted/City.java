@@ -39,8 +39,8 @@ public class City extends BasePostableSynchronizable implements Comparable<City>
     public City() {
     }
 
-    public City(String name, String ownerId) {
-        cityName = name;
+    public City(String cityName, String ownerId) {
+        this.cityName = cityName;
         this.ownerId = ownerId;
     }
 
@@ -48,8 +48,8 @@ public class City extends BasePostableSynchronizable implements Comparable<City>
         return cityName;
     }
 
-    public void setCityName(String name) {
-        cityName = name;
+    public void setCityName(String cityName) {
+        this.cityName = cityName;
     }
 
     public String getOwnerId() {

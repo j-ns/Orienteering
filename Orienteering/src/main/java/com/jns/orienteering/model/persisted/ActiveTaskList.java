@@ -40,13 +40,13 @@ public class ActiveTaskList extends LocalList<Task> {
     }
 
     public ActiveTaskList(List<Task> tasks) {
-        setObjects(tasks);
+        setItems(tasks);
     }
 
     @Override
     @XmlElement(name = "tasks")
-    public List<Task> getObjects() {
-        return super.getObjects();
+    public List<Task> getItems() {
+        return super.getItems();
     }
 
 }

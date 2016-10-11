@@ -40,10 +40,11 @@ import org.slf4j.LoggerFactory;
 
 import com.gluonhq.connect.ConnectState;
 import com.gluonhq.connect.GluonObservable;
+import com.jns.orienteering.control.Dialogs;
+import com.jns.orienteering.control.Message;
 import com.jns.orienteering.control.ProgressLayer;
 import com.jns.orienteering.control.ProgressLayer.PauseFadeInHide;
 import com.jns.orienteering.model.common.CountProperty;
-import com.jns.orienteering.util.Dialogs;
 import com.jns.orienteering.util.GluonObservables;
 import com.jns.orienteering.util.Trigger;
 
@@ -62,7 +63,7 @@ public class AsyncResultReceiver<T extends GluonObservable> {
     private Optional<ProgressLayer>                                  progressLayer          = Optional.empty();
     private Optional<GluonObservable>                                initializeOnSuccess    = Optional.empty();
     private Optional<Consumer<Throwable>>                            onException            = Optional.empty();
-    private Optional<String>                                         exceptionMessage       = Optional.empty();
+    private Optional<Message>                                        exceptionMessage       = Optional.empty();
     private Optional<Consumer<T>>                                    finalizer              = Optional.empty();
 
     private Optional<AsyncResultReceiver<? extends GluonObservable>> next                   = Optional.empty();
@@ -116,7 +117,12 @@ public class AsyncResultReceiver<T extends GluonObservable> {
         return this;
     }
 
-    public AsyncResultReceiver<T> exceptionMessage(String message) {
+    public AsyncResultReceiver<T> exceptionMessage(String title) {
+        exceptionMessage = Optional.of(Message.create().title(title));
+        return this;
+    }
+
+    public AsyncResultReceiver<T> exceptionMessage(Message message) {
         exceptionMessage = Optional.of(message);
         return this;
     }

@@ -32,6 +32,7 @@ import javax.inject.Inject;
 import com.gluonhq.connect.GluonObservableList;
 import com.gluonhq.connect.GluonObservableObject;
 import com.jns.orienteering.common.BaseService;
+import com.jns.orienteering.control.Dialogs;
 import com.jns.orienteering.control.ListViewExtended;
 import com.jns.orienteering.control.cell.RankingCell;
 import com.jns.orienteering.control.cell.StatCell;
@@ -42,7 +43,6 @@ import com.jns.orienteering.model.persisted.StatByUser;
 import com.jns.orienteering.model.persisted.TaskStat;
 import com.jns.orienteering.model.repo.AsyncResultReceiver;
 import com.jns.orienteering.model.repo.MissionStatFBRepo;
-import com.jns.orienteering.util.Dialogs;
 
 import javafx.beans.binding.When;
 import javafx.collections.FXCollections;

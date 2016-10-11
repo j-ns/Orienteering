@@ -28,7 +28,7 @@
  */
 package com.jns.orienteering.view;
 
-import static com.jns.orienteering.util.Dialogs.confirmDeleteAnswer;
+import static com.jns.orienteering.control.Dialogs.confirmDeleteAnswer;
 import static com.jns.orienteering.util.Validators.isNotNullOrEmpty;
 
 import java.io.FileNotFoundException;
@@ -46,8 +46,10 @@ import com.jns.orienteering.common.ImageHandler;
 import com.jns.orienteering.common.MultiValidator;
 import com.jns.orienteering.common.Validator;
 import com.jns.orienteering.control.ChoiceFloatingTextField;
+import com.jns.orienteering.control.Dialogs;
 import com.jns.orienteering.control.FloatingTextField;
 import com.jns.orienteering.control.Icon;
+import com.jns.orienteering.control.Message;
 import com.jns.orienteering.control.ScrollListener;
 import com.jns.orienteering.control.ScrollPositionBuffer;
 import com.jns.orienteering.model.common.AccessType;
@@ -60,7 +62,6 @@ import com.jns.orienteering.model.persisted.Task;
 import com.jns.orienteering.model.repo.AsyncResultReceiver;
 import com.jns.orienteering.model.repo.TaskFBRepo;
 import com.jns.orienteering.platform.PositionHelper;
-import com.jns.orienteering.util.Dialogs;
 import com.jns.orienteering.util.SpecialCharReplacer;
 import com.jns.orienteering.util.Validators;
 
@@ -117,6 +118,7 @@ public class TaskPresenter extends BasePresenter {
     @Inject
     private BaseService                         service;
     private TaskFBRepo                          cloudRepo;
+    private MultiValidator<String>              taskValidator;
 
     private Task                                task;
     private ReadOnlyObjectProperty<Position>    position       = platformService().getPositionService().positionProperty();
@@ -129,7 +131,7 @@ public class TaskPresenter extends BasePresenter {
         initActionBar();
 
         choiceCity.setStringConverter(City::getCityName);
-        choiceCity.setMissingDataTitle(localize("dialog.error.connectionFailed"));
+        choiceCity.setMissingDataMessage(Message.create().title(localize("dialog.error.connectionFailed")));
         choiceCity.setItems(service.getCitiesSorted());
 
         Label gpsIcon = Icon.GPS_LOCATION.label("22");
@@ -243,7 +245,8 @@ public class TaskPresenter extends BasePresenter {
     private ChangeListener<? super Position> postionListener = (ov, p, p1) ->
     {
         if (p1 != null) {
-            String position = Double.toString(p1.getLatitude()) + "," + Double.toString(p1.getLongitude());
+            String position = Double.toString(p1.getLatitude()) + "," + Double.toString(p1
+                                                                                          .getLongitude());
             txtPosition.setText(position);
             gpsDialog.hide();
             removePositionListener();
@@ -288,10 +291,24 @@ public class TaskPresenter extends BasePresenter {
         try {
             getPosition();
         } catch (Exception ex) {
-            Dialogs.ok(localize("view.task.error.invalidCoordinates"), localize("view.task.error.validCoordinates")).showAndWait();
+            Message msg = Message.create()
+                                 .title(localize("view.task.error.invalidCoordinates"))
+                                 .text(localize("view.task.error.validCoordinates"));
+
+            Dialogs.ok(msg).showAndWait();
             return false;
         }
+        return getTaskValidator().check(txtName.getText());
+    }
 
+    private MultiValidator<String> getTaskValidator() {
+        if (taskValidator == null) {
+            taskValidator = createTaskValidator();
+        }
+        return taskValidator;
+    }
+
+    private MultiValidator<String> createTaskValidator() {
         Validator<String> nameDoesntExistValidator = new Validator<>(name -> !cloudRepo.checkIfTaskNameExists(name),
                                                                      localize("view.task.info.nameAlreadyExists"));
 
@@ -312,11 +329,7 @@ public class TaskPresenter extends BasePresenter {
             }
         });
 
-        return validator.check(txtName.getText());
-    }
-
-    public static boolean validateCoordinates(double latitude, double longitude) {
-        return latitude >= -90 && latitude <= 90 && longitude >= -180 && longitude <= 180;
+        return validator;
     }
 
     private AsyncResultReceiver<GluonObservableObject<Task>> saveResultReceiver() {
@@ -437,7 +450,6 @@ public class TaskPresenter extends BasePresenter {
                                }
                                if (isMissionEditorModus()) {
                                    MissionCache.INSTANCE.removeTask(task);
-
                                }
                                showPreviousView();
                            })

@@ -15,6 +15,9 @@ public class MissionCache extends ModelCache<Mission> {
 
     private MissionFBRepo             cloudRepo;
 
+    private String                    activeMissionId;
+    private GluonObservableList<Task> activeMissionTasks;
+
     private String                    selectedMissionId;
     private GluonObservableList<Task> missionTasks;
     private GluonObservableList<Task> missionTasksTemp;
@@ -33,9 +36,21 @@ public class MissionCache extends ModelCache<Mission> {
         return cloudRepo.getPublicMissions(cityId);
     }
 
-    public GluonObservableList<Task> retrieveMissionTasksSorted(String missionId) {
+    public GluonObservableList<Task> retrieveActiveMissionTasksOrdered(String missionId) {
+        if (!missionId.equals(activeMissionId)) {
+            activeMissionTasks = null;
+        }
+        if (!isNullOrEmpty(activeMissionTasks)) {
+            return activeMissionTasks;
+        }
+        activeMissionTasks = cloudRepo.retrieveOrderedTasksAsync(missionId);
+        activeMissionId = missionId;
+        return activeMissionTasks;
+    }
+
+    public GluonObservableList<Task> retrieveMissionTasksOrdered(String missionId) {
         if (!missionId.equals(selectedMissionId)) {
-            clearMissionTasks();
+            clearTasks();
         }
 
         if (!isNullOrEmpty(missionTasks)) {
@@ -47,6 +62,10 @@ public class MissionCache extends ModelCache<Mission> {
         missionTasks = cloudRepo.retrieveOrderedTasksAsync(missionId);
         selectedMissionId = missionId;
         return missionTasks;
+    }
+
+    public GluonObservableList<Task> getActiveMissionTasks() {
+        return activeMissionTasks;
     }
 
     public GluonObservableList<Task> getMissionTasks() {
@@ -62,8 +81,16 @@ public class MissionCache extends ModelCache<Mission> {
 
     public void removeMissionAndTasks(Mission mission) {
         removeItem(mission);
-        missionTasks.clear();
-        missionTasksTemp = null;
+
+        if (mission.getId().equals(selectedMissionId)) {
+            selectedMissionId = null;
+            clearTasks();
+        }
+
+        if (mission.getId().equals(activeMissionId)) {
+            activeMissionId = null;
+            clearActiveMissionTasks();
+        }
     }
 
     public void udpateMissionTask(Task newTask, Task previousTask) {
@@ -76,10 +103,20 @@ public class MissionCache extends ModelCache<Mission> {
         if (idxTemp > -1) {
             missionTasksTemp.set(idxTemp, newTask);
         }
+
+        if (!isNullOrEmpty(activeMissionTasks)) {
+            int idxActiveTasks = activeMissionTasks.indexOf(previousTask);
+            if (idxActiveTasks > -1) {
+                activeMissionTasks.set(idxActiveTasks, newTask);
+            }
+        }
     }
 
-    public void updateMissionTasksWithBuffer() {
+    public void updateTasksWithBuffer() {
         missionTasks.setAll(missionTasksTemp);
+        if (selectedMissionId.equals(activeMissionId)) {
+            activeMissionTasks.setAll(missionTasksTemp);
+        }
     }
 
     public void removeTask(Task task) {
@@ -89,36 +126,47 @@ public class MissionCache extends ModelCache<Mission> {
         if (missionTasksTemp != null) {
             missionTasksTemp.remove(task);
         }
+        if (activeMissionTasks != null) {
+            activeMissionTasks.remove(task);
+        }
     }
 
-    public boolean containsTask(Task task) {
-        if (isNullOrEmpty(missionTasks)) {
+    public boolean containsActiveTask(Task task) {
+        if (isNullOrEmpty(activeMissionTasks)) {
             return false;
         }
-        return missionTasks.contains(task);
+        return activeMissionTasks.contains(task);
     }
 
     @Override
     public void clearItems() {
-        clearPrivateItems();
-        clearPublicItems();
-        clearMissionTasks();
+        super.clearPrivateItems();
+        super.clearPublicItems();
+        clearTasks();
     }
 
     @Override
     protected void clearPrivateItems() {
         super.clearPrivateItems();
-        clearMissionTasks();
+        clearTasks();
     }
 
     @Override
     protected void clearPublicItems() {
         super.clearPublicItems();
-        clearMissionTasks();
+        clearTasks();
     }
 
-    public void clearMissionTasks() {
-        missionTasks = new GluonObservableList<>();
-        missionTasksTemp = new GluonObservableList<>();
+    public void clearTasks() {
+        missionTasks = GluonObservables.newListInitialized();
+        missionTasksTemp = GluonObservables.newListInitialized();
+    }
+
+    public void clearMissionTasksTemp() {
+        missionTasksTemp = GluonObservables.newListInitialized();
+    }
+
+    public void clearActiveMissionTasks() {
+        activeMissionTasks = GluonObservables.newListInitialized();
     }
 }

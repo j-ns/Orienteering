@@ -37,10 +37,10 @@ import java.time.LocalTime;
 import javax.inject.Inject;
 
 import com.jns.orienteering.common.BaseService;
+import com.jns.orienteering.control.Dialogs;
 import com.jns.orienteering.control.DurationDisplay;
 import com.jns.orienteering.model.persisted.Mission;
 import com.jns.orienteering.model.persisted.MissionStat;
-import com.jns.orienteering.util.Dialogs;
 
 import javafx.beans.binding.When;
 import javafx.beans.value.ChangeListener;
@@ -114,11 +114,6 @@ public class HomePresenter extends BasePresenter {
             service.stopMissionProperty().set(!b1);
 
             if (b1) {
-                if (service.getActiveTasks().isEmpty()) {
-                    Dialogs.ok(localize("view.home.error.noActiveTasksPresent")).showAndWait();
-                    return;
-                }
-
                 tglStartStop.setText(localize("button.stop"));
                 boxButtons.getChildren().add(btnContinue);
                 lblEnd.setText("");
@@ -168,7 +163,7 @@ public class HomePresenter extends BasePresenter {
             lblDuration.setVisible(true);
             lblPoints.setText(missionStats.getPoints() + " / " + mission.getMaxPoints());
         } else {
-            lblDuration.setVisible(false);
+            clearFields();
         }
     }
 

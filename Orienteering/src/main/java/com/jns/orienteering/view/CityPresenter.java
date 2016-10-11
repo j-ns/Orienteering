@@ -28,7 +28,7 @@
  */
 package com.jns.orienteering.view;
 
-import static com.jns.orienteering.util.Dialogs.confirmDeleteAnswer;
+import static com.jns.orienteering.control.Dialogs.confirmDeleteAnswer;
 
 import javax.inject.Inject;
 
@@ -36,6 +36,7 @@ import com.gluonhq.connect.GluonObservable;
 import com.gluonhq.connect.GluonObservableObject;
 import com.jns.orienteering.common.BaseService;
 import com.jns.orienteering.common.MultiValidator;
+import com.jns.orienteering.control.Dialogs;
 import com.jns.orienteering.control.FloatingTextField;
 import com.jns.orienteering.control.Icon;
 import com.jns.orienteering.model.dynamic.CityCache;
@@ -44,7 +45,6 @@ import com.jns.orienteering.model.persisted.LocalCityList;
 import com.jns.orienteering.model.repo.AsyncResultReceiver;
 import com.jns.orienteering.model.repo.CityFBRepo;
 import com.jns.orienteering.model.repo.LocalRepo;
-import com.jns.orienteering.util.Dialogs;
 import com.jns.orienteering.util.SpecialCharReplacer;
 import com.jns.orienteering.util.Validators;
 
@@ -59,7 +59,8 @@ public class CityPresenter extends BasePresenter {
     private BaseService                    service;
     private CityFBRepo                     cloudRepo;
     private LocalRepo<City, LocalCityList> localRepo;
-    private CityCache                 localCityCache;
+    private CityCache                      localCityCache;
+    private MultiValidator<String>         cityNameValidator;
 
     private City                           city;
 
@@ -118,6 +119,17 @@ public class CityPresenter extends BasePresenter {
     }
 
     private boolean validateCityName() {
+        return getCityNameValidator().check(txtCityName.getText());
+    }
+
+    private MultiValidator<String> getCityNameValidator() {
+        if (cityNameValidator == null) {
+            cityNameValidator = createCityNameValidator();
+        }
+        return cityNameValidator;
+    }
+
+    private MultiValidator<String> createCityNameValidator() {
         MultiValidator<String> validator = new MultiValidator<>();
 
         validator.addCheck(Validators::isNotNullOrEmpty, localize("view.city.info.nameMustNotBeEmpty"));
@@ -133,10 +145,9 @@ public class CityPresenter extends BasePresenter {
             } else {
                 return !cloudRepo.checkIfNameExists(cityName);
             }
-        },
-                           localize("view.city.error.alreadExists"));
+        }, localize("view.city.error.alreadExists"));
 
-        return validator.check(txtCityName.getText());
+        return validator;
     }
 
     private AsyncResultReceiver<GluonObservable> saveResultReceiver() {
@@ -147,7 +158,7 @@ public class CityPresenter extends BasePresenter {
                            .onSuccess(result ->
                            {
                                if (isEditorModus()) {
-                                   localCityCache.remove(result.get());
+                                   localCityCache.remove(city);
                                }
                                localCityCache.put(result.get());
 
@@ -196,7 +207,6 @@ public class CityPresenter extends BasePresenter {
                            {
                                localCityCache.remove(city);
                                localRepo.createOrUpdateListAsync(new LocalCityList(localCityCache.getPublicCities()));
-
                                showPreviousView();
                            })
                            .start();

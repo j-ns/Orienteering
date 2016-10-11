@@ -29,7 +29,7 @@
 
 package com.jns.orienteering.view;
 
-import static com.jns.orienteering.util.Dialogs.confirmDeleteAnswer;
+import static com.jns.orienteering.control.Dialogs.confirmDeleteAnswer;
 
 import javax.inject.Inject;
 
@@ -64,7 +64,6 @@ import com.jns.orienteering.util.GluonObservables;
 import com.jns.orienteering.util.SpecialCharReplacer;
 import com.jns.orienteering.util.Validators;
 
-import javafx.collections.FXCollections;
 import javafx.css.PseudoClass;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
@@ -114,12 +113,11 @@ public class MissionPresenter extends BasePresenter {
     @Inject
     private BaseService                         service;
     private MissionFBRepo                       cloudRepo;
-    private MissionCache                   missionCache;
+    private MissionCache                        missionCache;
+    private MultiValidator<String>              nameValidator;
 
     private Mission                             mission;
     private GluonObservableList<Task>           tasks;
-    // private List<Task> tasksBuffer;
-
     private Task                                taskToReorder;
 
     @Override
@@ -133,7 +131,7 @@ public class MissionPresenter extends BasePresenter {
         choiceCity.setItems(service.getCitiesSorted());
 
         choiceAccess.setStringConverter(accessType -> localize(accessType));
-        choiceAccess.setItems(FXCollections.observableArrayList(AccessType.values()));
+        choiceAccess.setItems(AccessType.observableValues());
 
         lviewMissionTasks.setCellFactory(listView -> new TaskCellSmall(lviewMissionTasks.selectedItemProperty(), this::onRemoveTask,
                                                                        scrollEventFilter.slidingProperty()));
@@ -212,7 +210,7 @@ public class MissionPresenter extends BasePresenter {
             if (ViewRegistry.MISSIONS.equals(service.getPreviousViewName())) {
                 tabPane.getSelectionModel().select(0);
 
-                GluonObservableList<Task> obsTasks = missionCache.retrieveMissionTasksSorted(mission.getId());
+                GluonObservableList<Task> obsTasks = missionCache.retrieveMissionTasksOrdered(mission.getId());
                 AsyncResultReceiver.create(obsTasks)
                                    .defaultProgressLayer()
                                    .onSuccess(result ->
@@ -303,7 +301,7 @@ public class MissionPresenter extends BasePresenter {
     }
 
     private void onSave() {
-        if (!validateMissionName(txtName.getText())) {
+        if (!validateMissionName()) {
             return;
         }
         saveReceiver().onSuccess(e -> showPreviousView())
@@ -311,13 +309,13 @@ public class MissionPresenter extends BasePresenter {
     }
 
     private void onSaveAndContinue() {
-        if (!validateMissionName(txtName.getText())) {
+        if (!validateMissionName()) {
             return;
         }
         saveReceiver()
                       .onSuccess(e ->
                       {
-                          missionCache.clearMissionTasks();
+                          missionCache.clearTasks();
 
                           mission = new Mission();
                           tasks = new GluonObservableList<>();
@@ -332,14 +330,25 @@ public class MissionPresenter extends BasePresenter {
                       .start();
     }
 
-    private boolean validateMissionName(String name) {
+    private boolean validateMissionName() {
+        return getNameValidator().check(txtName.getText());
+    }
+
+    private MultiValidator<String> getNameValidator() {
+        if (nameValidator == null) {
+            nameValidator = createNameValidator();
+        }
+        return nameValidator;
+    }
+
+    private MultiValidator<String> createNameValidator() {
         Validator<String> nameDoesntExistValidator = new Validator<>(cloudRepo::checkIfMissionNameDoesntExist,
                                                                      localize("view.mission.info.nameExists"));
 
         MultiValidator<String> validator = new MultiValidator<>();
         validator.addCheck(Validators::isNotNullOrEmpty, localize("view.mission.warning.nameMustNotBeEmpty"));
         validator.addCheck(SpecialCharReplacer::validateInput, localize("view.error.invalidCharEntered"));
-        validator.addCheck(missionName ->
+        validator.addCheck(name ->
         {
             if (isEditorModus()) {
                 boolean missionNameChanged = !name.equals(mission.getMissionName());
@@ -351,13 +360,36 @@ public class MissionPresenter extends BasePresenter {
                 return nameDoesntExistValidator.check(name);
             }
         });
-        return validator.check(name);
+
+        return validator;
     }
 
     private AsyncResultReceiver<GluonObservable> saveReceiver() {
         GluonObservable obsResult = saveMission(createMission());
         return AsyncResultReceiver.create(obsResult)
                                   .defaultProgressLayer();
+    }
+
+    private Mission createMission() {
+        String missionName = txtName.getText();
+        String ownerId = service.getUserId();
+        double distance = txtDistance.getTextAsDouble();
+        AccessType accessType = choiceAccess.getSelectedItem();
+    
+        Mission newMission = new Mission(missionName, getSelectedCityId(), ownerId, distance, accessType);
+    
+        int maxPoints = 0;
+        for (Task task : tasks) {
+            maxPoints += task.getPoints();
+        }
+        newMission.setMaxPoints(maxPoints);
+        newMission.updateTasksMap(tasks);
+    
+        if (isEditorModus()) {
+            newMission.setId(mission.getId());
+            newMission.setPreviousMission(mission);
+        }
+        return newMission;
     }
 
     private GluonObservable saveMission(Mission newMission) {
@@ -371,13 +403,12 @@ public class MissionPresenter extends BasePresenter {
                                                        Mission activeMission = service.getActiveMission();
 
                                                        if (activeMission != null && activeMission.getId().equals(newMission.getId())) {
+                                                           missionCache.updateTasksWithBuffer();
                                                            service.setActiveMission(newMission);
-                                                           service.getActiveTasks().setAll(tasks);
 
                                                            LocalRepo<Task, ActiveTaskList> localTasksRepo = service.getRepoService().getLocalRepo(
                                                                                                                                                   Task.class);
                                                            localTasksRepo.createOrUpdateListAsync(new ActiveTaskList(tasks));
-                                                           missionCache.updateMissionTasksWithBuffer();
                                                        }
                                                    })
                                                    .start();
@@ -402,31 +433,6 @@ public class MissionPresenter extends BasePresenter {
                                           GluonObservables.setInitialized(obsSuccessful);
                                       }
                                   });
-    }
-
-    private Mission createMission() {
-        String missionName = txtName.getText();
-        double distance = txtDistance.getTextAsDouble();
-        AccessType accessType = choiceAccess.getSelectedItem();
-
-        Mission newMission = Mission.create(missionName)
-                                    .cityId(getSelectedCityId())
-                                    .ownerId(service.getUserId())
-                                    .distance(distance)
-                                    .accessType(accessType);
-
-        int maxPoints = 0;
-        for (Task task : tasks) {
-            maxPoints += task.getPoints();
-        }
-        newMission.setMaxPoints(maxPoints);
-        newMission.updateTasksMap(tasks);
-
-        if (isEditorModus()) {
-            newMission.setId(mission.getId());
-            newMission.setPreviousMission(mission);
-        }
-        return newMission;
     }
 
     private void updateMissionsList(Mission newMission, Mission previousMission) {
@@ -472,7 +478,7 @@ public class MissionPresenter extends BasePresenter {
                                missionCache.removeMissionAndTasks(mission);
 
                                Mission activeMission = service.getActiveMission();
-                               if (activeMission != null && activeMission.getId().equals(mission)) {
+                               if (activeMission != null && activeMission.getId().equals(mission.getId())) {
                                    service.setActiveMission(null);
                                }
 

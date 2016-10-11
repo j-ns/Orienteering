@@ -32,7 +32,7 @@ import static com.jns.orienteering.util.Validators.isNullOrEmpty;
 
 import java.util.function.Predicate;
 
-import com.jns.orienteering.util.Dialogs;
+import com.jns.orienteering.control.Dialogs;
 
 public class Validator<T> {
 

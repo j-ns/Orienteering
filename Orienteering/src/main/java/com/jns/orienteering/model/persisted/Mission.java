@@ -30,7 +30,6 @@ package com.jns.orienteering.model.persisted;
 
 import static com.jns.orienteering.util.Validators.isNullOrEmpty;
 
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -63,47 +62,13 @@ public class Mission extends BasePostableSynchronizable implements CityAssignabl
     public Mission() {
     }
 
-    public Mission(Mission mission) {
-        this(mission.getMissionName(), mission.getCityId(), mission.getOwnerId(), mission.getDistance(), mission.getAccessType());
-    }
-
     public Mission(String missionName, String cityId, String ownerId, double distance, AccessType accessType) {
-        this(missionName, cityId, distance, accessType);
-        this.ownerId = ownerId;
-    }
-
-    public Mission(String missionName, String cityId, double distance, AccessType accessType) {
         this.missionName = missionName;
         this.cityId = cityId;
+        this.ownerId = ownerId;
         this.distance = distance;
         this.accessType = accessType;
-        tasksMap = new HashMap<>();
-    }
-
-    public static Mission create(String missionName) {
-        Mission mission = new Mission();
-        mission.setMissionName(missionName);
-        return mission;
-    }
-
-    public Mission cityId(String id) {
-        cityId = id;
-        return this;
-    }
-
-    public Mission ownerId(String id) {
-        ownerId = id;
-        return this;
-    }
-
-    public Mission distance(double distance) {
-        this.distance = distance;
-        return this;
-    }
-
-    public Mission accessType(AccessType access) {
-        accessType = access;
-        return this;
+        tasksMap = new LinkedHashMap<>();
     }
 
     public void setPreviousMission(Mission mission) {
@@ -125,12 +90,8 @@ public class Mission extends BasePostableSynchronizable implements CityAssignabl
 
     @Override
     public boolean nameChanged() {
-        ensurePreviousMission();
-        return !missionName.equals(previousMission.missionName);
-    }
-
-    private void ensurePreviousMission() {
         Objects.requireNonNull(previousMission, "previousMission must not be null");
+        return !missionName.equals(previousMission.missionName);
     }
 
     @Override
@@ -178,7 +139,7 @@ public class Mission extends BasePostableSynchronizable implements CityAssignabl
     @XmlTransient
     public Map<String, Integer> getTasksMap() {
         if (tasksMap == null) {
-            tasksMap = new HashMap<>();
+            tasksMap = new LinkedHashMap<>();
         }
         return tasksMap;
     }
@@ -255,7 +216,7 @@ public class Mission extends BasePostableSynchronizable implements CityAssignabl
             result = accessType.compareTo(other.accessType);
         }
         if (result == 0) {
-            result = compareTo(other);
+            result = missionName.compareTo(other.missionName);
         }
         if (result == 0) {
             result = cityId.compareTo(other.cityId);

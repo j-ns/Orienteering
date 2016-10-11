@@ -33,7 +33,6 @@ import static com.jns.orienteering.util.Validators.isNullOrEmpty;
 import java.util.function.Function;
 
 import com.jns.orienteering.control.skin.BaseChoiceFieldSkin;
-import com.jns.orienteering.util.Dialogs;
 import com.jns.orienteering.util.StringUtils;
 
 import javafx.beans.property.ListProperty;
@@ -51,8 +50,7 @@ public abstract class BaseChoiceField<T> extends Control {
 
     private Function<T, String>   stringConverter;
 
-    private String                missingDataTitle;
-    private String                missingDataMessage;
+    private Message               missingDataMessage;
 
     private boolean               showOpenButton;
     private Label                 openButton;
@@ -115,20 +113,15 @@ public abstract class BaseChoiceField<T> extends Control {
     }
 
     public String getMissingDataTitle() {
-        return missingDataTitle;
+        return missingDataMessage.getTitle();
     }
 
-    public void setMissingDataTitle(String text) {
-        this.missingDataTitle = text;
+    public void setMissingDataMessage(Message msg) {
+        this.missingDataMessage = msg;
     }
 
-    public String getMissingDataMessage() {
+    public Message getMissingDataMessage() {
         return missingDataMessage;
-    }
-
-    public void setMissingDataInfo(String title, String message) {
-        missingDataTitle = title;
-        missingDataMessage = message;
     }
 
     public void setShowOpenButton(boolean value) {
@@ -167,7 +160,7 @@ public abstract class BaseChoiceField<T> extends Control {
     }
 
     public void showMissingDataMessage() {
-        Dialogs.ok(missingDataTitle, missingDataMessage).showAndWait();
+        Dialogs.ok(missingDataMessage).showAndWait();
     }
 
     public abstract void updateDisplay(T item);

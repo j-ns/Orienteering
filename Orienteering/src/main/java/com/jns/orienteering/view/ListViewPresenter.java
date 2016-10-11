@@ -34,6 +34,7 @@ import com.jns.orienteering.common.BaseService;
 import com.jns.orienteering.control.GraphicChoiceField;
 import com.jns.orienteering.control.Icon;
 import com.jns.orienteering.control.ListViewExtended;
+import com.jns.orienteering.control.Message;
 import com.jns.orienteering.control.ScrollEventFilter;
 import com.jns.orienteering.control.SelectState;
 import com.jns.orienteering.control.StateButton;
@@ -69,7 +70,7 @@ public abstract class ListViewPresenter<T> extends BasePresenter {
 
         btnRefresh = Icon.Buttons.refresh(e ->
         {
-            getLocalCache().clearItems(tglAccessType.getSelectState().get());
+            getCache().clearItems(tglAccessType.getSelectState().get());
             populateListView();
         });
 
@@ -83,7 +84,7 @@ public abstract class ListViewPresenter<T> extends BasePresenter {
         });
 
         choiceCity.setStringConverter(City::getCityName);
-        choiceCity.setMissingDataTitle(localize("dialog.info.noCityOrNoConnection"));
+        choiceCity.setMissingDataMessage(Message.create().title(localize("dialog.info.noCityOrNoConnection")));
         choiceCity.setItems(service.getCitiesSorted());
         choiceCity.getSelectionModel().selectedItemProperty().addListener((obsValue, c, c1) ->
         {
@@ -107,7 +108,7 @@ public abstract class ListViewPresenter<T> extends BasePresenter {
 
     protected abstract String getNoDataExistingMessage();
 
-    protected abstract ModelCache<?> getLocalCache();
+    protected abstract ModelCache<?> getCache();
 
     protected abstract void populateListView();
 

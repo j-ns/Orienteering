@@ -28,7 +28,7 @@
  */
 package com.jns.orienteering.view;
 
-import static com.jns.orienteering.util.Dialogs.confirmDeleteAnswer;
+import static com.jns.orienteering.control.Dialogs.confirmDeleteAnswer;
 import static com.jns.orienteering.util.Validators.isNullOrEmpty;
 
 import javax.inject.Inject;
@@ -39,11 +39,11 @@ import com.gluonhq.connect.GluonObservable;
 import com.gluonhq.connect.GluonObservableObject;
 import com.jns.orienteering.common.BaseService;
 import com.jns.orienteering.common.ImageHandler;
+import com.jns.orienteering.control.Dialogs;
 import com.jns.orienteering.control.FloatingTextField;
 import com.jns.orienteering.model.persisted.User;
 import com.jns.orienteering.model.repo.AsyncResultReceiver;
 import com.jns.orienteering.model.repo.UserFBRepo;
-import com.jns.orienteering.util.Dialogs;
 
 import javafx.beans.binding.When;
 import javafx.fxml.FXML;

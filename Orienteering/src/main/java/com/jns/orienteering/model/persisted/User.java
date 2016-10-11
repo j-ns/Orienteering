@@ -47,7 +47,7 @@ public class User extends BaseSynchronizable {
     public User() {
     }
 
-    public User(String userName, String alias, String emailAdress, String password, City defaultCity) {
+    public User(String userName, String alias, String emailAdress, City defaultCity, String password) {
         id = userName;
         this.alias = alias;
         this.emailAdress = emailAdress;
@@ -72,12 +72,12 @@ public class User extends BaseSynchronizable {
         this.emailAdress = emailAdress;
     }
 
-    public String getPassword() {
-        return password;
+    public City getDefaultCity() {
+        return defaultCity;
     }
 
-    public void setPassword(String password) {
-        this.password = password;
+    public void setDefaultCity(City city) {
+        defaultCity = city;
     }
 
     private String createImageId() {
@@ -96,20 +96,20 @@ public class User extends BaseSynchronizable {
         return imageId == null ? null : "profiles/" + imageId;
     }
 
-    public City getDefaultCity() {
-        return defaultCity;
-    }
-
-    public void setDefaultCity(City city) {
-        defaultCity = city;
-    }
-
     public Mission getActiveMission() {
         return activeMission;
     }
 
     public void setActiveMission(Mission activeMission) {
         this.activeMission = activeMission;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
     }
 
     @Override

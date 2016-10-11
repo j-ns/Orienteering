@@ -46,11 +46,11 @@ public abstract class LocalList<E extends Synchronizable> {
         this.items.addAll(items);
     }
 
-    public List<E> getObjects() {
+    public List<E> getItems() {
         return items;
     }
 
-    public void setObjects(List<E> items) {
+    public void setItems(List<E> items) {
         this.items = items;
     }
 

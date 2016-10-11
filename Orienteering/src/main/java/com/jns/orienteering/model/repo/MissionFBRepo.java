@@ -157,7 +157,6 @@ public class MissionFBRepo extends FireBaseRepo<Mission> {
             }
 
             boolean tasksChanged = false;
-
             if (tasks.size() != tasksBuffer.size()) {
                 tasksChanged = true;
             } else {

@@ -33,6 +33,7 @@ import com.gluonhq.connect.ConnectState;
 import com.gluonhq.connect.GluonObservableList;
 import com.gluonhq.connect.GluonObservableObject;
 import com.jns.orienteering.common.BaseService;
+import com.jns.orienteering.control.Dialogs;
 import com.jns.orienteering.model.common.AccessType;
 import com.jns.orienteering.model.persisted.ChangeLogEntry;
 import com.jns.orienteering.model.persisted.Mission;
@@ -40,7 +41,6 @@ import com.jns.orienteering.model.persisted.Task;
 import com.jns.orienteering.model.persisted.User;
 import com.jns.orienteering.model.repo.AsyncResultReceiver;
 import com.jns.orienteering.model.repo.FireBaseRepo;
-import com.jns.orienteering.util.Dialogs;
 
 import javafx.beans.property.SimpleObjectProperty;
 
