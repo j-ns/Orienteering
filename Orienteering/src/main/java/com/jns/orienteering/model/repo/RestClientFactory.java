@@ -38,11 +38,7 @@ class RestClientFactory {
     }
 
     static RestClient create(String method, String url, QueryParameter queryParameter) {
-        RestClient client = baseClient();
-        client.method(method);
-        client.path(url);
-        client.queryParam(queryParameter.getKey(), queryParameter.getValue());
-        return client;
+        return create(method, url, Arrays.asList(queryParameter));
     }
 
     static RestClient create(String method, String url, QueryParameter... queryParameters) {
