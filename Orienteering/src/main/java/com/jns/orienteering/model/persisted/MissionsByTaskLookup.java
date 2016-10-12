@@ -33,8 +33,7 @@ import java.util.Set;
 
 import javax.xml.bind.annotation.XmlElement;
 
-import com.jns.orienteering.model.common.JsonDefaultConstructor;
-import com.jns.orienteering.model.common.MultiValueLookup.MultiIdLookup;
+import com.jns.orienteering.model.persisted.MultiValueLookup.MultiIdLookup;
 
 public class MissionsByTaskLookup extends MultiIdLookup {
 

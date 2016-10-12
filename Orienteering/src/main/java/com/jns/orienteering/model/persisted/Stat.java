@@ -28,9 +28,6 @@
  */
 package com.jns.orienteering.model.persisted;
 
-import com.jns.orienteering.model.common.BaseModel;
-import com.jns.orienteering.model.common.JsonDefaultConstructor;
-
 public abstract class Stat extends BaseModel implements Comparable<Stat> {
 
     private int   start;

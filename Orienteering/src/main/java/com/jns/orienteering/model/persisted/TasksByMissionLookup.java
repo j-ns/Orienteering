@@ -32,9 +32,6 @@ import java.util.Map;
 
 import javax.xml.bind.annotation.XmlElement;
 
-import com.jns.orienteering.model.common.JsonDefaultConstructor;
-import com.jns.orienteering.model.common.MultiValueLookup;
-
 public class TasksByMissionLookup extends MultiValueLookup<Integer> {
 
     @JsonDefaultConstructor

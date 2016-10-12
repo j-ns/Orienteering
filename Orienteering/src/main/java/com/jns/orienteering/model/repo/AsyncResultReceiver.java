@@ -136,6 +136,11 @@ public class AsyncResultReceiver<T extends GluonObservable> {
         return this;
     }
 
+    public <U extends GluonObservable> AsyncResultReceiver<T> next(AsyncResultReceiver<U> receiver) {
+        next = Optional.of(receiver);
+        return this;
+    }
+
     public void start() {
         runningInstances.increment();
 
@@ -206,6 +211,7 @@ public class AsyncResultReceiver<T extends GluonObservable> {
         if (!next.isPresent()) {
             if (runningInstances.get() == 0) {
                 progressLayer.ifPresent(ProgressLayer::hide);
+                DEFAULT_PROGRESS_LAYER.hide();
             }
         } else {
             next.get().start();
@@ -218,11 +224,5 @@ public class AsyncResultReceiver<T extends GluonObservable> {
         observable.stateProperty().removeListener(stateListener);
         observable.initializedProperty().removeListener(initializedListener);
         observable.exceptionProperty().removeListener(exceptionListener);
-    }
-
-    public <U extends GluonObservable> AsyncResultReceiver<U> next(U observable) {
-        AsyncResultReceiver<U> receiver = new AsyncResultReceiver<U>(observable);
-        next = Optional.of(receiver);
-        return receiver;
     }
 }

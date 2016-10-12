@@ -38,11 +38,6 @@ import java.util.Set;
 
 import javax.xml.bind.annotation.XmlTransient;
 
-import com.jns.orienteering.model.common.AccessType;
-import com.jns.orienteering.model.common.CityAssignable;
-import com.jns.orienteering.model.common.JsonDefaultConstructor;
-import com.jns.orienteering.model.common.LookupSupplier;
-
 public class Mission extends BasePostableSynchronizable implements CityAssignable, LookupSupplier, Comparable<Mission> {
 
     private String               missionName;

@@ -34,7 +34,7 @@ import com.gluonhq.connect.GluonObservableList;
 import com.gluonhq.connect.GluonObservableObject;
 import com.jns.orienteering.common.BaseService;
 import com.jns.orienteering.control.Dialogs;
-import com.jns.orienteering.model.common.AccessType;
+import com.jns.orienteering.model.persisted.AccessType;
 import com.jns.orienteering.model.persisted.ChangeLogEntry;
 import com.jns.orienteering.model.persisted.Mission;
 import com.jns.orienteering.model.persisted.Task;
@@ -86,7 +86,6 @@ public class ActiveMissionSynchronizer extends BaseSynchronizer<User, User> {
 
         Mission activeMission = user.getActiveMission();
         if (activeMission == null) {
-            localRepo.deleteAsync();
             setSucceeded();
             return;
         }
@@ -98,6 +97,7 @@ public class ActiveMissionSynchronizer extends BaseSynchronizer<User, User> {
     private void syncActiveMission(String activeMissionId, String userId) {
         GluonObservableObject<ChangeLogEntry> obsMissionLogEntry = retrieveChangeLogEntryAsync(MISSIONS_LIST_IDENTIFIER, activeMissionId);
         AsyncResultReceiver.create(obsMissionLogEntry)
+                           .defaultProgressLayer()
                            .onSuccess(result ->
                            {
                                ChangeLogEntry logEntry = result.get();
@@ -118,6 +118,7 @@ public class ActiveMissionSynchronizer extends BaseSynchronizer<User, User> {
 
                                        GluonObservableObject<Mission> obsActiveMission = missionCloudRepo.retrieveObjectAsync(logEntry.getTargetId());
                                        AsyncResultReceiver.create(obsActiveMission)
+                                                          .defaultProgressLayer()
                                                           .onSuccess(resultActiveMission ->
                                                           {
                                                               Mission _activeMission = resultActiveMission.get();

@@ -38,8 +38,8 @@ import com.jns.orienteering.control.Message;
 import com.jns.orienteering.control.ScrollEventFilter;
 import com.jns.orienteering.control.SelectState;
 import com.jns.orienteering.control.StateButton;
-import com.jns.orienteering.model.common.AccessType;
 import com.jns.orienteering.model.dynamic.ModelCache;
+import com.jns.orienteering.model.persisted.AccessType;
 import com.jns.orienteering.model.persisted.City;
 
 import javafx.beans.binding.When;

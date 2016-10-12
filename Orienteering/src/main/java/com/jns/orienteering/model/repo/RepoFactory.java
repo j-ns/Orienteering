@@ -32,24 +32,24 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Supplier;
 
-import com.jns.orienteering.model.common.Model;
 import com.jns.orienteering.model.persisted.ActiveTaskList;
 import com.jns.orienteering.model.persisted.City;
 import com.jns.orienteering.model.persisted.LocalCityList;
 import com.jns.orienteering.model.persisted.Mission;
 import com.jns.orienteering.model.persisted.MissionStat;
 import com.jns.orienteering.model.persisted.MissionsByTaskLookup;
+import com.jns.orienteering.model.persisted.Model;
 import com.jns.orienteering.model.persisted.Task;
 import com.jns.orienteering.model.persisted.User;
 
-public class RepoFactory {
+class RepoFactory {
 
     private static final int                               INITIAL_CAPACITY = 10;
 
     private final Map<Class<?>, Supplier<FireBaseRepo<?>>> cloudRepoSuppliers;
     private final Map<Class<?>, Supplier<LocalRepo<?, ?>>> localRepoSuppliers;
 
-    public RepoFactory() {
+    RepoFactory() {
         cloudRepoSuppliers = new HashMap<>(INITIAL_CAPACITY);
         localRepoSuppliers = new HashMap<>(INITIAL_CAPACITY);
 
@@ -66,13 +66,13 @@ public class RepoFactory {
     }
 
     @SuppressWarnings("unchecked")
-    public <T extends Model, R extends FireBaseRepo<T>> R createCloudRepo(Class<T> dataClass) {
-        return (R) cloudRepoSuppliers.get(dataClass).get();
+    <T extends Model, R extends FireBaseRepo<T>> R createCloudRepo(Class<T> modelClass) {
+        return (R) cloudRepoSuppliers.get(modelClass).get();
     }
 
     @SuppressWarnings("unchecked")
-    public <T extends Model, R extends LocalRepo<?, ?>> R createLocalRepo(Class<T> dataClass) {
-        return (R) localRepoSuppliers.get(dataClass).get();
+    <T extends Model, R extends LocalRepo<?, ?>> R createLocalRepo(Class<T> modelClass) {
+        return (R) localRepoSuppliers.get(modelClass).get();
     }
 
 }

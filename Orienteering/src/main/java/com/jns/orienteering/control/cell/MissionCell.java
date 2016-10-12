@@ -44,13 +44,13 @@ import javafx.scene.layout.Region;
 
 public class MissionCell extends SelectableListCell<Mission> {
 
-    private static CityCache localCityCache = CityCache.INSTANCE;
-    private static String         UNIT           = localize("unit.miles");
+    private static final String UNIT           = localize("unit.miles");
+    private static CityCache    localCityCache = CityCache.INSTANCE;
 
-    private Content               content;
-    private SlidingListTile       slidingTile;
+    private Content             content;
+    private SlidingListTile     slidingTile;
 
-    private Mission               mission;
+    private Mission             mission;
 
     public MissionCell(ObjectProperty<Mission> selectedItem, Consumer<Mission> consumerLeft, Consumer<Mission> consumerRight,
                        BooleanProperty sliding) {

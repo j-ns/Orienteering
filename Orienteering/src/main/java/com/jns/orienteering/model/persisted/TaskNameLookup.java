@@ -29,9 +29,7 @@
 package com.jns.orienteering.model.persisted;
 
 import javax.xml.bind.annotation.XmlElement;
-
-import com.jns.orienteering.model.common.JsonDefaultConstructor;
-import com.jns.orienteering.model.common.Lookup;
+import javax.xml.bind.annotation.XmlTransient;
 
 public class TaskNameLookup extends Lookup {
 
@@ -45,7 +43,7 @@ public class TaskNameLookup extends Lookup {
     }
 
     @Override
-    @XmlElement(name = "taskName")
+    @XmlTransient
     public String getLookupName() {
         return super.getLookupName();
     }

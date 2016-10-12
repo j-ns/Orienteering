@@ -31,8 +31,8 @@ package com.jns.orienteering.control.cell;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.jns.orienteering.common.ImageHandler;
 import com.jns.orienteering.model.persisted.Task;
+import com.jns.orienteering.model.repo.image.ImageHandler;
 
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
@@ -43,9 +43,8 @@ public class TaskCellLarge extends ListCell<Task> {
 
     private static final Logger  LOGGER          = LoggerFactory.getLogger(TaskCellLarge.class);
 
-    private static final boolean NO_PLACE_HOLDER = false;
-
     private static final double  BORDER_INSET    = 8;
+    private static final boolean NO_PLACE_HOLDER = false;
 
     private Content              content;
 
@@ -158,7 +157,7 @@ public class TaskCellLarge extends ListCell<Task> {
         protected double computePrefHeight(double width) {
             LOGGER.debug("computePrefHeight");
 
-            prefHeightImageView = imgView.getImage() == null ? 0 : getCellWidth() / ASPECT_RATIO;
+            prefHeightImageView = imgView.getImage() == null ? 0 : getWidth() / ASPECT_RATIO;
             prefHeightName = calculatePrefHeightForLabel(lblName);
             prefHeightPoints = lblPoints.prefHeight(-1);
             prefHeightDescription = calculatePrefHeightForLabel(lblDescription);
@@ -167,18 +166,8 @@ public class TaskCellLarge extends ListCell<Task> {
         }
 
         private double calculatePrefHeightForLabel(Label label) {
-            double width = PADDING_LEFT + getCellWidth() - PADDING_RIGHT;
-            double prefWidthLabel = label.prefWidth(-1);
-
-            int rowCount = (int) (prefWidthLabel / width);
-            if (prefWidthLabel % width > 0) {
-                rowCount++;
-            }
-            return label.prefHeight(-1) * rowCount;
-        }
-
-        private double getCellWidth() {
-            return -BORDER_INSET + getListView().getWidth() - BORDER_INSET;
+            double width = -PADDING_LEFT + getListView().getWidth() - PADDING_RIGHT;
+            return label.prefHeight(width);
         }
     }
 

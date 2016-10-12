@@ -33,13 +33,11 @@ import com.jns.orienteering.model.persisted.User;
 public class UserFBRepo extends FireBaseRepo<User> {
 
     public UserFBRepo() {
-        super(User.class, "users");
+        super(User.class, BaseUrls.USERS);
     }
 
     public boolean checkIfUserExists(String userId) {
         return checkIfUrlExists(baseUrl, userId);
     }
-
-
 
 }

@@ -26,16 +26,12 @@
  *  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  *  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package com.jns.orienteering.model.common;
+package com.jns.orienteering.model.persisted;
 
-public interface Synchronizable extends Model{
+public interface LookupSupplier {
 
-    long getTimeStamp();
+    Lookup createNameLookup();
 
-    void setTimeStamp(long epochSeconds);
-
-    void setRepoAction(RepoAction action);
-
-    RepoAction getRepoAction();
+    CityLookup createCityLookup();
 
 }

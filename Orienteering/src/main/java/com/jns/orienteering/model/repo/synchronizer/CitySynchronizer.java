@@ -34,11 +34,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.gluonhq.connect.GluonObservableList;
-import com.jns.orienteering.model.common.RepoAction;
 import com.jns.orienteering.model.dynamic.CityCache;
 import com.jns.orienteering.model.persisted.ChangeLogEntry;
 import com.jns.orienteering.model.persisted.City;
 import com.jns.orienteering.model.persisted.LocalCityList;
+import com.jns.orienteering.model.persisted.RepoAction;
 import com.jns.orienteering.model.repo.AsyncResultReceiver;
 import com.jns.orienteering.model.repo.CityFBRepo;
 import com.jns.orienteering.model.repo.LocalRepo;
@@ -85,6 +85,7 @@ public class CitySynchronizer extends BaseSynchronizer<City, LocalCityList> {
     protected void syncLocalData(GluonObservableList<ChangeLogEntry> log) {
         GluonObservableList<City> obsLocalData = localRepo.retrieveListAsync(listIdentifier);
         AsyncResultReceiver.create(obsLocalData)
+                           .defaultProgressLayer()
                            .onSuccess(resultLocal ->
                            {
                                localCityCache.createMapping(resultLocal, getSyncMetaData().getUserId());
@@ -98,8 +99,8 @@ public class CitySynchronizer extends BaseSynchronizer<City, LocalCityList> {
                                        String cityId = logEntry.getTargetId();
 
                                        if (logEntry.getAction() == RepoAction.DELETE) {
-                                           LOGGER.debug("removed locally {}: {}", listIdentifier, localCityCache.get(cityId));
                                            localDataNeedsUpdate = localCityCache.remove(cityId) != null;
+                                           LOGGER.debug("removed locally {}: {}", listIdentifier, localCityCache.get(cityId));
 
                                        } else {
                                            if (!localCityCache.contains(cityId) || localCityCache.get(cityId)

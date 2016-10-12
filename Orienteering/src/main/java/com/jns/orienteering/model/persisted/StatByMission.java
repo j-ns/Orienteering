@@ -30,15 +30,13 @@ package com.jns.orienteering.model.persisted;
 
 import javax.xml.bind.annotation.XmlElement;
 
-import com.jns.orienteering.model.common.JsonDefaultConstructor;
-import com.jns.orienteering.model.common.Lookup;
-
 public class StatByMission extends Lookup {
 
     private int duration;
 
     @JsonDefaultConstructor
     public StatByMission() {
+        super();
     }
 
     public StatByMission(MissionStat missionStat) {

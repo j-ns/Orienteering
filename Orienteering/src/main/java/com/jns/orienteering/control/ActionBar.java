@@ -36,7 +36,7 @@ import javafx.scene.Node;
 import javafx.scene.layout.Pane;
 
 /**
- * The ActionBar is a ToolBar control placed in the bottom of a {@link View}
+ * An ActionBar is a ToolBar control placed in the bottom of a {@link View}
  */
 public class ActionBar extends Pane {
 
@@ -50,7 +50,7 @@ public class ActionBar extends Pane {
         getChildren().addAll(node);
     }
 
-    public ActionBar() {
+    private ActionBar() {
         getStyleClass().add("action-bar");
         setMinHeight(USE_PREF_SIZE);
         setMaxHeight(USE_PREF_SIZE);

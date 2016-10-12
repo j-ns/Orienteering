@@ -5,6 +5,7 @@ public class BaseUrls {
     private BaseUrls() {
     }
 
+    public static final String USERS            = "users";
     public static final String CITIES           = "cities";
     public static final String CITY_NAMES       = "city_names";
     public static final String CITIES_BY_USER   = "cities_by_user";
@@ -24,5 +25,7 @@ public class BaseUrls {
     public static final String STATS_BY_USER    = "stats_by_user";
 
     public static final String IMAGES           = "images";
+
+    public static final String CHANGE_LOG       = "change_log";
 
 }

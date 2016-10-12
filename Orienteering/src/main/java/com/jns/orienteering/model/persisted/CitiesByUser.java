@@ -32,8 +32,7 @@ import java.util.Map;
 
 import javax.xml.bind.annotation.XmlElement;
 
-import com.jns.orienteering.model.common.JsonDefaultConstructor;
-import com.jns.orienteering.model.common.MultiValueLookup.MultiIdLookup;
+import com.jns.orienteering.model.persisted.MultiValueLookup.MultiIdLookup;
 
 public class CitiesByUser extends MultiIdLookup {
 
@@ -46,10 +45,6 @@ public class CitiesByUser extends MultiIdLookup {
         super();
         setId(userId);
         addValue(cityId);
-    }
-
-    public CitiesByUser(String userId, Map<String, Boolean> cityIds) {
-        super(userId, cityIds);
     }
 
     @Override

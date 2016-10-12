@@ -26,12 +26,20 @@
  *  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  *  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package com.jns.orienteering.model.common;
+package com.jns.orienteering.model.persisted;
 
-public interface Postable {
+public abstract class BaseModel implements Model{
 
-    String getPostId();
+    protected String id;
 
-    void setPostId(String name);
+    @Override
+    public String getId() {
+        return id;
+    }
+
+    @Override
+    public void setId(String id) {
+        this.id = id;
+    }
 
 }

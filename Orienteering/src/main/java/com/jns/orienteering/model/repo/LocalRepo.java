@@ -42,7 +42,7 @@ import com.gluonhq.connect.provider.FileClient;
 import com.gluonhq.connect.provider.ObjectDataReader;
 import com.gluonhq.connect.provider.ObjectDataRemover;
 import com.gluonhq.connect.provider.ObjectDataWriter;
-import com.jns.orienteering.model.common.BaseModel;
+import com.jns.orienteering.model.persisted.BaseModel;
 import com.jns.orienteering.model.repo.readerwriter.FileIterableInputConverter;
 import com.jns.orienteering.model.repo.readerwriter.FileTreeIterableOutputConverter;
 import com.jns.orienteering.model.repo.readerwriter.JsonInputConverterExtended;

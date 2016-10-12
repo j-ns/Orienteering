@@ -40,10 +40,10 @@ import org.slf4j.LoggerFactory;
 
 import com.gluonhq.connect.GluonObservableList;
 import com.jns.orienteering.control.Dialogs;
-import com.jns.orienteering.model.common.RepoAction;
 import com.jns.orienteering.model.persisted.ActiveTaskList;
 import com.jns.orienteering.model.persisted.ChangeLogEntry;
 import com.jns.orienteering.model.persisted.Mission;
+import com.jns.orienteering.model.persisted.RepoAction;
 import com.jns.orienteering.model.persisted.Task;
 import com.jns.orienteering.model.repo.AsyncResultReceiver;
 import com.jns.orienteering.model.repo.LocalRepo;
@@ -94,6 +94,7 @@ public class ActiveTasksSynchronizer extends BaseSynchronizer<Task, ActiveTaskLi
 
         GluonObservableList<Task> obsTasks = missionCloudRepo.retrieveOrderedTasksAsync(getSyncMetaData().getActiveMission().getId());
         AsyncResultReceiver.create(obsTasks)
+                           .defaultProgressLayer()
                            .onSuccess(this::storeLocally)
                            .onException(this::setFailed)
                            .start();
@@ -103,6 +104,7 @@ public class ActiveTasksSynchronizer extends BaseSynchronizer<Task, ActiveTaskLi
     protected void readChangeLogAndSyncLocalData() {
         GluonObservableList<Task> obsLocalTasks = localRepo.retrieveListAsync(TASK_LIST_IDENTIFIER);
         AsyncResultReceiver.create(obsLocalTasks)
+                           .defaultProgressLayer()
                            .onSuccess(result ->
                            {
                                // async?
@@ -138,8 +140,8 @@ public class ActiveTasksSynchronizer extends BaseSynchronizer<Task, ActiveTaskLi
 
                                    } catch (IOException e) {
                                        LOGGER.error("Failed to read changeLog for active tasks", e);
-                                       Dialogs.ok(localize("changeLog.error.readLog")).showAndWait();
                                        setFailed();
+                                       Dialogs.ok(localize("changeLog.error.readLog")).showAndWait();
                                        return;
                                    }
                                }

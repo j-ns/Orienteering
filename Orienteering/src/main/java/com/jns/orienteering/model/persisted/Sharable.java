@@ -1,4 +1,4 @@
-package com.jns.orienteering.model.common;
+package com.jns.orienteering.model.persisted;
 
 public interface Sharable extends Model {
 

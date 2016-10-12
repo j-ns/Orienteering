@@ -28,6 +28,8 @@
  */
 package com.jns.orienteering.model.repo;
 
+import static com.jns.orienteering.util.Validators.isNullOrEmpty;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -35,6 +37,7 @@ import java.io.InputStreamReader;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -52,40 +55,31 @@ import com.gluonhq.connect.provider.ObjectDataRemover;
 import com.gluonhq.connect.provider.ObjectDataWriter;
 import com.gluonhq.connect.provider.RestClient;
 import com.gluonhq.connect.source.RestDataSource;
-import com.jns.orienteering.model.common.Model;
-import com.jns.orienteering.model.common.Postable;
-import com.jns.orienteering.model.common.UrlBuilder;
+import com.jns.orienteering.model.persisted.Model;
+import com.jns.orienteering.model.persisted.Postable;
 import com.jns.orienteering.model.repo.readerwriter.JsonInputConverterExtended;
 import com.jns.orienteering.model.repo.readerwriter.JsonOutputConverterExtended;
 import com.jns.orienteering.model.repo.readerwriter.JsonTreeConverter;
 import com.jns.orienteering.util.ExceptionalTrigger;
 import com.jns.orienteering.util.GluonObservables;
-import com.jns.orienteering.util.Validators;
-
-import javafx.util.Pair;
 
 public class FireBaseRepo<T extends Model> {
 
-    private static final Logger              LOGGER             = LoggerFactory.getLogger(FireBaseRepo.class);
+    private static final Logger              LOGGER          = LoggerFactory.getLogger(FireBaseRepo.class);
 
-    private static final String              APP_ID             = "https://orienteering-2dd97.firebaseio.com";
-    private static final String              AUTH_PARAM_NAME    = "auth";
-    private static final String              CREDENTIALS        = "2ekET9SyGxrYCeSWgPZaWdiCHxncCHmAvGCjDjwu";
+    protected static final String            GET             = "GET";
+    protected static final String            PUT             = "PUT";
+    protected static final String            POST            = "POST";
 
-    protected static final String            GET                = "GET";
-    protected static final String            PUT                = "PUT";
-    protected static final String            POST               = "POST";
-    private static final String              OVERRIDE_PARAMETER = "x-http-method-override";
+    private static final ExecutorService     executor        = Executors.newFixedThreadPool(4, runnable ->
+                                                             {
+                                                                 Thread thread = Executors.defaultThreadFactory().newThread(runnable);
+                                                                 thread.setName("FireBaseRepoThread");
+                                                                 thread.setDaemon(true);
+                                                                 return thread;
+                                                             });
 
-    private static final ExecutorService     executor           = Executors.newFixedThreadPool(4, runnable ->
-                                                                {
-                                                                    Thread thread = Executors.defaultThreadFactory().newThread(runnable);
-                                                                    thread.setName("FireBaseRepoThread");
-                                                                    thread.setDaemon(true);
-                                                                    return thread;
-                                                                });
-
-    private static ChangeLogRepo             changeLogRepo      = new ChangeLogRepo();
+    private static final ChangeLogRepo       CHANGE_LOG_REPO = new ChangeLogRepo();
 
     private RestClient                       restClient;
     protected String                         baseUrl;
@@ -106,10 +100,7 @@ public class FireBaseRepo<T extends Model> {
     }
 
     protected RestClient createRestClient() {
-        RestClient client = RestClient.create().host(APP_ID);
-        client.queryParam(AUTH_PARAM_NAME, CREDENTIALS);
-        // client.queryParam("print", "pretty");
-        return client;
+        return RestClientFactory.baseClient();
     }
 
     protected void updateRestClientUrl(String method, String... urlParts) {
@@ -117,12 +108,11 @@ public class FireBaseRepo<T extends Model> {
     }
 
     protected void updateRestClientFromRelativePath(String method, String... urlParts) {
-        String url = buildUrlFromRelativePath(urlParts);
-        updateRestClient(method, url);
+        updateRestClient(method, buildUrlFromRelativePath(urlParts));
     }
 
     protected void updateRestClient(String method, String path) {
-        if (Validators.isNullOrEmpty(path)) {
+        if (isNullOrEmpty(path)) {
             throw new IllegalArgumentException("restclient path must not be null or empty");
         }
         restClient.method(method);
@@ -141,12 +131,7 @@ public class FireBaseRepo<T extends Model> {
         String string = null;
 
         try {
-            RestClient client = createRestClient();
-
-            client.method(GET);
-            client.path(UrlBuilder.buildUrl(urlParts));
-            client.queryParam("shallow", "true");
-
+            RestClient client = RestClientFactory.queryClient(UrlBuilder.buildUrl(urlParts));
             RestDataSource createRestDataSource = client.createRestDataSource();
             InputStream input = createRestDataSource.getInputStream();
 
@@ -159,8 +144,8 @@ public class FireBaseRepo<T extends Model> {
                 string = stringBuilder.toString();
                 LOGGER.debug("payload: {}", string);
             }
-        } catch (IOException e) {
-            LOGGER.error("Failed to checkIfExists: '{}'", buildPath(urlParts), e);
+        } catch (IOException ex) {
+            LOGGER.error("Failed to checkIfExists: '{}'", buildPath(urlParts), ex);
         }
         return string != null && !"null".equals(string);
     }
@@ -170,9 +155,9 @@ public class FireBaseRepo<T extends Model> {
             updateRestClientFromRelativePath(PUT, urlParts);
             writer().writeObject(obj);
 
-        } catch (IOException e) {
-            LOGGER.error("Error writing obj: {}", urlParts, e);
-            throw e;
+        } catch (IOException ex) {
+            LOGGER.error("Failed to write obj: {}", urlParts, ex);
+            throw ex;
         }
     }
 
@@ -181,64 +166,18 @@ public class FireBaseRepo<T extends Model> {
         return DataProvider.storeObject(obj, writer());
     }
 
-    public GluonObservableObject<RemoveObject> delete(String... urlParts) throws IOException {
-        GluonObservableObject<RemoveObject> obs = RemoveObject.observableInstance(buildPath(urlParts));
-
-        try {
-            RestClient client = createRestClient();
-            client.method(POST);
-            client.path(buildUrlFromRelativePath(urlParts));
-            client.queryParam(OVERRIDE_PARAMETER, "Delete");
-
-            remover(client).removeObject(obs);
-
-        } catch (IOException e) {
-            LOGGER.error("Failed to delete: '{}'", urlParts, e);
-            throw e;
-        }
-        return obs;
-    }
-
-    public GluonObservableObject<RemoveObject> deleteAsync(String... urlParts) {
-        GluonObservableObject<RemoveObject> obs = RemoveObject.observableInstance(buildPath(urlParts));
-
-        RestClient client = createRestClient();
-        client.method(POST);
-        client.path(buildUrlFromRelativePath(urlParts));
-        client.queryParam(OVERRIDE_PARAMETER, "Delete");
-        client.queryParam("shallow", "true");
-
-        DataProvider.removeObject(obs, remover(client));
-        return obs;
-    }
-
-    public T retrieveObject(String... urlParts) throws IOException {
-        try {
-            updateRestClientFromRelativePath(GET, urlParts);
-            return reader().readObject();
-
-        } catch (IOException e) {
-            LOGGER.error("Failed to read: {}", urlParts, e);
-            throw e;
-        }
-    }
-
-    public GluonObservableObject<T> retrieveObjectAsync(String... urlParts) {
-        updateRestClientFromRelativePath(GET, urlParts);
-        return DataProvider.retrieveObject(reader());
-    }
-
     public T addToList(T obj) throws IOException {
+        Objects.requireNonNull(obj, "POST object must not be null");
+
         try {
             updateRestClientUrl(POST, baseUrl);
             Optional<T> result = writer().writeObject(obj);
             if (result.isPresent()) {
                 updateId(obj, result.get());
             }
-
-        } catch (IOException e) {
-            LOGGER.error("POST failed: '{}'", obj, e);
-            throw e;
+        } catch (IOException ex) {
+            LOGGER.error("POST failed: '{}'", obj, ex);
+            throw ex;
         }
         return obj;
     }
@@ -252,78 +191,71 @@ public class FireBaseRepo<T extends Model> {
             updateRestClientFromRelativePath(PUT, obj.getId());
             writer().writeObject(obj);
 
-        } catch (IOException e) {
-            LOGGER.error("Failed to write: '{}'", obj, e);
-            throw e;
+        } catch (IOException ex) {
+            LOGGER.error("Failed to write: '{}'", obj, ex);
+            throw ex;
         }
+    }
+
+    public GluonObservableObject<RemoveObject> delete(String... urlParts) throws IOException {
+        String url = buildUrlFromRelativePath(urlParts);
+
+        GluonObservableObject<RemoveObject> obs = RemoveObject.observableInstance(url);
+        try {
+            remover(RestClientFactory.deleteClient(url)).removeObject(obs);
+
+        } catch (IOException ex) {
+            LOGGER.error("Failed to delete: '{}'", url, ex);
+            throw ex;
+        }
+        return obs;
+    }
+
+    public GluonObservableObject<RemoveObject> deleteAsync(String... urlParts) {
+        String url = buildUrlFromRelativePath(urlParts);
+
+        GluonObservableObject<RemoveObject> obs = RemoveObject.observableInstance(url);
+        DataProvider.removeObject(obs, remover(RestClientFactory.deleteClient(url)));
+        return obs;
+    }
+
+    public T retrieveObject(String... urlParts) throws IOException {
+        try {
+            updateRestClientFromRelativePath(GET, urlParts);
+            return reader(restClient).readObject();
+
+        } catch (IOException ex) {
+            LOGGER.error("Failed to read: {}", urlParts, ex);
+            throw ex;
+        }
+    }
+
+    public GluonObservableObject<T> retrieveObjectAsync(String... urlParts) {
+        updateRestClientFromRelativePath(GET, urlParts);
+        return DataProvider.retrieveObject(reader(restClient));
     }
 
     public GluonObservableList<T> retrieveListAsync(String... urlParts) {
         updateRestClientFromRelativePath(GET, urlParts);
-        return DataProvider.retrieveList(listReader());
+        return DataProvider.retrieveList(listReader(restClient));
     }
 
-    public GluonObservableList<T> retrieveListAsync(RestClient client) {
-        return DataProvider.retrieveList(listReader());
-    }
-
-    public GluonObservableList<T> retrieveListFilteredAsync(String orderBy, Pair<String, String> filter, String... urlParts) {
-        RestClient client = createRestClient();
-        client.method(GET);
-        client.path(buildUrlFromRelativePath(urlParts));
-        client.queryParam("orderBy", "\"" + orderBy + "\"");
-        client.queryParam(filter.getKey(), filter.getValue());
-
+    public GluonObservableList<T> retrieveListFilteredAsync(List<QueryParameter> queryParams, String... urlParts) {
+        RestClient client = RestClientFactory.queryClient(queryParams, buildUrlFromRelativePath(urlParts));
         return DataProvider.retrieveList(listReader(client));
     }
 
-    public GluonObservableList<T> retrieveListFilteredAsync(String orderBy, List<Pair<String, String>> params, String... urlParts) {
-        RestClient client = createRestClient();
-        client.method(GET);
-        client.path(buildUrlFromRelativePath(urlParts));
-        client.queryParam("orderBy", "\"" + orderBy + "\"");
-
-        for (Pair<String, String> filter : params) {
-            client.queryParam(filter.getKey(), filter.getValue());
-        }
-
-        return DataProvider.retrieveList(listReader(client));
-    }
-
-    public GluonObservableObject<T> retrieveObjectFilteredAsync(String orderBy, Pair<String, String> filter, String... urlParts) {
-        RestClient client = createRestClient();
-        client.method(GET);
-        client.path(buildUrlFromRelativePath(urlParts));
-        client.queryParam("orderBy", "\"" + orderBy + "\"");
-        client.queryParam(filter.getKey(), filter.getValue());
-
+    public GluonObservableObject<T> retrieveObjectFilteredAsync(List<QueryParameter> queryParams, String... urlParts) {
+        RestClient client = RestClientFactory.queryClient(queryParams, buildUrlFromRelativePath(urlParts));
         return DataProvider.retrieveObject(reader(client));
-    }
-
-    public T retrieveObjectFiltered(String orderBy, Pair<String, String> filter, String... urlParts) throws IOException {
-        RestClient client = createRestClient();
-        client.method(GET);
-        client.path(buildUrlFromRelativePath(urlParts));
-        client.queryParam("orderBy", "\"" + orderBy + "\"");
-        client.queryParam(filter.getKey(), filter.getValue());
-
-        return reader(client).readObject();
     }
 
     protected ObjectDataWriter<T> writer() {
         return restClient.createObjectDataWriter(outputConverter, inputConverter);
     }
 
-    protected ObjectDataReader<T> reader() {
-        return reader(restClient);
-    }
-
     protected ObjectDataReader<T> reader(RestClient client) {
         return client.createObjectDataReader(inputConverter);
-    }
-
-    protected ListDataReader<T> listReader() {
-        return listReader(restClient);
     }
 
     protected ListDataReader<T> listReader(RestClient client) {
@@ -335,10 +267,6 @@ public class FireBaseRepo<T extends Model> {
             listInputConverter = new JsonTreeConverter<>(targetClass);
         }
         return listInputConverter;
-    }
-
-    protected ObjectDataRemover<RemoveObject> remover() {
-        return remover(restClient);
     }
 
     protected ObjectDataRemover<RemoveObject> remover(RestClient client) {
@@ -355,7 +283,7 @@ public class FireBaseRepo<T extends Model> {
     }
 
     protected ChangeLogRepo getChangeLogRepo() {
-        return changeLogRepo;
+        return CHANGE_LOG_REPO;
     }
 
     protected GluonObservableObject<T> newGluonObservableObject() {
@@ -375,6 +303,7 @@ public class FireBaseRepo<T extends Model> {
                 action.start();
                 sourceObject.ifPresent(result::set);
                 GluonObservables.setInitialized(result);
+
             } catch (Exception ex) {
                 LOGGER.error("Error on executeAsync", ex);
                 result.setException(ex);

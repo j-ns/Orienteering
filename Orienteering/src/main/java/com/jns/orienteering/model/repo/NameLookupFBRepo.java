@@ -32,7 +32,7 @@ import static com.jns.orienteering.util.SpecialCharReplacer.replaceSpecialChars;
 
 import java.io.IOException;
 
-import com.jns.orienteering.model.common.Lookup;
+import com.jns.orienteering.model.persisted.Lookup;
 
 public class NameLookupFBRepo<T extends Lookup> extends FireBaseRepo<T> {
 

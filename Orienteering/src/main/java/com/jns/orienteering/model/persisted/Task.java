@@ -39,18 +39,14 @@ import javax.xml.bind.annotation.XmlTransient;
 import com.gluonhq.charm.down.common.Position;
 import com.gluonhq.maps.MapPoint;
 import com.jns.orienteering.locale.Localization;
-import com.jns.orienteering.model.common.AccessType;
-import com.jns.orienteering.model.common.CityAssignable;
-import com.jns.orienteering.model.common.JsonDefaultConstructor;
-import com.jns.orienteering.model.common.LookupSupplier;
 
 public class Task extends BasePostableSynchronizable implements CityAssignable, LookupSupplier, Comparable<Task> {
 
-    private static final Comparator<Task> orderNumberComparator = (t, t1) -> Integer.compare(t.getOrderNumber(), t1.getOrderNumber());
+    private static final Comparator<Task> ORDER_NUMBER_COMPARATOR = (t, t1) -> Integer.compare(t.getOrderNumber(), t1.getOrderNumber());
 
     private String                        cityId;
     private String                        ownerId;
-    private AccessType                    accessType            = AccessType.PRIVATE;
+    private AccessType                    accessType              = AccessType.PRIVATE;
 
     private String                        taskName;
     private String                        description;
@@ -66,7 +62,6 @@ public class Task extends BasePostableSynchronizable implements CityAssignable, 
     private boolean                       completed;
 
     private Task                          previousTask;
-
 
     @JsonDefaultConstructor
     public Task() {
@@ -200,7 +195,7 @@ public class Task extends BasePostableSynchronizable implements CityAssignable, 
     }
 
     public String getPointsString() {
-        return points == 0 ? " - " + localize("task.points") : String.valueOf(points) + " " + Localization.localize("task.points");
+        return points == 0 ? " - " + localize("task.points") : Integer.valueOf(points) + " " + Localization.localize("task.points");
     }
 
     public void setPoints(int points) {
@@ -240,7 +235,7 @@ public class Task extends BasePostableSynchronizable implements CityAssignable, 
     }
 
     public static Comparator<Task> getOrderNumberComparator() {
-        return orderNumberComparator;
+        return ORDER_NUMBER_COMPARATOR;
     }
 
     public MapPoint getMapPoint() {
@@ -292,7 +287,18 @@ public class Task extends BasePostableSynchronizable implements CityAssignable, 
 
     @Override
     public String toString() {
-        return taskName;
+        return new StringBuilder().append(taskName)
+                                  .append(" cityId: ")
+                                  .append(cityId)
+                                  .append(" ownerId: ")
+                                  .append(ownerId)
+                                  .append(" ")
+                                  .append(accessType)
+                                  .append(" lat: ")
+                                  .append(latitude)
+                                  .append(" long: ")
+                                  .append(longitude)
+                                  .toString();
     }
 
 }

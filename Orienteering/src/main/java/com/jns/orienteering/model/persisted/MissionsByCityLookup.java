@@ -32,9 +32,6 @@ import java.util.Map;
 
 import javax.xml.bind.annotation.XmlElement;
 
-import com.jns.orienteering.model.common.CityLookup;
-import com.jns.orienteering.model.common.JsonDefaultConstructor;
-
 public class MissionsByCityLookup extends CityLookup {
 
     @JsonDefaultConstructor

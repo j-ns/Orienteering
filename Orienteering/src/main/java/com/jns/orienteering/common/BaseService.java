@@ -42,7 +42,6 @@ import com.gluonhq.connect.ConnectState;
 import com.gluonhq.connect.GluonObservableList;
 import com.gluonhq.connect.GluonObservableObject;
 import com.jns.orienteering.control.Dialogs;
-import com.jns.orienteering.model.common.StorableImage;
 import com.jns.orienteering.model.dynamic.CityCache;
 import com.jns.orienteering.model.dynamic.MissionCache;
 import com.jns.orienteering.model.persisted.ActiveTaskList;
@@ -55,6 +54,8 @@ import com.jns.orienteering.model.repo.AsyncResultReceiver;
 import com.jns.orienteering.model.repo.LocalRepo;
 import com.jns.orienteering.model.repo.RepoService;
 import com.jns.orienteering.model.repo.UserFBRepo;
+import com.jns.orienteering.model.repo.image.ImageHandler;
+import com.jns.orienteering.model.repo.image.StorableImage;
 import com.jns.orienteering.model.repo.synchronizer.ActiveMissionSynchronizer;
 import com.jns.orienteering.model.repo.synchronizer.CitySynchronizer;
 import com.jns.orienteering.model.repo.synchronizer.ImageSynchronizer;
@@ -103,12 +104,12 @@ public class BaseService {
     private MissionCache                    missionCache      = MissionCache.INSTANCE;
     private ObjectProperty<Mission>         activeMission     = new SimpleObjectProperty<>();
     private StringProperty                  activeMissionName = new SimpleStringProperty();
-    private ObjectProperty<Mission>         selectedMission   = new SimpleObjectProperty<>();
-    private MissionStat                     activeMissionStats;
 
+    private ObjectProperty<Mission>         selectedMission   = new SimpleObjectProperty<>();
     private Task                            selectedTask;
 
     private BooleanProperty                 stopMission;
+    private MissionStat                     activeMissionStats;
 
     private String                          previousViewName;
 
@@ -119,8 +120,7 @@ public class BaseService {
         {
             if (v != null) {
                 previousViewName = v.getName();
-
-                if (ViewRegistry.HOME.equals(previousViewName)) {
+                if (ViewRegistry.HOME.equals(v1.getName())) {
                     PlatformProvider.getPlatformService().removeNodePositionAdjuster();
                     setSelectedMission(null);
                 }
@@ -151,7 +151,6 @@ public class BaseService {
 
     private void initSynchronizers() {
         CitySynchronizer citySynchronizer = new CitySynchronizer(repoService.getCloudRepo(City.class), repoService.getLocalRepo(City.class));
-
         ActiveMissionSynchronizer missionSynchronizer = new ActiveMissionSynchronizer(this);
         ImageSynchronizer imageSynchronizer = new ImageSynchronizer();
 
@@ -168,8 +167,22 @@ public class BaseService {
             setProfileImage(ImageHandler.AVATAR_PLACE_HOLDER);
 
         } else {
+            GluonObservableList<Task> obsActiveTasks = activeTasksLocalRepo.retrieveListAsync("tasks");
+            AsyncResultReceiver<GluonObservableList<Task>> activeTasksReceiver = AsyncResultReceiver.create(obsActiveTasks)
+                                                                                                    .defaultProgressLayer()
+                                                                                                    .onSuccess(result ->
+                                                                                                    {
+                                                                                                        if (!result.isEmpty() &&
+                                                                                                                getActiveMission() != null) {
+                                                                                                            missionCache.setActiveMissionTasks(obsActiveTasks,
+                                                                                                                                               getActiveMission().getId());
+                                                                                                        }
+                                                                                                    })
+                                                                                                    .finalize(this::postUserInit);
+
             GluonObservableObject<User> obsUser = userLocalRepo.retrieveObjectAsync();
             AsyncResultReceiver.create(obsUser)
+                               .defaultProgressLayer()
                                .onSuccess(result ->
                                {
                                    User _user = result.get();
@@ -177,15 +190,15 @@ public class BaseService {
                                    alias.set(_user.getAlias());
                                    setDefaultCity(_user.getDefaultCity());
                                    setActiveMission(_user.getActiveMission());
-                                   updateActiveTasks(getActiveMission());
 
-                                   StorableImage image = ImageHandler.retrieveImage(_user.getImageUrl(),
+                                   StorableImage image = ImageHandler.retrieveImage(
+                                                                                    _user.getImageUrl(),
                                                                                     ImageHandler.AVATAR_PLACE_HOLDER);
 
                                    setProfileImage(image.get());
                                })
                                .exceptionMessage(localize("baseService.error.loadUser"))
-                               .finalize(this::postUserInit)
+                               .next(activeTasksReceiver)
                                .start();
         }
     }

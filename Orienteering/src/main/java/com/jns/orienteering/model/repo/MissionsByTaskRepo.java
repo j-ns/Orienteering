@@ -53,6 +53,7 @@ public class MissionsByTaskRepo extends FireBaseRepo<MissionsByTaskLookup> {
             if (existingLookup != null) {
                 Set<String> existingMissionIds = existingLookup.getValues().keySet();
 
+//                existingLookup.addValue(missionId);
                 MissionsByTaskLookup newLookup = new MissionsByTaskLookup(existingMissionIds);
                 newLookup.addValue(missionId);
                 super.createOrUpdate(newLookup, taskId);

@@ -31,6 +31,8 @@ package com.jns.orienteering.model.common;
 import java.util.Comparator;
 import java.util.Objects;
 
+import com.jns.orienteering.model.persisted.AccessType;
+
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 

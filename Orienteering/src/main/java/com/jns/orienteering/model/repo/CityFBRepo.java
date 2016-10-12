@@ -33,16 +33,14 @@ import static com.jns.orienteering.model.repo.BaseUrls.*;
 import com.gluonhq.connect.GluonObservableList;
 import com.gluonhq.connect.GluonObservableObject;
 import com.gluonhq.connect.provider.DataProvider;
-import com.jns.orienteering.model.common.RepoAction;
-import com.jns.orienteering.model.common.UrlBuilder;
 import com.jns.orienteering.model.persisted.CitiesByUser;
 import com.jns.orienteering.model.persisted.City;
 import com.jns.orienteering.model.persisted.CityNameLookup;
+import com.jns.orienteering.model.persisted.RepoAction;
 import com.jns.orienteering.model.repo.readerwriter.RestMapReader;
 import com.jns.orienteering.util.GluonObservables;
 
 public class CityFBRepo extends FireBaseRepo<City> {
-
 
     private static final String              PUBLIC             = "public";
     private static final String              PRIVATE            = "private";
@@ -71,12 +69,15 @@ public class CityFBRepo extends FireBaseRepo<City> {
         return nameLookupRepo.checkIfNameExists(cityName);
     }
 
-    public GluonObservableObject<City> createCityAsync(City city) {
+    public GluonObservableObject<City> createAsync(City city) {
         return executeAsync(city, () ->
         {
             city.setTimeStamp(createTimeStamp());
             City result = addToList(city);
+
             if (result != null) {
+                writeLogEntry(result, RepoAction.ADD);
+
                 nameLookupRepo.createOrUpdate(new CityNameLookup(city));
 
                 CitiesByUser existingLookup = citiesByUserLookup.retrieveObject(city.getOwnerId());
@@ -87,8 +88,6 @@ public class CityFBRepo extends FireBaseRepo<City> {
                     CitiesByUser newLookup = new CitiesByUser(city.getOwnerId(), city.getId());
                     citiesByUserLookup.createOrUpdate(newLookup, city.getOwnerId());
                 }
-
-                writeLogEntry(result, RepoAction.ADD);
             }
         });
     }
@@ -98,10 +97,11 @@ public class CityFBRepo extends FireBaseRepo<City> {
         {
             city.setTimeStamp(createTimeStamp());
             createOrUpdate(city, city.getId());
-
-            nameLookupRepo.recreateLookup(previousName, new CityNameLookup(city));
-
             writeLogEntry(city, RepoAction.UPDATE);
+
+            if (!city.getCityName().equals(previousName)) {
+                nameLookupRepo.recreateLookup(previousName, new CityNameLookup(city));
+            }
         });
     }
 
@@ -110,14 +110,13 @@ public class CityFBRepo extends FireBaseRepo<City> {
         {
             city.setTimeStamp(createTimeStamp());
             delete(city.getId());
+            writeLogEntry(city, RepoAction.DELETE);
 
             nameLookupRepo.deleteLookup(new CityNameLookup(city));
 
             CitiesByUser existingLookup = citiesByUserLookup.retrieveObject(city.getOwnerId());
             existingLookup.removeValue(city.getId());
             citiesByUserLookup.createOrUpdate(existingLookup, city.getOwnerId());
-
-            writeLogEntry(city, RepoAction.DELETE);
         });
     }
 

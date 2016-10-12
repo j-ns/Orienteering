@@ -92,6 +92,7 @@ public class RepoSynchronizer {
         synchronizers.put(synchronizer.getName(), synchronizer);
     }
 
+    // todo: limit sync to once a day
     public void syncNow(SyncMetaData syncMetaData) {
         this.syncMetaData = syncMetaData;
         setTimeStamps(syncMetaData);

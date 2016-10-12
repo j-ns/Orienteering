@@ -28,30 +28,27 @@
  */
 package com.jns.orienteering.model.repo;
 
-import static com.jns.orienteering.model.repo.BaseUrls.*;
-import static com.jns.orienteering.model.repo.QueryParameters.endAt;
-import static com.jns.orienteering.model.repo.QueryParameters.shallow;
-import static com.jns.orienteering.model.repo.QueryParameters.startAt;
+import static com.jns.orienteering.model.repo.BaseUrls.CITIES;
+import static com.jns.orienteering.model.repo.BaseUrls.IMAGES;
+import static com.jns.orienteering.model.repo.BaseUrls.MISSIONS;
+import static com.jns.orienteering.model.repo.BaseUrls.TASKS;
+import static com.jns.orienteering.model.repo.QueryParameter.endAt;
+import static com.jns.orienteering.model.repo.QueryParameter.orderByTimeStamp;
+import static com.jns.orienteering.model.repo.QueryParameter.shallow;
+import static com.jns.orienteering.model.repo.QueryParameter.startAt;
 
 import java.util.Arrays;
-import java.util.List;
 
 import com.gluonhq.connect.GluonObservableList;
 import com.gluonhq.connect.GluonObservableObject;
-import com.jns.orienteering.model.common.RepoAction;
-import com.jns.orienteering.model.common.Synchronizable;
 import com.jns.orienteering.model.persisted.ChangeLogEntry;
-
-import javafx.util.Pair;
+import com.jns.orienteering.model.persisted.RepoAction;
+import com.jns.orienteering.model.persisted.Synchronizable;
 
 public class ChangeLogRepo extends FireBaseRepo<ChangeLogEntry> {
 
-    private static final String CHANGE_LOG        = "change_log";
-
-    private static final String TIME_STAMP_FILTER = "timeStamp";
-
     public ChangeLogRepo() {
-        super(ChangeLogEntry.class, CHANGE_LOG);
+        super(ChangeLogEntry.class, BaseUrls.CHANGE_LOG);
     }
 
     public void writeImageLogAsync(ChangeLogEntry entry) {
@@ -65,11 +62,11 @@ public class ChangeLogRepo extends FireBaseRepo<ChangeLogEntry> {
     }
 
     public GluonObservableList<ChangeLogEntry> readListAsync(long lastSynced, String... urlParts) {
-        return retrieveListFilteredAsync(TIME_STAMP_FILTER, startAt(lastSynced), urlParts);
+        return retrieveListFilteredAsync(Arrays.asList(orderByTimeStamp(), startAt(lastSynced)), urlParts);
     }
 
     public GluonObservableObject<ChangeLogEntry> readObjectAsync(long lastSynced, String... urlParts) {
-        return retrieveObjectFilteredAsync(TIME_STAMP_FILTER, startAt(lastSynced), urlParts);
+        return retrieveObjectFilteredAsync(Arrays.asList(orderByTimeStamp(), startAt(lastSynced)), urlParts);
     }
 
     // todo:delete log entries of the previous month but one. If lastSync was at that time, reload all data
@@ -83,9 +80,7 @@ public class ChangeLogRepo extends FireBaseRepo<ChangeLogEntry> {
     }
 
     private GluonObservableList<ChangeLogEntry> getLogEntriesBefore(String url, long timeStamp) {
-        List<Pair<String, String>> params = Arrays.asList(endAt(timeStamp), shallow());
-
-        return retrieveListFilteredAsync(TIME_STAMP_FILTER, params, url);
+        return retrieveListFilteredAsync(Arrays.asList(orderByTimeStamp(), endAt(timeStamp), shallow()), url);
     }
 
     private void removeLogEntries(String url, GluonObservableList<ChangeLogEntry> logEntries) {

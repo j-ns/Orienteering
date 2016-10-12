@@ -28,8 +28,6 @@
  */
 package com.jns.orienteering.model.persisted;
 
-import com.jns.orienteering.model.common.JsonDefaultConstructor;
-
 public class TaskStat extends Stat {
 
     private Task    task;

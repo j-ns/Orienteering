@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package com.jns.orienteering.common;
+package com.jns.orienteering.model.repo.image;
 
 import static com.jns.orienteering.util.GluonObservables.setInitialized;
 import static com.jns.orienteering.util.Validators.isNullOrEmpty;
@@ -44,8 +44,6 @@ import com.gluonhq.charm.down.common.cache.Cache;
 import com.gluonhq.connect.GluonObservableList;
 import com.gluonhq.connect.GluonObservableObject;
 import com.google.cloud.storage.StorageException;
-import com.jns.orienteering.model.common.FireBaseStorage;
-import com.jns.orienteering.model.common.StorableImage;
 import com.jns.orienteering.model.persisted.ChangeLogEntry;
 import com.jns.orienteering.platform.PlatformProvider;
 
@@ -83,10 +81,10 @@ public class ImageHandler {
     public static final Image            AVATAR_PLACE_HOLDER = new Image("/images/WikiFont_uniE600_-_userAvatar_-_blue.svg.png");
     public static final Image            IMAGE_PLACE_HOLDER  = new Image("/images/army_texture2.jpg");
 
-    private static final FireBaseStorage storage             = FireBaseStorage.INSTANCE;
-    private static final ImageCache      imageCache          = new ImageCache();
+    private static final FireBaseStorage STORAGE             = FireBaseStorage.INSTANCE;
+    private static final ImageCache      IMAGE_CACHE         = new ImageCache();
 
-    private static final ExecutorService executor            = Executors.newFixedThreadPool(4, runnable ->
+    private static final ExecutorService EXECUTOR            = Executors.newFixedThreadPool(4, runnable ->
                                                              {
                                                                  Thread thread = Executors.defaultThreadFactory().newThread(runnable);
                                                                  thread.setName("ImageHandlerThread");
@@ -102,15 +100,15 @@ public class ImageHandler {
     }
 
     public static boolean storeImage(StorableImage storableImage) {
-        imageCache.add(storableImage);
+        IMAGE_CACHE.add(storableImage);
 
         String targetUrl = storableImage.getTargetUrl();
         try {
-            storage.create(storableImage.getContent(), targetUrl);
+            STORAGE.create(storableImage.getContent(), targetUrl);
 
         } catch (StorageException e) {
             LOGGER.error("Failed to upload image: {}", targetUrl, e);
-            imageCache.remove(targetUrl);
+            IMAGE_CACHE.remove(targetUrl);
             throw e;
         }
         return true;
@@ -135,9 +133,9 @@ public class ImageHandler {
             return obsImage;
         }
 
-        executor.execute(() ->
+        EXECUTOR.execute(() ->
         {
-            Image localImage = imageCache.getImage(url);
+            Image localImage = IMAGE_CACHE.getImage(url);
             if (localImage != null) {
                 setInitialized(obsImage, localImage, true);
 
@@ -145,7 +143,7 @@ public class ImageHandler {
                 StorableImage cloudImage = retrieveImageFromCloud(url);
                 setInitialized(obsImage, cloudImage.get(), true);
 
-                imageCache.add(cloudImage);
+                IMAGE_CACHE.add(cloudImage);
             }
         });
         return obsImage;
@@ -156,12 +154,12 @@ public class ImageHandler {
             return new StorableImage(placeHolder);
         }
 
-        Image localImage = imageCache.getImage(url);
+        Image localImage = IMAGE_CACHE.getImage(url);
         if (localImage != null) {
             return new StorableImage(localImage, url);
         }
         StorableImage storableImage = retrieveImageFromCloud(url);
-        executor.execute(() -> imageCache.add(storableImage));
+        EXECUTOR.execute(() -> IMAGE_CACHE.add(storableImage));
         return storableImage;
     }
 
@@ -170,7 +168,7 @@ public class ImageHandler {
             return StorableImage.emptyInstance();
         }
 
-        byte[] content = storage.retrieve(url);
+        byte[] content = STORAGE.retrieve(url);
         if (content.length > 0) {
             return new StorableImage(content, url);
         }
@@ -182,9 +180,9 @@ public class ImageHandler {
     }
 
     public static void deleteImage(String url) {
-        imageCache.remove(url);
+        IMAGE_CACHE.remove(url);
 
-        boolean deleted = storage.delete(url);
+        boolean deleted = STORAGE.delete(url);
         if (deleted) {
             LOGGER.debug("image deleted: {}", url);
         } else {
@@ -193,11 +191,11 @@ public class ImageHandler {
     }
 
     public static void cacheImageAsync(String targetUrl) {
-        executor.execute(() ->
+        EXECUTOR.execute(() ->
         {
-            Image localImage = imageCache.getImage(targetUrl);
+            Image localImage = IMAGE_CACHE.getImage(targetUrl);
             if (localImage == null) {
-                imageCache.add(retrieveImageFromCloud(targetUrl));
+                IMAGE_CACHE.add(retrieveImageFromCloud(targetUrl));
             }
         });
     }
@@ -206,10 +204,10 @@ public class ImageHandler {
         if (isNullOrEmpty(changeLog)) {
             return;
         }
-        executor.execute(() ->
+        EXECUTOR.execute(() ->
         {
             for (ChangeLogEntry logEntry : changeLog) {
-                imageCache.remove("tasks/" + logEntry.getTargetId() + ".jpg");
+                IMAGE_CACHE.remove("tasks/" + logEntry.getTargetId() + ".jpg");
             }
         });
     }
@@ -224,16 +222,16 @@ public class ImageHandler {
             return;
         }
 
-        executor.execute(() ->
+        EXECUTOR.execute(() ->
         {
-            Image localImage = imageCache.getImage(url);
+            Image localImage = IMAGE_CACHE.getImage(url);
             if (localImage != null) {
                 imageView.setImage(localImage);
 
             } else {
                 StorableImage cloudImage = retrieveImageFromCloud(url);
                 imageView.setImage(cloudImage.get());
-                imageCache.add(cloudImage);
+                IMAGE_CACHE.add(cloudImage);
             }
         });
     }
@@ -241,7 +239,7 @@ public class ImageHandler {
     private static GluonObservableObject<Image> executeAsync(StorableImage image, Consumer<StorableImage> action) {
         GluonObservableObject<Image> obsImage = new GluonObservableObject<>();
 
-        executor.execute(() ->
+        EXECUTOR.execute(() ->
         {
             try {
                 action.accept(image);

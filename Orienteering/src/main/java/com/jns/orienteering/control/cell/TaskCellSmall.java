@@ -33,8 +33,8 @@ import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 import com.gluonhq.charm.glisten.visual.MaterialDesignIcon;
-import com.jns.orienteering.common.ImageHandler;
 import com.jns.orienteering.model.persisted.Task;
+import com.jns.orienteering.model.repo.image.ImageHandler;
 
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
@@ -214,7 +214,6 @@ public class TaskCellSmall extends SelectableListCell<Task> {
 
             imgView.resize(IMAGE_WIDTH, IMAGE_HEIGHT);
             imgView.relocate(width - IMAGE_WIDTH - right, PADDING_IMAGE_TOP);
-
         }
 
         @Override
@@ -226,7 +225,6 @@ public class TaskCellSmall extends SelectableListCell<Task> {
         protected double computePrefWidth(double height) {
             return -getInsets().getLeft() + getListView().getWidth() - getInsets().getRight();
         }
-
     }
 
 }

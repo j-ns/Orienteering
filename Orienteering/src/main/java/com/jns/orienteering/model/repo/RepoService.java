@@ -31,7 +31,7 @@ package com.jns.orienteering.model.repo;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.jns.orienteering.model.common.Model;
+import com.jns.orienteering.model.persisted.Model;
 
 public enum RepoService {
 
@@ -48,34 +48,34 @@ public enum RepoService {
         localRepoCache = new HashMap<>();
     }
 
-    public <T extends Model, R extends FireBaseRepo<T>> R getCloudRepo(Class<T> dataClass) {
+    public <T extends Model, R extends FireBaseRepo<T>> R getCloudRepo(Class<T> modelClass) {
         @SuppressWarnings("unchecked")
-        R cloudRepo = (R) cloudRepoCache.get(dataClass);
+        R cloudRepo = (R) cloudRepoCache.get(modelClass);
 
         if (cloudRepo == null) {
-            cloudRepo = createCloudRepo(dataClass);
-            cloudRepoCache.put(dataClass, cloudRepo);
+            cloudRepo = createCloudRepo(modelClass);
+            cloudRepoCache.put(modelClass, cloudRepo);
         }
         return cloudRepo;
     }
 
-    public <T extends Model, R extends LocalRepo<?, ?>> R getLocalRepo(Class<T> dataClass) {
+    public <T extends Model, R extends LocalRepo<?, ?>> R getLocalRepo(Class<T> modelClass) {
         @SuppressWarnings("unchecked")
-        R localRepo = (R) localRepoCache.get(dataClass);
+        R localRepo = (R) localRepoCache.get(modelClass);
 
         if (localRepo == null) {
-            localRepo = createLocalRepo(dataClass);
-            localRepoCache.put(dataClass, localRepo);
+            localRepo = createLocalRepo(modelClass);
+            localRepoCache.put(modelClass, localRepo);
         }
         return localRepo;
     }
 
-    public <T extends Model, R extends FireBaseRepo<T>> R createCloudRepo(Class<T> dataClass) {
-        return repoFactory.createCloudRepo(dataClass);
+    public <T extends Model, R extends FireBaseRepo<T>> R createCloudRepo(Class<T> modelClass) {
+        return repoFactory.createCloudRepo(modelClass);
     }
 
-    public <T extends Model, R extends LocalRepo<?, ?>> R createLocalRepo(Class<T> dataClass) {
-        return repoFactory.createLocalRepo(dataClass);
+    public <T extends Model, R extends LocalRepo<?, ?>> R createLocalRepo(Class<T> modelClass) {
+        return repoFactory.createLocalRepo(modelClass);
     }
 
 }

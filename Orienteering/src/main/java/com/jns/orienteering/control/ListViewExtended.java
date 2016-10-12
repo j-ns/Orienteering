@@ -32,9 +32,8 @@ import java.util.Comparator;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-import com.jns.orienteering.model.common.AccessType;
 import com.jns.orienteering.model.common.ListUpdater;
-import com.jns.orienteering.model.common.SelectedObjectProperty;
+import com.jns.orienteering.model.persisted.AccessType;
 
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.SortedList;

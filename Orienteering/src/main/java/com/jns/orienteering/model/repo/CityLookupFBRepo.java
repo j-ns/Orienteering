@@ -32,10 +32,9 @@ import java.io.IOException;
 
 import com.gluonhq.connect.GluonObservableList;
 import com.gluonhq.connect.provider.DataProvider;
-import com.jns.orienteering.model.common.AccessType;
-import com.jns.orienteering.model.common.BaseModel;
-import com.jns.orienteering.model.common.CityLookup;
-import com.jns.orienteering.model.common.UrlBuilder;
+import com.jns.orienteering.model.persisted.AccessType;
+import com.jns.orienteering.model.persisted.BaseModel;
+import com.jns.orienteering.model.persisted.CityLookup;
 import com.jns.orienteering.model.repo.readerwriter.RestMapReader;
 import com.jns.orienteering.util.GluonObservables;
 
@@ -70,6 +69,21 @@ public class CityLookupFBRepo<T extends CityLookup, LT extends BaseModel> extend
         return DataProvider.retrieveList(new RestMapReader<>(createRestClient(), targetClass, idsUrl, lookupTargetClass, lookupTargetUrl));
     }
 
+    public void createOrUpdate(T lookup) throws IOException {
+        String lookupPath = buildPath(lookup);
+        updateRestClientFromRelativePath(GET, lookupPath);
+
+        T existingLookup = retrieveObject(lookupPath);
+        if (existingLookup != null) {
+            if (!existingLookup.containsValue(lookup.getTargetId())) {
+                existingLookup.addValue(lookup.getTargetId());
+                createOrUpdate(existingLookup, lookupPath);
+            }
+        } else {
+            createOrUpdate(lookup, lookupPath);
+        }
+    }
+
     public void recreateCityLookup(T lookup) throws IOException {
         createOrUpdate(lookup);
 
@@ -84,29 +98,18 @@ public class CityLookupFBRepo<T extends CityLookup, LT extends BaseModel> extend
         deleteLookup(lookup);
     }
 
-    public void createOrUpdate(T lookup) throws IOException {
-        String lookupPath = lookup.getPath();
-        updateRestClientFromRelativePath(GET, lookupPath);
-
-        T existingLookup = retrieveObject(lookupPath);
-        if (existingLookup != null) {
-            if (!existingLookup.containsValue(lookup.getTargetId())) {
-                existingLookup.addValue(lookup.getTargetId());
-                createOrUpdate(existingLookup, lookupPath);
-            }
-        } else {
-            createOrUpdate(lookup, lookupPath);
-        }
-    }
-
     public void deleteLookup(T lookup) throws IOException {
-        String path = UrlBuilder.buildPath(lookup.getPath(), lookupTargetUrl, lookup.getTargetId());
+        String path = UrlBuilder.buildPath(buildPath(lookup), lookupTargetUrl, lookup.getTargetId());
         updateRestClientFromRelativePath(GET, path);
 
         boolean urlExists = checkIfUrlExists(baseUrl, path);
         if (urlExists) {
             delete(path);
         }
+    }
+
+    private String buildPath(T lookup) {
+        return UrlBuilder.buildPath(lookup.getAccessTypeName(), lookup.getId(), lookup.getOwnerId());
     }
 
 }

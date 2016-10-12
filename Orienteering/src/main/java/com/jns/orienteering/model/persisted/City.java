@@ -28,8 +28,6 @@
  */
 package com.jns.orienteering.model.persisted;
 
-import com.jns.orienteering.model.common.JsonDefaultConstructor;
-
 public class City extends BasePostableSynchronizable implements Comparable<City> {
 
     private String cityName;

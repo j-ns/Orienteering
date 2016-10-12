@@ -28,11 +28,6 @@
  */
 package com.jns.orienteering.model.persisted;
 
-import com.jns.orienteering.model.common.BaseModel;
-import com.jns.orienteering.model.common.JsonDefaultConstructor;
-import com.jns.orienteering.model.common.RepoAction;
-import com.jns.orienteering.model.common.Synchronizable;
-
 public class ChangeLogEntry extends BaseModel {
 
     private RepoAction action;

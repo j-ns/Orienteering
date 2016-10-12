@@ -26,41 +26,39 @@
  *  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  *  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package com.jns.orienteering.model.common;
+package com.jns.orienteering.model.persisted;
 
-import java.util.function.Consumer;
+import static com.jns.orienteering.util.SpecialCharReplacer.replaceSpecialChars;
+import static com.jns.orienteering.util.SpecialCharReplacer.replaceWithSpecialChars;
 
-import javafx.beans.property.SimpleObjectProperty;
-import javafx.beans.value.ChangeListener;
+public class Lookup extends BaseModel {
 
-public class SelectedObjectProperty<T> extends SimpleObjectProperty<T>{
+    private String lookupName;
+    private String lookupId;
 
-    private Consumer<T> consumer;
-
-    private ChangeListener<T> listener = (ov, t, t1) -> consumer.accept(t1);
-
-    public SelectedObjectProperty() {
+    @JsonDefaultConstructor
+    public Lookup() {
     }
 
-    public SelectedObjectProperty(Consumer<T> consumer) {
-        this.consumer = consumer;
+    public Lookup(String lookupName, String lookupId) {
+        this.lookupName = lookupName;
+        this.lookupId = lookupId;
     }
 
-    public void setConsumer(Consumer<T> consumer) {
-        this.consumer = consumer;
+    public String getLookupName() {
+        return replaceSpecialChars(lookupName);
     }
 
-    public void addListener() {
-        addListener(listener);
+    public void setLookupName(String lookupName) {
+        this.lookupName = replaceWithSpecialChars(lookupName);
     }
 
-    public void removeListener() {
-        removeListener(listener);
+    public String getLookupId() {
+        return lookupId;
     }
 
-    public void removeListenerAndClear() {
-        removeListener(listener);
-        set(null);
+    public void setLookupId(String lookupId) {
+        this.lookupId = lookupId;
     }
 
 }

@@ -39,8 +39,8 @@ import org.slf4j.LoggerFactory;
 import com.gluonhq.connect.ConnectState;
 import com.gluonhq.connect.GluonObservableList;
 import com.gluonhq.connect.GluonObservableObject;
-import com.jns.orienteering.model.common.Synchronizable;
 import com.jns.orienteering.model.persisted.ChangeLogEntry;
+import com.jns.orienteering.model.persisted.Synchronizable;
 import com.jns.orienteering.model.repo.AsyncResultReceiver;
 import com.jns.orienteering.model.repo.ChangeLogRepo;
 import com.jns.orienteering.model.repo.FireBaseRepo;
@@ -129,6 +129,7 @@ public abstract class BaseSynchronizer<T extends Synchronizable, L> {
 
     protected void retrieveCloudDataAndStoreLocally() {
         AsyncResultReceiver.create(cloudRepo.retrieveListAsync())
+                           .defaultProgressLayer()
                            .onSuccess(this::storeLocally)
                            .onException(this::setFailed)
                            .start();
@@ -139,6 +140,7 @@ public abstract class BaseSynchronizer<T extends Synchronizable, L> {
 
         GluonObservableObject<L> obsLocalData = localRepo.createOrUpdateListAsync(localData);
         AsyncResultReceiver.create(obsLocalData)
+                           .defaultProgressLayer()
                            .onSuccess(result ->
                            {
                                onSynced.accept(cloudData);
@@ -155,6 +157,7 @@ public abstract class BaseSynchronizer<T extends Synchronizable, L> {
 
     protected void readChangeLogAndSyncLocalData() {
         AsyncResultReceiver.create(retrieveChangeLog(listIdentifier))
+                           .defaultProgressLayer()
                            .onSuccess(this::syncLocalData)
                            .onException(ex ->
                            {

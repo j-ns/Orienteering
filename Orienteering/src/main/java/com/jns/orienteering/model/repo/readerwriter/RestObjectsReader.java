@@ -34,7 +34,7 @@ import java.util.Iterator;
 import java.util.Set;
 
 import com.gluonhq.connect.provider.RestClient;
-import com.jns.orienteering.model.common.Lookup;
+import com.jns.orienteering.model.persisted.Lookup;
 
 public class RestObjectsReader<T extends Lookup, E> extends AbstractRestObjectsReader<T, E> {
 

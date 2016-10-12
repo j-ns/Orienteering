@@ -26,15 +26,10 @@
  *  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  *  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package com.jns.orienteering.model.common;
+package com.jns.orienteering.model.persisted;
 
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
+public enum RepoAction {
 
-public enum AccessType {
-    PRIVATE, PUBLIC;
+    ADD, UPDATE, DELETE;
 
-    public static ObservableList<AccessType> observableValues(){
-        return FXCollections.observableArrayList(values());
-    }
 }

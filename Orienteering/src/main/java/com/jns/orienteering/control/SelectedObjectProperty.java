@@ -26,20 +26,41 @@
  *  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  *  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package com.jns.orienteering.model.common;
+package com.jns.orienteering.control;
 
-public abstract class BaseModel implements Model{
+import java.util.function.Consumer;
 
-    protected String id;
+import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.value.ChangeListener;
 
-    @Override
-    public String getId() {
-        return id;
+public class SelectedObjectProperty<T> extends SimpleObjectProperty<T>{
+
+    private Consumer<T> consumer;
+
+    private ChangeListener<T> listener = (ov, t, t1) -> consumer.accept(t1);
+
+    public SelectedObjectProperty() {
     }
 
-    @Override
-    public void setId(String id) {
-        this.id = id;
+    public SelectedObjectProperty(Consumer<T> consumer) {
+        this.consumer = consumer;
+    }
+
+    public void setConsumer(Consumer<T> consumer) {
+        this.consumer = consumer;
+    }
+
+    public void addListener() {
+        addListener(listener);
+    }
+
+    public void removeListener() {
+        removeListener(listener);
+    }
+
+    public void removeListenerAndClear() {
+        removeListener(listener);
+        set(null);
     }
 
 }

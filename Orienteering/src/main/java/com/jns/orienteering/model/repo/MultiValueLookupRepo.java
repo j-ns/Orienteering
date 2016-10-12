@@ -30,7 +30,7 @@ package com.jns.orienteering.model.repo;
 
 import java.io.IOException;
 
-import com.jns.orienteering.model.common.MultiValueLookup;
+import com.jns.orienteering.model.persisted.MultiValueLookup;
 
 public class MultiValueLookupRepo<T extends MultiValueLookup<?>> extends FireBaseRepo<T> {
 
@@ -40,10 +40,6 @@ public class MultiValueLookupRepo<T extends MultiValueLookup<?>> extends FireBas
 
     public void createOrUpdateLookup(T lookup) throws IOException {
             createOrUpdate(lookup, lookup.getId());
-    }
-
-    public void updateLookup(T lookup) {
-
     }
 
     public void deleteLookup(T lookup) throws IOException {

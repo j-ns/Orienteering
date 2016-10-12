@@ -34,7 +34,7 @@ import java.io.IOException;
 import java.util.List;
 
 import com.gluonhq.connect.converter.JsonOutputConverter;
-import com.jns.orienteering.model.common.Model;
+import com.jns.orienteering.model.persisted.Model;
 import com.jns.orienteering.util.Validators;
 
 public class FileTreeIterableOutputConverter<E extends Model> {

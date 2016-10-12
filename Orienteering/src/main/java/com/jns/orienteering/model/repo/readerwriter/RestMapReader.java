@@ -34,7 +34,7 @@ import java.util.Map;
 
 import com.gluonhq.connect.provider.ObjectDataReader;
 import com.gluonhq.connect.provider.RestClient;
-import com.jns.orienteering.model.common.MultiValueLookup;
+import com.jns.orienteering.model.persisted.MultiValueLookup;
 
 public class RestMapReader<T extends MultiValueLookup<?>, E> extends AbstractRestObjectsReader<T, E> {
 

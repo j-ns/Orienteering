@@ -28,7 +28,7 @@
  */
 package com.jns.orienteering.control;
 
-import com.jns.orienteering.model.common.AccessType;
+import com.jns.orienteering.model.persisted.AccessType;
 
 import de.jensd.fx.glyphs.GlyphIcons;
 import de.jensd.fx.glyphs.GlyphsDude;

@@ -28,7 +28,9 @@
 package com.jns.orienteering.model.repo;
 
 import static com.jns.orienteering.locale.Localization.localize;
-import static com.jns.orienteering.model.repo.BaseUrls.*;
+import static com.jns.orienteering.model.repo.BaseUrls.MISSION_STATS;
+import static com.jns.orienteering.model.repo.BaseUrls.STATS_BY_MISSION;
+import static com.jns.orienteering.model.repo.BaseUrls.STATS_BY_USER;
 
 import java.io.IOException;
 
@@ -86,16 +88,12 @@ public class MissionStatFBRepo extends FireBaseRepo<MissionStat> {
         return GluonObservables.newListInitialized();
     }
 
-    public GluonObservableList<MissionStat> getMissionStats(String missionId) {
-        RestClient client = createRestClient();
-        client.path(statByMissionRepo.buildUrlFromRelativePath(missionId));
-        client.queryParam("orderBy", "\"duration\"");
-        client.queryParam("limitToFirst", "5");
+    public GluonObservableList<MissionStat> getMissionStats(String missionId) { // todo: check urls
+        String url = UrlBuilder.buildUrl(STATS_BY_MISSION, missionId);
+        RestClient client = RestClientFactory.create(GET, url, QueryParameter.orderBy("duration"), new QueryParameter("limitToFirst", "5"));
 
-        String sourceUrl = STATS_BY_MISSION + "/" + missionId;
-
-        return DataProvider.retrieveList(new RestObjectsReader<>(client, createRestClient(), StatByMission.class,
-                                                                 sourceUrl, MissionStat.class, MISSION_STATS));
+        return DataProvider.retrieveList(new RestObjectsReader<>(client, RestClientFactory.baseClient(), StatByMission.class,
+                                                                 url, MissionStat.class, MISSION_STATS));
     }
 
     public void deleteAsync(String missionId) {

@@ -31,9 +31,6 @@ package com.jns.orienteering.model.persisted;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.jns.orienteering.model.common.JsonDefaultConstructor;
-import com.jns.orienteering.model.common.Synchronizable;
-
 public abstract class LocalList<E extends Synchronizable> {
 
     private List<E> items = new ArrayList<>();

@@ -26,17 +26,16 @@
  *  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  *  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package com.jns.orienteering.model.common;
+package com.jns.orienteering.model.persisted;
 
-public interface CityAssignable extends Sharable {
+public interface Synchronizable extends Model{
 
-    String getCityId();
+    long getTimeStamp();
 
-    String getPreviousCityId();
+    void setTimeStamp(long epochSeconds);
 
-    boolean cityChanged();
+    void setRepoAction(RepoAction action);
 
-    boolean nameChanged();
-
+    RepoAction getRepoAction();
 
 }

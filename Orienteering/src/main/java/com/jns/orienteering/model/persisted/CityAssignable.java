@@ -26,39 +26,17 @@
  *  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  *  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package com.jns.orienteering.model.common;
+package com.jns.orienteering.model.persisted;
 
-import static com.jns.orienteering.util.SpecialCharReplacer.replaceSpecialChars;
-import static com.jns.orienteering.util.SpecialCharReplacer.replaceWithSpecialChars;
+public interface CityAssignable extends Sharable {
 
-public class Lookup extends BaseModel {
+    String getCityId();
 
-    private String lookupName;
-    private String lookupId;
+    String getPreviousCityId();
 
-    @JsonDefaultConstructor
-    public Lookup() {
-    }
+    boolean cityChanged();
 
-    public Lookup(String lookupName, String lookupId) {
-        this.lookupName = lookupName;
-        this.lookupId = lookupId;
-    }
+    boolean nameChanged();
 
-    public String getLookupName() {
-        return replaceSpecialChars(lookupName);
-    }
-
-    public void setLookupName(String lookupName) {
-        this.lookupName = replaceWithSpecialChars(lookupName);
-    }
-
-    public String getLookupId() {
-        return lookupId;
-    }
-
-    public void setLookupId(String lookupId) {
-        this.lookupId = lookupId;
-    }
 
 }

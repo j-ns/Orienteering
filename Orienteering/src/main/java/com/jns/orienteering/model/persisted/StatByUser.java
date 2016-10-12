@@ -31,9 +31,6 @@ package com.jns.orienteering.model.persisted;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlTransient;
 
-import com.jns.orienteering.model.common.JsonDefaultConstructor;
-import com.jns.orienteering.model.common.Lookup;
-
 public class StatByUser extends Lookup implements Comparable<StatByUser> {
 
     private String missionId;

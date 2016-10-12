@@ -32,8 +32,6 @@ import static com.jns.orienteering.util.DateTimeFormatters.createTimeStamp;
 
 import java.util.Objects;
 
-import com.jns.orienteering.model.common.JsonDefaultConstructor;
-
 public class User extends BaseSynchronizable {
 
     private String  alias;

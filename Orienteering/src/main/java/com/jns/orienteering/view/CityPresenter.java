@@ -186,7 +186,7 @@ public class CityPresenter extends BasePresenter {
         if (isEditorModus()) {
             obsCity = cloudRepo.updateAsync(newCity, city.getCityName());
         } else {
-            obsCity = cloudRepo.createCityAsync(newCity);
+            obsCity = cloudRepo.createAsync(newCity);
         }
         return obsCity;
     }

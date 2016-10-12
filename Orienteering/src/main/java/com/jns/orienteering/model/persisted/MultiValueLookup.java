@@ -26,68 +26,72 @@
  *  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  *  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package com.jns.orienteering.model.common;
+package com.jns.orienteering.model.persisted;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
 import javax.xml.bind.annotation.XmlTransient;
 
-import com.jns.orienteering.model.common.MultiValueLookup.MultiIdLookup;
+public abstract class MultiValueLookup<V> extends BaseModel {
 
-public class CityLookup extends MultiIdLookup {
-
-    private CityAssignable assignable;
-    private AccessType     accessType;
+    private Map<String, V> values;
 
     @JsonDefaultConstructor
-    public CityLookup() {
-        super();
+    public MultiValueLookup() {
     }
 
-    public CityLookup(CityAssignable assignable) {
-        this.assignable = assignable;
-        id = assignable.getCityId();
-        accessType = assignable.getAccessType();
-        addValue(assignable.getId());
+    public MultiValueLookup(String id, Map<String, V> values) {
+        this.id = id;
+        this.values = values;
     }
 
+    @Override
     @XmlTransient
-    public String getOwnerId() {
-        return accessType == AccessType.PRIVATE ? assignable.getOwnerId() : null;
+    public String getId() {
+        return super.getId();
     }
 
-    @XmlTransient
-    public String getTargetId() {
-        return assignable.getId();
+    public Map<String, V> getValues() {
+        if (values == null) {
+            values = new HashMap<>();
+        }
+        return values;
     }
 
-    public String getPreviousId() {
-        return assignable.getPreviousCityId();
+    public void setValues(Map<String, V> values) {
+        this.values = values;
     }
 
-    @XmlTransient
-    public AccessType getAccessType() {
-        return accessType;
+    public void addValue(String id, V value) {
+        getValues().put(id, value);
     }
 
-    @XmlTransient
-    public void setAccessType(AccessType accessType) {
-        this.accessType = accessType;
+    public void removeValue(String id) {
+        if (values != null) {
+            values.remove(id);
+        }
     }
 
-    public String getAccessTypeName() {
-        return accessType.name().toLowerCase();
+    public boolean containsValue(String targetId) {
+        return values != null && values.containsKey(targetId);
     }
 
-    @XmlTransient
-    public boolean accessTypeChanged() {
-        return assignable.accessTypeChanged();
-    }
+    public static class MultiIdLookup extends MultiValueLookup<Boolean> {
 
-    public boolean cityChanged() {
-        return assignable.cityChanged();
-    }
+        @JsonDefaultConstructor
+        public MultiIdLookup() {
+        }
 
-    public String getPath() {
-        return UrlBuilder.buildPath(getAccessTypeName(), getId(), getOwnerId());
-    }
+        public void addValue(String id) {
+            getValues().put(id, true);
+        }
 
+        public void addValues(Set<String> targetIds) {
+            for (String id : targetIds) {
+                getValues().put(id, true);
+            }
+        }
+    }
 }
