@@ -9,6 +9,7 @@ buildscript {
 }
 
 apply plugin: 'java'
+apply plugin: 'eclipse'
 apply plugin: 'org.javafxports.jfxmobile'
 
 mainClassName = 'com.jns.orienteering.OrienteeringApp'
