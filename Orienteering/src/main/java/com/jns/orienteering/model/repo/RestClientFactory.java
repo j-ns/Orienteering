@@ -37,10 +37,6 @@ class RestClientFactory {
         return create(POST, url, QueryParameter.deleteOverride(), QueryParameter.shallow());
     }
 
-    static RestClient create(String method, String url, QueryParameter queryParameter) {
-        return create(method, url, Arrays.asList(queryParameter));
-    }
-
     static RestClient create(String method, String url, QueryParameter... queryParameters) {
         return create(method, url, Arrays.asList(queryParameters));
     }

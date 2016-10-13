@@ -100,7 +100,7 @@ public class TaskFBRepo extends FireBaseRepo<Task> {
             createOrUpdate(task, task.getId());
 
             if (task.nameChanged()) {
-                namelookupRepo.recreateLookup(task.getPreviousTask().getTaskName(), task.createNameLookup());
+                namelookupRepo.recreateLookup(task.createNameLookup(), task.getPreviousTask().getTaskName());
             }
             if (task.cityChanged() || task.accessTypeChanged()) {
                 cityLookupRepo.recreateCityLookup(new CityTaskLookup(task));

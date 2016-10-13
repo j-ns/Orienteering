@@ -186,15 +186,15 @@ public class AsyncResultReceiver<T extends GluonObservable> {
                                                                          }
                                                                      };
 
-    private ChangeListener<? super Throwable>    exceptionListener   = (obsValue, e, e1) ->
+    private ChangeListener<? super Throwable>    exceptionListener   = (obsValue, ex, ex1) ->
                                                                      {
-                                                                         if (e1 != null) {
-                                                                             LOGGER.error("AsyncRestultReceiver exception:", e1);
-                                                                             onException.ifPresent(c -> c.accept(e1));
+                                                                         if (ex1 != null) {
+                                                                             LOGGER.error("AsyncRestultReceiver exception:", ex1);
+                                                                             onException.ifPresent(c -> c.accept(ex1));
                                                                              exceptionMessage.ifPresent(msg -> Dialogs.ok(msg).showAndWait());
 
-                                                                             if (e1 instanceof UnknownHostException ||
-                                                                                     e1 instanceof ConnectException) {
+                                                                             if (ex1 instanceof UnknownHostException ||
+                                                                                     ex1 instanceof ConnectException) {
                                                                                  Dialogs.ok(localize("dialog.error.connectionFailed"))
                                                                                         .showAndWait();
                                                                              }

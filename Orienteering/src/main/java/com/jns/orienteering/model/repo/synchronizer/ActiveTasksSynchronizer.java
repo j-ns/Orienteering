@@ -92,7 +92,7 @@ public class ActiveTasksSynchronizer extends BaseSynchronizer<Task, ActiveTaskLi
     protected void retrieveCloudDataAndStoreLocally() {
         MissionFBRepo missionCloudRepo = RepoService.INSTANCE.getCloudRepo(Mission.class);
 
-        GluonObservableList<Task> obsTasks = missionCloudRepo.retrieveOrderedTasksAsync(getSyncMetaData().getActiveMission().getId());
+        GluonObservableList<Task> obsTasks = missionCloudRepo.retrieveTasksOrderedAsync(getSyncMetaData().getActiveMission().getId());
         AsyncResultReceiver.create(obsTasks)
                            .defaultProgressLayer()
                            .onSuccess(this::storeLocally)

@@ -40,7 +40,7 @@ import com.jns.orienteering.view.ViewRegistry;
 
 /**
  * Service to activate {@link ActivatableDeactivatable} targets, when the corresponding view is shown.
- * When the current showing view changes to {@link ViewRegistry#HOME}, all active targets will be deactivated.
+ * When the currently showing view changes to {@link ViewRegistry#HOME}, all active targets will be deactivated.
  */
 public class ActivatorDeactivatorService {
 

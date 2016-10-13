@@ -56,8 +56,8 @@ public class CityLookupFBRepo<T extends CityLookup, LT extends BaseModel> extend
         if (userId == null) {
             return GluonObservables.newListInitialized();
         }
-        String idsUrl = buildUrlFromRelativePath(PRIVATE, cityId, userId);
-        return retrieveList(idsUrl);
+        String url = buildUrlFromRelativePath(PRIVATE, cityId, userId);
+        return retrieveList(url);
     }
 
     public GluonObservableList<LT> getPublicListAsync(String cityId) {
@@ -65,8 +65,8 @@ public class CityLookupFBRepo<T extends CityLookup, LT extends BaseModel> extend
         return retrieveList(idsUrl);
     }
 
-    private GluonObservableList<LT> retrieveList(String idsUrl) {
-        return DataProvider.retrieveList(new RestMapReader<>(createRestClient(), targetClass, idsUrl, lookupTargetClass, lookupTargetUrl));
+    private GluonObservableList<LT> retrieveList(String sourceUrl) {
+        return DataProvider.retrieveList(new RestMapReader<>(createRestClient(), targetClass, sourceUrl, lookupTargetClass, lookupTargetUrl));
     }
 
     public void createOrUpdate(T lookup) throws IOException {

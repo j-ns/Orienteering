@@ -51,17 +51,13 @@ public class MissionsByTaskRepo extends FireBaseRepo<MissionsByTaskLookup> {
             MissionsByTaskLookup existingLookup = retrieveObject(taskId);
 
             if (existingLookup != null) {
-                Set<String> existingMissionIds = existingLookup.getValues().keySet();
-
-//                existingLookup.addValue(missionId);
-                MissionsByTaskLookup newLookup = new MissionsByTaskLookup(existingMissionIds);
-                newLookup.addValue(missionId);
-                super.createOrUpdate(newLookup, taskId);
+                existingLookup.addValue(missionId);
+                createOrUpdate(existingLookup, taskId);
 
             } else {
                 MissionsByTaskLookup newLookup = new MissionsByTaskLookup();
                 newLookup.addValue(missionId);
-                super.createOrUpdate(newLookup, taskId);
+                createOrUpdate(newLookup, taskId);
             }
         }
     }
@@ -85,7 +81,7 @@ public class MissionsByTaskRepo extends FireBaseRepo<MissionsByTaskLookup> {
             for (String taskIdToDelete : previousTaskIds) {
                 MissionsByTaskLookup existingLookup = retrieveObject(taskIdToDelete);
                 existingLookup.removeValue(missionId);
-                super.createOrUpdate(existingLookup, taskIdToDelete);
+                createOrUpdate(existingLookup, taskIdToDelete);
             }
         }
     }

@@ -61,7 +61,7 @@ public abstract class BaseSynchronizer<T extends Synchronizable, L> {
 
     private static final Logger            LOGGER    = LoggerFactory.getLogger(BaseSynchronizer.class);
 
-    private static ChangeLogRepo           logRepo   = new ChangeLogRepo();
+    private static ChangeLogRepo           changeLogRepo   = new ChangeLogRepo();
 
     protected FireBaseRepo<T>              cloudRepo;
     protected LocalRepo<T, L>              localRepo;
@@ -172,15 +172,15 @@ public abstract class BaseSynchronizer<T extends Synchronizable, L> {
     }
 
     protected GluonObservableList<ChangeLogEntry> retrieveChangeLog(long startAtTimeStamp, String listIdentifier) {
-        return logRepo.readListAsync(startAtTimeStamp, listIdentifier);
+        return changeLogRepo.readListAsync(startAtTimeStamp, listIdentifier);
     }
 
     protected ChangeLogEntry retrieveChangeLogEntry(String listIdentifier, String id) throws IOException {
-        return logRepo.retrieveObject(listIdentifier, id);
+        return changeLogRepo.retrieveObject(listIdentifier, id);
     }
 
     protected GluonObservableObject<ChangeLogEntry> retrieveChangeLogEntryAsync(String listIdentifier, String id) {
-        return logRepo.retrieveObjectAsync(listIdentifier, id);
+        return changeLogRepo.retrieveObjectAsync(listIdentifier, id);
     }
 
     protected abstract void syncLocalData(GluonObservableList<ChangeLogEntry> log);

@@ -45,7 +45,7 @@ public class MissionCache extends ModelCache<Mission> {
         if (!isNullOrEmpty(activeMissionTasks)) {
             return activeMissionTasks;
         }
-        activeMissionTasks = cloudRepo.retrieveOrderedTasksAsync(missionId);
+        activeMissionTasks = cloudRepo.retrieveTasksOrderedAsync(missionId);
         activeMissionId = missionId;
         return activeMissionTasks;
     }
@@ -61,7 +61,7 @@ public class MissionCache extends ModelCache<Mission> {
         }
 
         missionTasksTemp = null;
-        missionTasks = cloudRepo.retrieveOrderedTasksAsync(missionId);
+        missionTasks = cloudRepo.retrieveTasksOrderedAsync(missionId);
         selectedMissionId = missionId;
         return missionTasks;
     }

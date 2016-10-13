@@ -46,7 +46,7 @@ public class NameLookupFBRepo<T extends Lookup> extends FireBaseRepo<T> {
         return checkIfUrlExists(baseUrl, indexLetter, nameNormalized);
     }
 
-    public void recreateLookup(String previousName, T lookup) throws IOException {
+    public void recreateLookup(T lookup, String previousName) throws IOException {
         String previousNameNormalized = replaceSpecialChars(previousName);
         String indexLetter = getIndexLetter(previousNameNormalized);
 

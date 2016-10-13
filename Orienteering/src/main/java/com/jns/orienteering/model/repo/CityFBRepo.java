@@ -100,7 +100,7 @@ public class CityFBRepo extends FireBaseRepo<City> {
             writeLogEntry(city, RepoAction.UPDATE);
 
             if (!city.getCityName().equals(previousName)) {
-                nameLookupRepo.recreateLookup(previousName, new CityNameLookup(city));
+                nameLookupRepo.recreateLookup(new CityNameLookup(city), previousName);
             }
         });
     }

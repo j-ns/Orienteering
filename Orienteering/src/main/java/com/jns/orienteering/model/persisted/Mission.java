@@ -193,10 +193,6 @@ public class Mission extends BasePostableSynchronizable implements CityAssignabl
         return new TasksByMissionLookup(this);
     }
 
-    public TasksByMissionLookup createTasksByMissionLookup() {
-        return new TasksByMissionLookup(this);
-    }
-
     @Override
     public boolean equals(Object obj) {
         if (this == obj) {

@@ -51,16 +51,16 @@ import javafx.collections.transformation.SortedList;
 
 public class MissionFBRepo extends FireBaseRepo<Mission> {
 
-    private NameLookupFBRepo<MissionNameLookup>             nameLookupRepo           = new NameLookupFBRepo<>(MissionNameLookup.class, MISSION_NAMES);
+    private NameLookupFBRepo<MissionNameLookup>             nameLookupRepo       = new NameLookupFBRepo<>(MissionNameLookup.class, MISSION_NAMES);
 
-    private CityLookupFBRepo<MissionsByCityLookup, Mission> cityLookupRepo           =
+    private CityLookupFBRepo<MissionsByCityLookup, Mission> cityLookupRepo       =
             new CityLookupFBRepo<>(MissionsByCityLookup.class, Mission.class, MISSIONS_BY_CITY, MISSIONS);
 
-    private MultiValueLookupRepo<TasksByMissionLookup>      tasksLookupRepo          =
+    private MultiValueLookupRepo<TasksByMissionLookup>      tasksByMissionRepo   =
             new MultiValueLookupRepo<>(TasksByMissionLookup.class, TASKS_BY_MISSION);
 
-    private MissionsByTaskRepo                              missionsByTaskLookupRepo = RepoService.INSTANCE.getCloudRepo(MissionsByTaskLookup.class);
-    private MissionStatFBRepo                               missionStatCloudRepo     = RepoService.INSTANCE.getCloudRepo(MissionStat.class);
+    private MissionsByTaskRepo                              missionsByTaskRepo   = RepoService.INSTANCE.getCloudRepo(MissionsByTaskLookup.class);
+    private MissionStatFBRepo                               missionStatCloudRepo = RepoService.INSTANCE.getCloudRepo(MissionStat.class);
 
     public MissionFBRepo() {
         super(Mission.class, MISSIONS);
@@ -79,16 +79,12 @@ public class MissionFBRepo extends FireBaseRepo<Mission> {
     }
 
     public boolean missionContainsTasks(String missionId) {
-        return tasksLookupRepo.checkIfUrlExists(TASKS_BY_MISSION, missionId);
+        return tasksByMissionRepo.checkIfUrlExists(TASKS_BY_MISSION, missionId);
     }
 
-    public GluonObservableList<Task> retrieveOrderedTasksAsync(String missionId) {
-        String sourceUrl = buildPath(TASKS_BY_MISSION, missionId);
-
+    public GluonObservableList<Task> retrieveTasksOrderedAsync(String missionId) {
         GluonObservableList<Task> obsTasks = new GluonObservableList<>();
-
-        RestMapReader<TasksByMissionLookup, Task> mapReader = new RestMapReader<>(createRestClient(), TasksByMissionLookup.class, sourceUrl,
-                                                                                  Task.class, TASKS);
+        RestMapReader<TasksByMissionLookup, Task> mapReader = mapReader(missionId);
 
         GluonObservableList<Task> obsLookup = DataProvider.retrieveList(mapReader);
         AsyncResultReceiver.create(obsLookup)
@@ -106,9 +102,9 @@ public class MissionFBRepo extends FireBaseRepo<Mission> {
                                        SortedList<Task> sortedTasks = new SortedList<>(result, Task.getOrderNumberComparator());
                                        obsTasks.setAll(sortedTasks);
 
-                                   } catch (IOException e) {
-                                       e.printStackTrace();
-                                       obsTasks.setException(e);
+                                   } catch (IOException ex) {
+                                       ex.printStackTrace();
+                                       obsTasks.setException(ex);
                                    }
                                }
                            })
@@ -119,8 +115,12 @@ public class MissionFBRepo extends FireBaseRepo<Mission> {
     }
 
     public GluonObservableList<Task> retrieveTasksAsync(String missionId) {
+        return DataProvider.retrieveList(mapReader(missionId));
+    }
+
+    private RestMapReader<TasksByMissionLookup, Task> mapReader(String missionId) {
         String sourceUrl = buildPath(TASKS_BY_MISSION, missionId);
-        return DataProvider.retrieveList(new RestMapReader<>(createRestClient(), TasksByMissionLookup.class, sourceUrl, Task.class, TASKS));
+        return new RestMapReader<>(createRestClient(), TasksByMissionLookup.class, sourceUrl, Task.class, TASKS);
     }
 
     public GluonObservableObject<Mission> createMission(Mission mission) {
@@ -131,8 +131,8 @@ public class MissionFBRepo extends FireBaseRepo<Mission> {
             if (result != null) {
                 nameLookupRepo.createOrUpdate(mission.createNameLookup());
                 cityLookupRepo.createOrUpdate(mission.createCityLookup());
-                tasksLookupRepo.createOrUpdateLookup(mission.createTasksLookup());
-                missionsByTaskLookupRepo.createOrUpdateLookup(mission);
+                tasksByMissionRepo.createOrUpdateLookup(mission.createTasksLookup());
+                missionsByTaskRepo.createOrUpdateLookup(mission);
             }
         });
     }
@@ -140,19 +140,18 @@ public class MissionFBRepo extends FireBaseRepo<Mission> {
     public GluonObservableObject<Mission> updateMission(Mission mission, Mission previousMission, List<Task> tasks, List<Task> tasksBuffer) {
         return executeAsync(mission, () ->
         {
-            boolean missionChanged = mission.equals(previousMission);
+            boolean missionChanged = !mission.equals(previousMission);
 
-            if (!missionChanged) {
+            if (missionChanged) {
                 mission.setTimeStamp(createTimeStamp());
                 createOrUpdate(mission, mission.getId());
-
                 writeLogEntry(mission, RepoAction.UPDATE);
 
                 if (mission.nameChanged()) {
-                    nameLookupRepo.recreateLookup(previousMission.getMissionName(), mission.createNameLookup());
+                    nameLookupRepo.recreateLookup(mission.createNameLookup(), previousMission.getMissionName());
                 }
                 if (mission.cityChanged() || mission.accessTypeChanged()) {
-                    cityLookupRepo.recreateCityLookup(new MissionsByCityLookup(mission));
+                    cityLookupRepo.recreateCityLookup(mission.createCityLookup());
                 }
             }
 
@@ -169,10 +168,10 @@ public class MissionFBRepo extends FireBaseRepo<Mission> {
             }
 
             if (tasksChanged) {
-                TasksByMissionLookup previousTasksByMission = tasksLookupRepo.retrieveObject(mission.getId());
+                TasksByMissionLookup previousTasksByMission = tasksByMissionRepo.retrieveObject(mission.getId());
 
-                tasksLookupRepo.createOrUpdateLookup(new TasksByMissionLookup(mission.getId(), mission.getTasksMap()));
-                missionsByTaskLookupRepo.updateLookup(previousTasksByMission, mission);
+                tasksByMissionRepo.createOrUpdateLookup(mission.createTasksLookup());
+                missionsByTaskRepo.updateLookup(previousTasksByMission, mission);
                 missionStatCloudRepo.deleteAsync(mission.getId());
             }
         });
@@ -183,14 +182,13 @@ public class MissionFBRepo extends FireBaseRepo<Mission> {
         {
             mission.setTimeStamp(createTimeStamp());
             delete(mission.getId());
+            writeLogEntry(mission, RepoAction.DELETE);
 
             nameLookupRepo.deleteLookup(mission.createNameLookup());
             cityLookupRepo.deleteLookup(mission.createCityLookup());
-            tasksLookupRepo.deleteLookup(mission.createTasksByMissionLookup());
-            missionsByTaskLookupRepo.deleteLookup(mission);
+            tasksByMissionRepo.deleteLookup(mission.createTasksLookup());
+            missionsByTaskRepo.deleteLookup(mission);
             missionStatCloudRepo.deleteAsync(mission.getId());
-
-            writeLogEntry(mission, RepoAction.DELETE);
         });
     }
 

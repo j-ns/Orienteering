@@ -338,7 +338,7 @@ public class BaseService {
 
     public void setUser(User user) {
         this.user.set(user);
-        LOGGER.debug("set user to: {}", user == null ? null : user.getId());
+        LOGGER.debug("set user to: {}", getUserId());
     }
 
     public String getUserId() {
