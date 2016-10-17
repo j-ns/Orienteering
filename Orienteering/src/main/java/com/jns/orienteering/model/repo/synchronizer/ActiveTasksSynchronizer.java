@@ -31,15 +31,14 @@ package com.jns.orienteering.model.repo.synchronizer;
 import static com.jns.orienteering.locale.Localization.localize;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.gluonhq.connect.GluonObservableList;
 import com.jns.orienteering.control.Dialogs;
+import com.jns.orienteering.model.dynamic.MissionCache;
 import com.jns.orienteering.model.persisted.ActiveTaskList;
 import com.jns.orienteering.model.persisted.ChangeLogEntry;
 import com.jns.orienteering.model.persisted.Mission;
@@ -50,13 +49,20 @@ import com.jns.orienteering.model.repo.LocalRepo;
 import com.jns.orienteering.model.repo.MissionFBRepo;
 import com.jns.orienteering.model.repo.RepoService;
 import com.jns.orienteering.model.repo.TaskFBRepo;
+import com.jns.orienteering.util.MapUtils;
+
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.collections.transformation.SortedList;
 
 public class ActiveTasksSynchronizer extends BaseSynchronizer<Task, ActiveTaskList> {
 
-    private static final Logger LOGGER               = LoggerFactory.getLogger(ActiveTasksSynchronizer.class);
+    private static final Logger                              LOGGER               = LoggerFactory.getLogger(ActiveTasksSynchronizer.class);
 
-    public static final String  NAME                 = "active_tasks_synchronizer";
-    private static final String TASK_LIST_IDENTIFIER = "tasks";
+    public static final String                               NAME                 = "active_tasks_synchronizer";
+    private static final String                              TASK_LIST_IDENTIFIER = "tasks";
+
+    private static final GluonObservableList<ChangeLogEntry> NO_LOG               = null;
 
     public ActiveTasksSynchronizer(TaskFBRepo cloudRepo, LocalRepo<Task, ActiveTaskList> localRepo) {
         super(cloudRepo, localRepo, ActiveTaskList::new, TASK_LIST_IDENTIFIER);
@@ -84,7 +90,12 @@ public class ActiveTasksSynchronizer extends BaseSynchronizer<Task, ActiveTaskLi
                 retrieveCloudDataAndStoreLocally();
             }
         } else {
-            readChangeLogAndSyncLocalData();
+            if (getSyncMetaData().getActiveMission() == null) {
+                localRepo.deleteAsync();
+                setSucceeded();
+            } else {
+                syncLocalData(NO_LOG);
+            }
         }
     }
 
@@ -94,23 +105,21 @@ public class ActiveTasksSynchronizer extends BaseSynchronizer<Task, ActiveTaskLi
 
         GluonObservableList<Task> obsTasks = missionCloudRepo.retrieveTasksOrderedAsync(getSyncMetaData().getActiveMission().getId());
         AsyncResultReceiver.create(obsTasks)
-                           .defaultProgressLayer()
                            .onSuccess(this::storeLocally)
                            .onException(this::setFailed)
                            .start();
     }
 
     @Override
-    protected void readChangeLogAndSyncLocalData() {
+    protected void syncLocalData(GluonObservableList<ChangeLogEntry> log) {
         GluonObservableList<Task> obsLocalTasks = localRepo.retrieveListAsync(TASK_LIST_IDENTIFIER);
         AsyncResultReceiver.create(obsLocalTasks)
-                           .defaultProgressLayer()
                            .onSuccess(result ->
                            {
                                // async?
-                               List<Task> localTasksCopy = new ArrayList<>(result);
-
+                               Map<String, Task> localTasksMap = MapUtils.createMap(result, Task::getId);
                                boolean localDataNeedsUpdate = false;
+
                                for (Task localTask : result) {
                                    try {
                                        String taskId = localTask.getId();
@@ -119,23 +128,23 @@ public class ActiveTasksSynchronizer extends BaseSynchronizer<Task, ActiveTaskLi
                                        if (logEntry == null) {
                                            continue;
                                        }
-                                       if (logEntry.getId() != null) {
-                                           if (logEntry.getAction() == RepoAction.DELETE) {
-                                               if (removeTask(localTasksCopy, taskId)) {
-                                                   localDataNeedsUpdate = true;
+                                       // if (logEntry.getId() != null) { /
+                                       if (logEntry.getAction() == RepoAction.DELETE) {
+                                           localDataNeedsUpdate = localTasksMap.remove(taskId) != null;
+
+                                       } else {
+                                           if (localTask.getTimeStamp() < logEntry.getTimeStamp()) {
+                                               if (logEntry.getAction() == RepoAction.UPDATE) {
+                                                   localTasksMap.remove(taskId);
                                                }
-                                           } else {
-                                               if (localTask.getTimeStamp() < logEntry.getTimeStamp()) {
-                                                   if (logEntry.getAction() == RepoAction.UPDATE) {
-                                                       removeTask(localTasksCopy, taskId);
-                                                   }
-                                                   Task taskFromCloud = cloudRepo.retrieveObject(taskId);
-                                                   localTasksCopy.add(taskFromCloud);
-                                                   localDataNeedsUpdate = true;
-                                                   LOGGER.debug("task added/updated: {}, lastSynced: {}", taskFromCloud.getTaskName(), taskFromCloud
-                                                                                                                                                    .getTimeStamp());
-                                               }
+                                               Task taskFromCloud = cloudRepo.retrieveObject(taskId);
+                                               localTasksMap.put(taskId, taskFromCloud);
+                                               localDataNeedsUpdate = true;
+
+                                               LOGGER.debug("task added/updated: {}, lastSynced: {}", taskFromCloud.getTaskName(), taskFromCloud
+                                                                                                                                                .getTimeStamp());
                                            }
+                                           // }
                                        }
 
                                    } catch (IOException e) {
@@ -146,32 +155,18 @@ public class ActiveTasksSynchronizer extends BaseSynchronizer<Task, ActiveTaskLi
                                    }
                                }
                                if (localDataNeedsUpdate) {
-                                   localRepo.createOrUpdateListAsync(new ActiveTaskList(localTasksCopy, getSyncMetaData().getCurrentTimeStamp()));
+                                   ObservableList<Task> updatedTasks = FXCollections.observableArrayList(localTasksMap.values());
+                                   ObservableList<Task> updatedTasksSorted = new SortedList<>(updatedTasks, Task.getOrderNumberComparator());
+
+                                   MissionCache.INSTANCE.setActiveMissionTasks(updatedTasksSorted, getSyncMetaData().getActiveMission().getId());
+
+                                   localRepo.createOrUpdateListAsync(new ActiveTaskList(updatedTasksSorted, getSyncMetaData().getCurrentTimeStamp()));
                                }
+
                                setSucceeded();
                            })
                            .onException(this::setFailed)
                            .start();
-    }
-
-    private boolean removeTask(List<Task> localTasksCopy, String taskId) {
-        Iterator<Task> it = localTasksCopy.iterator();
-        boolean removed = false;
-
-        while (it.hasNext()) {
-            Task task = it.next();
-            if (task.getId() == taskId) {
-                it.remove();
-                LOGGER.debug("removed activeTask: {}, lastSynced: {}", task.getTaskName(), task.getTimeStamp());
-                removed = true;
-            }
-        }
-        return removed;
-    }
-
-    @Override
-    protected void syncLocalData(GluonObservableList<ChangeLogEntry> log) {
-        // no op
     }
 
 }

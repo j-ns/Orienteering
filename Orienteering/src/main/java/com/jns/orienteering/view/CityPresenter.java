@@ -59,7 +59,7 @@ public class CityPresenter extends BasePresenter {
     private BaseService                    service;
     private CityFBRepo                     cloudRepo;
     private LocalRepo<City, LocalCityList> localRepo;
-    private CityCache                      localCityCache;
+    private CityCache                      cityCache;
     private MultiValidator<String>         cityNameValidator;
 
     private City                           city;
@@ -71,7 +71,7 @@ public class CityPresenter extends BasePresenter {
 
         cloudRepo = service.getRepoService().getCloudRepo(City.class);
         localRepo = service.getRepoService().getLocalRepo(City.class);
-        localCityCache = CityCache.INSTANCE;
+        cityCache = CityCache.INSTANCE;
     }
 
     @Override
@@ -158,11 +158,11 @@ public class CityPresenter extends BasePresenter {
                            .onSuccess(result ->
                            {
                                if (isEditorModus()) {
-                                   localCityCache.remove(city);
+                                   cityCache.remove(city);
                                }
-                               localCityCache.put(result.get());
+                               cityCache.put(result.get());
 
-                               localRepo.createOrUpdateListAsync(new LocalCityList(localCityCache.getPublicCities()));
+                               localRepo.createOrUpdateListAsync(new LocalCityList(cityCache.getPublicCities()));
                            })
                            .setInitializedOnSuccess(obsSuccessful)
                            .propagateException(obsSuccessful)
@@ -205,8 +205,8 @@ public class CityPresenter extends BasePresenter {
                            .defaultProgressLayer()
                            .onSuccess(result ->
                            {
-                               localCityCache.remove(city);
-                               localRepo.createOrUpdateListAsync(new LocalCityList(localCityCache.getPublicCities()));
+                               cityCache.remove(city);
+                               localRepo.createOrUpdateListAsync(new LocalCityList(cityCache.getPublicCities()));
                                showPreviousView();
                            })
                            .start();

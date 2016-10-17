@@ -47,8 +47,17 @@ import com.jns.orienteering.model.persisted.Synchronizable;
 
 public class ChangeLogRepo extends FireBaseRepo<ChangeLogEntry> {
 
-    public ChangeLogRepo() {
+    private static ChangeLogRepo instance;
+
+    private ChangeLogRepo() {
         super(ChangeLogEntry.class, BaseUrls.CHANGE_LOG);
+    }
+
+    public static ChangeLogRepo getInstance() {
+        if (instance == null) {
+            instance = new ChangeLogRepo();
+        }
+        return instance;
     }
 
     public void writeImageLogAsync(ChangeLogEntry entry) {

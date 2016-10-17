@@ -53,15 +53,15 @@ import javafx.collections.ObservableList;
 
 /**
  * @param <T>
- *            type of the synchronizable data
+ *            the type of the synchronizable object
  * @param <L>
- *            type of the locally stored data
+ *            the type of the locally stored object
  */
 public abstract class BaseSynchronizer<T extends Synchronizable, L> {
 
-    private static final Logger            LOGGER    = LoggerFactory.getLogger(BaseSynchronizer.class);
+    private static final Logger            LOGGER          = LoggerFactory.getLogger(BaseSynchronizer.class);
 
-    private static ChangeLogRepo           changeLogRepo   = new ChangeLogRepo();
+    private static final ChangeLogRepo     CHANGE_LOG_REPO = ChangeLogRepo.getInstance();
 
     protected FireBaseRepo<T>              cloudRepo;
     protected LocalRepo<T, L>              localRepo;
@@ -70,10 +70,10 @@ public abstract class BaseSynchronizer<T extends Synchronizable, L> {
     protected BiFunction<List<T>, Long, L> cloudToLocalMapper;
 
     private SyncMetaData                   syncMetaData;
-    private ObjectProperty<ConnectState>   syncState = new SimpleObjectProperty<>(ConnectState.READY);
-    private Consumer<ObservableList<T>>    onSynced  = e ->
-                                                     {
-                                                     };
+    private ObjectProperty<ConnectState>   syncState       = new SimpleObjectProperty<>(ConnectState.READY);
+    private Consumer<ObservableList<T>>    onSynced        = e ->
+                                                           {
+                                                           };
 
     public BaseSynchronizer(String listIdentifier) {
         this.listIdentifier = listIdentifier;
@@ -129,7 +129,6 @@ public abstract class BaseSynchronizer<T extends Synchronizable, L> {
 
     protected void retrieveCloudDataAndStoreLocally() {
         AsyncResultReceiver.create(cloudRepo.retrieveListAsync())
-                           .defaultProgressLayer()
                            .onSuccess(this::storeLocally)
                            .onException(this::setFailed)
                            .start();
@@ -140,7 +139,6 @@ public abstract class BaseSynchronizer<T extends Synchronizable, L> {
 
         GluonObservableObject<L> obsLocalData = localRepo.createOrUpdateListAsync(localData);
         AsyncResultReceiver.create(obsLocalData)
-                           .defaultProgressLayer()
                            .onSuccess(result ->
                            {
                                onSynced.accept(cloudData);
@@ -157,7 +155,6 @@ public abstract class BaseSynchronizer<T extends Synchronizable, L> {
 
     protected void readChangeLogAndSyncLocalData() {
         AsyncResultReceiver.create(retrieveChangeLog(listIdentifier))
-                           .defaultProgressLayer()
                            .onSuccess(this::syncLocalData)
                            .onException(ex ->
                            {
@@ -168,19 +165,19 @@ public abstract class BaseSynchronizer<T extends Synchronizable, L> {
     }
 
     protected GluonObservableList<ChangeLogEntry> retrieveChangeLog(String listIdentifier) {
-        return retrieveChangeLog(syncMetaData.getLastSynced(), listIdentifier);
+        return retrieveChangeLogAsync(syncMetaData.getLastSynced(), listIdentifier);
     }
 
-    protected GluonObservableList<ChangeLogEntry> retrieveChangeLog(long startAtTimeStamp, String listIdentifier) {
-        return changeLogRepo.readListAsync(startAtTimeStamp, listIdentifier);
+    protected GluonObservableList<ChangeLogEntry> retrieveChangeLogAsync(long startAtTimeStamp, String listIdentifier) {
+        return CHANGE_LOG_REPO.readListAsync(startAtTimeStamp, listIdentifier);
     }
 
     protected ChangeLogEntry retrieveChangeLogEntry(String listIdentifier, String id) throws IOException {
-        return changeLogRepo.retrieveObject(listIdentifier, id);
+        return CHANGE_LOG_REPO.retrieveObject(listIdentifier, id);
     }
 
     protected GluonObservableObject<ChangeLogEntry> retrieveChangeLogEntryAsync(String listIdentifier, String id) {
-        return changeLogRepo.retrieveObjectAsync(listIdentifier, id);
+        return CHANGE_LOG_REPO.retrieveObjectAsync(listIdentifier, id);
     }
 
     protected abstract void syncLocalData(GluonObservableList<ChangeLogEntry> log);

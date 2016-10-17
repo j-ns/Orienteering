@@ -36,7 +36,7 @@ public class ActiveTaskList extends LocalList<Task> {
 
     public ActiveTaskList(List<Task> tasks, long timeStamp) {
         this(tasks);
-        setLastSynced(timeStamp);
+//        setLastSynced(timeStamp);
     }
 
     public ActiveTaskList(List<Task> tasks) {

@@ -76,6 +76,7 @@ public class ActiveMissionSynchronizer extends BaseSynchronizer<User, User> {
     @Override
     public void syncNow(SyncMetaData syncMetaData) {
         setRunning();
+        setSyncMetaData(syncMetaData);
 
         User user = service.getUser();
         if (user == null) {
@@ -90,14 +91,12 @@ public class ActiveMissionSynchronizer extends BaseSynchronizer<User, User> {
             return;
         }
 
-        setSyncMetaData(syncMetaData);
-        syncActiveMission(activeMission.getId(), user.getId());
+        syncActiveMission(activeMission.getId());
     }
 
-    private void syncActiveMission(String activeMissionId, String userId) {
+    private void syncActiveMission(String activeMissionId) {
         GluonObservableObject<ChangeLogEntry> obsMissionLogEntry = retrieveChangeLogEntryAsync(MISSIONS_LIST_IDENTIFIER, activeMissionId);
         AsyncResultReceiver.create(obsMissionLogEntry)
-                           .defaultProgressLayer()
                            .onSuccess(result ->
                            {
                                ChangeLogEntry logEntry = result.get();
@@ -122,18 +121,20 @@ public class ActiveMissionSynchronizer extends BaseSynchronizer<User, User> {
                                                           .onSuccess(resultActiveMission ->
                                                           {
                                                               Mission _activeMission = resultActiveMission.get();
+                                                              String userId = getSyncMetaData().getUserId();
                                                               if (_activeMission.getAccessType() == AccessType.PRIVATE && !_activeMission
                                                                                                                                          .getOwnerId()
                                                                                                                                          .equals(userId)) {
                                                                   service.setActiveMission(null);
+                                                                  setSucceeded();
                                                               } else {
                                                                   if (!service.getActiveMission().equals(resultActiveMission.get())) {
                                                                       service.setActiveMission(resultActiveMission.get());
+                                                                      setSucceeded();
                                                                   } else {
                                                                       activeTasksSynchronizer.syncNow(getSyncMetaData());
                                                                   }
                                                               }
-                                                              setSucceeded();
                                                           })
                                                           .onException(this::setFailed)
                                                           .start();

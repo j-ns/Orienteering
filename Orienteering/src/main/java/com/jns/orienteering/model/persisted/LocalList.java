@@ -55,10 +55,10 @@ public abstract class LocalList<E extends Synchronizable> {
         items.add(item);
     }
 
-    public void setLastSynced(long epochSeconds) {
-        for (E candidate : items) {
-            candidate.setTimeStamp(epochSeconds);
-        }
-    }
+    // public void setLastSynced(long epochSeconds) {
+    // for (E candidate : items) {
+    // candidate.setTimeStamp(epochSeconds);
+    // }
+    // }
 
 }

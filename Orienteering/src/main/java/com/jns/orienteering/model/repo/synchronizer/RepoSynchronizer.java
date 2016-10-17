@@ -92,12 +92,17 @@ public class RepoSynchronizer {
         synchronizers.put(synchronizer.getName(), synchronizer);
     }
 
-    // todo: limit sync to once a day
     public void syncNow(SyncMetaData syncMetaData) {
         this.syncMetaData = syncMetaData;
-        setTimeStamps(syncMetaData);
+        syncMetaData.setLastSynced(getLastSyncedTimeStamp());
 
         LOGGER.debug("lastSyncTimeStamp: {}", syncMetaData.getLastSynced());
+
+        if (syncMetaData.isSyncedToday()) {
+            LOGGER.debug("skip sync -> already synced today");
+            syncState.set(ConnectState.SUCCEEDED);
+            return;
+        }
 
         pendingSynchronizers.set(synchronizers.size());
         for (BaseSynchronizer<?, ?> synchronizer : synchronizers.values()) {
@@ -144,11 +149,6 @@ public class RepoSynchronizer {
         ChangeListener<ConnectState> listener = syncStateListeners.remove(synchronizerName);
         synchronizer.syncStateProperty().removeListener(listener);
         LOGGER.debug("removed stateListener for synchronizer: {}", synchronizerName);
-    }
-
-    private void setTimeStamps(SyncMetaData syncMetaData) {
-        syncMetaData.setLastSynced(getLastSyncedTimeStamp());
-        syncMetaData.setCurrentTimeStamp();
     }
 
     private long getLastSyncedTimeStamp() {

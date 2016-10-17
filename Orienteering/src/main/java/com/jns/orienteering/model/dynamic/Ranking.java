@@ -38,8 +38,8 @@ public class Ranking implements Comparable<Ranking> {
     private int         timeDifference;
     private int         place;
 
-    public Ranking(MissionStat missionStats) {
-        missionStat = missionStats;
+    public Ranking(MissionStat missionStat) {
+        this.missionStat = missionStat;
     }
 
     public void setReferenceDuration() {
@@ -58,10 +58,6 @@ public class Ranking implements Comparable<Ranking> {
         return "+" +  Long.toString(timeDifference);
     }
 
-    public MissionStat getMissionStat() {
-        return missionStat;
-    }
-
     public int getPlace() {
         return place;
     }
@@ -72,6 +68,10 @@ public class Ranking implements Comparable<Ranking> {
 
     public void setPlace(int place) {
         this.place = place;
+    }
+
+    public MissionStat getMissionStat() {
+        return missionStat;
     }
 
     @Override

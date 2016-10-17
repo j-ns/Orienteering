@@ -50,11 +50,11 @@ public class CitySynchronizer extends BaseSynchronizer<City, LocalCityList> {
     public static final String  NAME                 = "city_synchronizer";
     private static final String CITY_LIST_IDENTIFIER = "cities";
 
-    private CityCache           localCityCache;
+    private CityCache           cityCache;
 
     public CitySynchronizer(CityFBRepo cloudRepo, LocalRepo<City, LocalCityList> localRepo) {
         super(cloudRepo, localRepo, LocalCityList::new, CITY_LIST_IDENTIFIER);
-        localCityCache = CityCache.INSTANCE;
+        cityCache = CityCache.INSTANCE;
     }
 
     @Override
@@ -77,50 +77,46 @@ public class CitySynchronizer extends BaseSynchronizer<City, LocalCityList> {
 
     @Override
     protected void storeLocally(GluonObservableList<City> cloudData) {
-        localCityCache.createMapping(cloudData, getSyncMetaData().getUserId());
-        super.storeLocally(localCityCache.getPublicCities());
+        cityCache.createMapping(cloudData, getSyncMetaData().getUserId());
+        super.storeLocally(cityCache.getPublicCities());
     }
 
     @Override
     protected void syncLocalData(GluonObservableList<ChangeLogEntry> log) {
         GluonObservableList<City> obsLocalData = localRepo.retrieveListAsync(listIdentifier);
         AsyncResultReceiver.create(obsLocalData)
-                           .defaultProgressLayer()
                            .onSuccess(resultLocal ->
                            {
-                               localCityCache.createMapping(resultLocal, getSyncMetaData().getUserId());
+                               cityCache.createMapping(resultLocal, getSyncMetaData().getUserId());
+                               boolean localDataNeedsUpdate = false;
 
-                               if (log != null) {
-                                   boolean localDataNeedsUpdate = false;
+                               for (ChangeLogEntry logEntry : log) {
+                                   LOGGER.debug("logEntry {}: {}", listIdentifier, logEntry);
 
-                                   for (ChangeLogEntry logEntry : log) {
-                                       LOGGER.debug("logEntry {}: {}", listIdentifier, logEntry);
+                                   String cityId = logEntry.getTargetId();
 
-                                       String cityId = logEntry.getTargetId();
+                                   if (logEntry.getAction() == RepoAction.DELETE) {
+                                       localDataNeedsUpdate = cityCache.remove(cityId) != null;
 
-                                       if (logEntry.getAction() == RepoAction.DELETE) {
-                                           localDataNeedsUpdate = localCityCache.remove(cityId) != null;
-                                           LOGGER.debug("removed locally {}: {}", listIdentifier, localCityCache.get(cityId));
+                                   } else {
+                                       if (!cityCache.contains(cityId) || cityCache.get(cityId)
+                                                                                   .getTimeStamp() < logEntry.getTimeStamp()) {
+                                           try {
+                                               City cityFromCloud = cloudRepo.retrieveObject(cityId);
+                                               cityCache.put(cityFromCloud);
+                                               localDataNeedsUpdate = true;
 
-                                       } else {
-                                           if (!localCityCache.contains(cityId) || localCityCache.get(cityId)
-                                                                                                 .getTimeStamp() < logEntry.getTimeStamp()) {
-                                               try {
-                                                   City cityFromCloud = cloudRepo.retrieveObject(cityId);
-                                                   localCityCache.put(cityFromCloud);
-                                                   localDataNeedsUpdate = true;
+                                               LOGGER.debug("added/udpated locally {}: {}", listIdentifier, cityFromCloud);
 
-                                                   LOGGER.debug("added/udpated locally {}: {}", listIdentifier, cityFromCloud);
-
-                                               } catch (IOException e) {
-                                                   // consume
-                                               }
+                                           } catch (IOException e) {
+                                               // consume
                                            }
                                        }
                                    }
-                                   if (localDataNeedsUpdate) {
-                                       localRepo.createOrUpdateListAsync(new LocalCityList(localCityCache.getPublicCities()));
-                                   }
+                               }
+
+                               if (localDataNeedsUpdate) {
+                                   localRepo.createOrUpdateListAsync(new LocalCityList(cityCache.getPublicCities()));
                                }
                                setSucceeded();
                            })

@@ -79,7 +79,7 @@ public class FireBaseRepo<T extends Model> {
                                                                  return thread;
                                                              });
 
-    private static final ChangeLogRepo       CHANGE_LOG_REPO = new ChangeLogRepo();
+    private static final ChangeLogRepo       CHANGE_LOG_REPO = ChangeLogRepo.getInstance();
 
     private RestClient                       restClient;
     protected String                         baseUrl;
@@ -128,10 +128,11 @@ public class FireBaseRepo<T extends Model> {
     }
 
     public boolean checkIfUrlExists(String... urlParts) {
+        String url = UrlBuilder.buildUrl(urlParts);
         String string = null;
 
         try {
-            RestClient client = RestClientFactory.queryClient(UrlBuilder.buildUrl(urlParts));
+            RestClient client = RestClientFactory.queryClient(url);
             RestDataSource createRestDataSource = client.createRestDataSource();
             InputStream input = createRestDataSource.getInputStream();
 
@@ -145,7 +146,7 @@ public class FireBaseRepo<T extends Model> {
                 LOGGER.debug("payload: {}", string);
             }
         } catch (IOException ex) {
-            LOGGER.error("Failed to checkIfExists: '{}'", buildPath(urlParts), ex);
+            LOGGER.error("Failed to checkIfExists: '{}'", url, ex);
         }
         return string != null && !"null".equals(string);
     }

@@ -40,17 +40,13 @@ public class SyncMetaData {
 
     private long    lastSynced;
     private long    currentTimeStamp;
-    private String  listIdentifier;
-    private String  userId;
     private User    user;
     private Mission activeMission;
 
-    public SyncMetaData() {
-    }
-
-    public SyncMetaData(long lastSynced, long currentTimeStamp) {
-        this.lastSynced = lastSynced;
-        this.currentTimeStamp = currentTimeStamp;
+    public SyncMetaData(User user, Mission activeMission) {
+        this.user = user;
+        this.activeMission = activeMission;
+        currentTimeStamp = createTimeStamp();
     }
 
     public long getLastSynced() {
@@ -65,16 +61,8 @@ public class SyncMetaData {
         return currentTimeStamp;
     }
 
-    public void setCurrentTimeStamp(long currentTimeStamp) {
-        this.currentTimeStamp = currentTimeStamp;
-    }
-
-    public void setCurrentTimeStamp() {
-        currentTimeStamp = createTimeStamp();
-    }
-
     public boolean isLastSyncedBefore(LocalDate date) {
-        LocalDate lastSyncedDate = Instant.ofEpochSecond(lastSynced).atZone(ZoneId.systemDefault()).toLocalDate();
+        LocalDate lastSyncedDate = getLastSyncedDate();
 
         int result = lastSyncedDate.getYear() - date.getYear();
         if (result == 0) {
@@ -84,6 +72,17 @@ public class SyncMetaData {
             }
         }
         return result < 0;
+    }
+
+    private LocalDate getLastSyncedDate() {
+        LocalDate lastSyncedDate = Instant.ofEpochSecond(lastSynced).atZone(ZoneId.systemDefault()).toLocalDate();
+        return lastSyncedDate;
+    }
+
+    public boolean isSyncedToday() {
+        LocalDate now = LocalDate.now(ZoneId.systemDefault());
+        LocalDate lastSynced = getLastSyncedDate();
+        return now.equals(lastSynced);
     }
 
     /**
@@ -98,46 +97,17 @@ public class SyncMetaData {
         return secs;
     }
 
-    public String getListIdentifier() {
-        return listIdentifier;
-    }
-
-    public void setListIdentifier(String listIdentifier) {
-        this.listIdentifier = listIdentifier;
-    }
-
     public User getUser() {
         return user;
     }
 
-    public void setUser(User user) {
-        this.user = user;
-    }
-
     public String getUserId() {
-        return userId;
-    }
-
-    public void setUserId(String userId) {
-        this.userId = userId;
-    }
-
-    public SyncMetaData userId(String userId) {
-        this.userId = userId;
-        return this;
+        return user == null ? null : user.getId();
     }
 
     public Mission getActiveMission() {
         return activeMission;
     }
 
-    public void setActiveMission(Mission activeMission) {
-        this.activeMission = activeMission;
-    }
-
-    public SyncMetaData activeMission(Mission activeMission) {
-        this.activeMission = activeMission;
-        return this;
-    }
 
 }

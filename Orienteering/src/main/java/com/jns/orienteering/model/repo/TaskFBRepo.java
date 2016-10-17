@@ -55,8 +55,8 @@ public class TaskFBRepo extends FireBaseRepo<Task> {
     private MultiValueLookupRepo<TasksByMissionLookup> tasksLookupRepo          =
             new MultiValueLookupRepo<>(TasksByMissionLookup.class, TASKS_BY_MISSION);
 
-    private MissionsByTaskRepo                         missionsByTaskLookupRepo = RepoService.INSTANCE.getCloudRepo(MissionsByTaskLookup.class);
-    private MissionStatFBRepo                          missionStatCloudRepo     = RepoService.INSTANCE.getCloudRepo(MissionStat.class);
+    private MissionsByTaskRepo                         missionsByTaskRepo = RepoService.INSTANCE.getCloudRepo(MissionsByTaskLookup.class);
+    private MissionStatFBRepo                          missionStatRepo     = RepoService.INSTANCE.getCloudRepo(MissionStat.class);
 
     public TaskFBRepo() {
         super(Task.class, TASKS);
@@ -84,11 +84,12 @@ public class TaskFBRepo extends FireBaseRepo<Task> {
         {
             task.setTimeStamp(createTimeStamp());
             Task result = addToList(task);
+
             if (result != null) {
+                writeLogEntry(result, RepoAction.ADD);
+
                 namelookupRepo.createOrUpdate(result.createNameLookup());
                 cityLookupRepo.createOrUpdate(result.createCityLookup());
-
-                writeLogEntry(result, RepoAction.ADD);
             }
         });
     }
@@ -98,6 +99,7 @@ public class TaskFBRepo extends FireBaseRepo<Task> {
         {
             task.setTimeStamp(createTimeStamp());
             createOrUpdate(task, task.getId());
+            writeLogEntry(task, RepoAction.UPDATE);
 
             if (task.nameChanged()) {
                 namelookupRepo.recreateLookup(task.createNameLookup(), task.getPreviousTask().getTaskName());
@@ -105,6 +107,7 @@ public class TaskFBRepo extends FireBaseRepo<Task> {
             if (task.cityChanged() || task.accessTypeChanged()) {
                 cityLookupRepo.recreateCityLookup(new CityTaskLookup(task));
             }
+            // todo:
             // if (task.locationChanged) {
             // MissionsByTaskLookup missionsLookup = missionsLookupRepo.retrieveObject(task.getId());
             // if (missionsLookup != null) {
@@ -115,7 +118,6 @@ public class TaskFBRepo extends FireBaseRepo<Task> {
             // }
             // }
             // }
-            writeLogEntry(task, RepoAction.UPDATE);
 
             if (previousImageId != null) {
                 getChangeLogRepo().writeImageLogAsync(new ImageLogEntry(previousImageId, task.getTimeStamp()));
@@ -128,11 +130,12 @@ public class TaskFBRepo extends FireBaseRepo<Task> {
         {
             task.setTimeStamp(createTimeStamp());
             delete(task.getId());
+            writeLogEntry(task, RepoAction.DELETE);
 
             namelookupRepo.deleteLookup(task.createNameLookup());
             cityLookupRepo.deleteLookup(task.createCityLookup());
 
-            MissionsByTaskLookup missionsLookup = missionsByTaskLookupRepo.retrieveObject(task.getId());
+            MissionsByTaskLookup missionsLookup = missionsByTaskRepo.retrieveObject(task.getId());
             if (missionsLookup != null) {
                 Iterator<String> missionIds = missionsLookup.getValues().keySet().iterator();
                 while (missionIds.hasNext()) {
@@ -145,12 +148,11 @@ public class TaskFBRepo extends FireBaseRepo<Task> {
                         tasksLookupRepo.createOrUpdateLookup(tasksLookup);
                     }
 
-                    missionStatCloudRepo.deleteAsync(missionId);
+                    missionStatRepo.deleteAsync(missionId);
                 }
-                missionsByTaskLookupRepo.delete(task.getId());
+                missionsByTaskRepo.delete(task.getId());
             }
 
-            writeLogEntry(task, RepoAction.DELETE);
             if (task.getImageId() != null) {
                 getChangeLogRepo().writeImageLogAsync(new ImageLogEntry(task));
             }

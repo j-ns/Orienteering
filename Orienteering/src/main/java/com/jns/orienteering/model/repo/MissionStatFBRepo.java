@@ -80,7 +80,7 @@ public class MissionStatFBRepo extends FireBaseRepo<MissionStat> {
         }
     }
 
-    public GluonObservableList<StatByUser> getStatsByUser(String userId) {
+    public GluonObservableList<StatByUser> getStatsByUserAsync(String userId) {
         boolean statsByUserExists = checkIfUrlExists(userId);
         if (statsByUserExists) {
             return statByUserRepo.retrieveListAsync(userId);
@@ -88,9 +88,9 @@ public class MissionStatFBRepo extends FireBaseRepo<MissionStat> {
         return GluonObservables.newListInitialized();
     }
 
-    public GluonObservableList<MissionStat> getMissionStats(String missionId) { // todo: check urls
+    public GluonObservableList<MissionStat> getMissionStatsAsync(String missionId) { // todo: check urls
         String url = UrlBuilder.buildUrl(STATS_BY_MISSION, missionId);
-        RestClient client = RestClientFactory.create(GET, url, QueryParameter.orderBy("duration"), new QueryParameter("limitToFirst", "5"));
+        RestClient client = RestClientFactory.create(GET, url, QueryParameter.orderBy("duration"), QueryParameter.limitToFirst("5"));
 
         return DataProvider.retrieveList(new RestObjectsReader<>(client, RestClientFactory.baseClient(), StatByMission.class,
                                                                  url, MissionStat.class, MISSION_STATS));
@@ -101,11 +101,12 @@ public class MissionStatFBRepo extends FireBaseRepo<MissionStat> {
             return;
         }
 
-        GluonObservableList<MissionStat> obsMissionStats = DataProvider.retrieveList(new RestObjectsReader<>(createRestClient(), StatByMission.class,
-                                                                                                             STATS_BY_MISSION + "/" + missionId,
+        String url = UrlBuilder.buildUrl(STATS_BY_MISSION, missionId);
+        GluonObservableList<MissionStat> obsMissionStats = DataProvider.retrieveList(new RestObjectsReader<>(RestClientFactory.baseClient(),
+                                                                                                             StatByMission.class,
+                                                                                                             url,
                                                                                                              MissionStat.class,
                                                                                                              MISSION_STATS));
-
         AsyncResultReceiver.create(obsMissionStats)
                            .onSuccess(result ->
                            {

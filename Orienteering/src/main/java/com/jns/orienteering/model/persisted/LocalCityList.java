@@ -36,7 +36,7 @@ public class LocalCityList extends LocalList<City> {
 
     public LocalCityList(List<City> cities, long timeStamp) {
         this(cities);
-        setLastSynced(timeStamp);
+//        setLastSynced(timeStamp);
     }
 
     public LocalCityList(List<City> cities) {

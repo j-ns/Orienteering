@@ -60,7 +60,7 @@ public class MissionFBRepo extends FireBaseRepo<Mission> {
             new MultiValueLookupRepo<>(TasksByMissionLookup.class, TASKS_BY_MISSION);
 
     private MissionsByTaskRepo                              missionsByTaskRepo   = RepoService.INSTANCE.getCloudRepo(MissionsByTaskLookup.class);
-    private MissionStatFBRepo                               missionStatCloudRepo = RepoService.INSTANCE.getCloudRepo(MissionStat.class);
+    private MissionStatFBRepo                               missionStatRepo = RepoService.INSTANCE.getCloudRepo(MissionStat.class);
 
     public MissionFBRepo() {
         super(Mission.class, MISSIONS);
@@ -172,7 +172,7 @@ public class MissionFBRepo extends FireBaseRepo<Mission> {
 
                 tasksByMissionRepo.createOrUpdateLookup(mission.createTasksLookup());
                 missionsByTaskRepo.updateLookup(previousTasksByMission, mission);
-                missionStatCloudRepo.deleteAsync(mission.getId());
+                missionStatRepo.deleteAsync(mission.getId());
             }
         });
     }
@@ -188,7 +188,7 @@ public class MissionFBRepo extends FireBaseRepo<Mission> {
             cityLookupRepo.deleteLookup(mission.createCityLookup());
             tasksByMissionRepo.deleteLookup(mission.createTasksLookup());
             missionsByTaskRepo.deleteLookup(mission);
-            missionStatCloudRepo.deleteAsync(mission.getId());
+            missionStatRepo.deleteAsync(mission.getId());
         });
     }
 

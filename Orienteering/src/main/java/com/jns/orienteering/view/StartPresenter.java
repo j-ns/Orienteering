@@ -30,7 +30,6 @@ package com.jns.orienteering.view;
 
 import javax.inject.Inject;
 
-import com.gluonhq.charm.glisten.application.ViewStackPolicy;
 import com.gluonhq.charm.glisten.control.ProgressBar;
 import com.jns.orienteering.common.BaseService;
 
@@ -93,11 +92,11 @@ public class StartPresenter extends BasePresenter {
     }
 
     private void postInit() {
-        showView(ViewRegistry.HOME, ViewStackPolicy.CLEAR);
+        showHomeView();
 
         Navigation navigationDrawer = ViewRegistry.getNavigation();
         navigationDrawer.aliasProperty().bind(service.aliasProperty());
         navigationDrawer.profileImageProperty().bind(service.profileImageProperty());
-     }
+    }
 
 }

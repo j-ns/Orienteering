@@ -37,4 +37,8 @@ class QueryParameter extends Pair<String, String> {
         return new QueryParameter("endAt", Long.toString(timeStamp));
     }
 
+    static QueryParameter limitToFirst(String value) {
+        return new QueryParameter("limitToFirst", value);
+    }
+
 }

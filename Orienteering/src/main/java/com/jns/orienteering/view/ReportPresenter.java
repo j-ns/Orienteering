@@ -78,7 +78,7 @@ public class ReportPresenter extends BasePresenter {
 
     @Inject
     private BaseService                  service;
-    private MissionStatFBRepo            missionStatCloudRepo;
+    private MissionStatFBRepo            missionStatRepo;
 
     private MissionStat                  missionStat;
     private boolean                      rankingNeedsRefresh;
@@ -103,14 +103,12 @@ public class ReportPresenter extends BasePresenter {
 
         tabPane.getSelectionModel().selectedIndexProperty().addListener((obsValue, idx, idx1) ->
         {
-            if (idx1.intValue() == TAB_RANKING) {
-                if (rankingNeedsRefresh) {
-                    updateRankings();
-                }
+            if (idx1.intValue() == TAB_RANKING && rankingNeedsRefresh) {
+                updateRankings();
             }
         });
 
-        missionStatCloudRepo = service.getRepoService().getCloudRepo(MissionStat.class);
+        missionStatRepo = service.getRepoService().getCloudRepo(MissionStat.class);
     }
 
     @Override
@@ -130,7 +128,7 @@ public class ReportPresenter extends BasePresenter {
             return;
         }
 
-        GluonObservableList<StatByUser> obsStatsByUser = missionStatCloudRepo.getStatsByUser(service.getUserId());
+        GluonObservableList<StatByUser> obsStatsByUser = missionStatRepo.getStatsByUserAsync(service.getUserId());
         AsyncResultReceiver.create(obsStatsByUser)
                            .defaultProgressLayer()
                            .onSuccess(lviewMissionStats::setSortableItems)
@@ -144,7 +142,7 @@ public class ReportPresenter extends BasePresenter {
         }
         lviewRanking.setItems(FXCollections.emptyObservableList());
 
-        GluonObservableObject<MissionStat> obsMissionStat = missionStatCloudRepo.retrieveObjectAsync(stat.getLookupId());
+        GluonObservableObject<MissionStat> obsMissionStat = missionStatRepo.retrieveObjectAsync(stat.getLookupId());
         AsyncResultReceiver.create(obsMissionStat)
                            .defaultProgressLayer()
                            .onSuccess(result ->
@@ -157,7 +155,7 @@ public class ReportPresenter extends BasePresenter {
                                    rankingNeedsRefresh = true;
 
                                } else {
-                                   missionStatCloudRepo.deleteStatByUserAsync(service.getUserId(), stat.getMissionId());
+                                   missionStatRepo.deleteStatByUserAsync(service.getUserId(), stat.getMissionId());
 
                                    Dialogs.ok(localize("view.report.info.statDeletedBecauseOfMissionUpdate")).showAndWait();
 
@@ -175,34 +173,45 @@ public class ReportPresenter extends BasePresenter {
     }
 
     private void updateRankings() {
-        GluonObservableList<MissionStat> obsMissionStats = missionStatCloudRepo.getMissionStats(missionStat.getMissionId());
+        GluonObservableList<MissionStat> obsMissionStats = missionStatRepo.getMissionStatsAsync(missionStat.getMissionId());
         AsyncResultReceiver.create(obsMissionStats)
                            .defaultProgressLayer()
                            .onSuccess(result ->
                            {
-                               lviewRanking.setItems(createRanking(result));
+                               lviewRanking.setItems(new RankingList(result).get());
                                rankingNeedsRefresh = false;
                            })
                            .onException(() -> lviewRanking.setItems(FXCollections.emptyObservableList()))
                            .start();
     }
 
-    private ObservableList<Ranking> createRanking(ObservableList<MissionStat> missionStats) {
-        ObservableList<Ranking> ranking = FXCollections.observableArrayList();
-        SortedList<Ranking> rankingSorted = new SortedList<>(ranking, Ranking::compareTo);
+    private static class RankingList {
 
-        for (MissionStat missionStat : missionStats) {
-            ranking.add(new Ranking(missionStat));
+        private ObservableList<Ranking> rankings       = FXCollections.observableArrayList();
+        private SortedList<Ranking>     rankingsSorted = new SortedList<>(rankings, Ranking::compareTo);
+
+        private RankingList(ObservableList<MissionStat> missionStats) {
+            createRankings(missionStats);
         }
 
-        rankingSorted.get(0).setReferenceDuration();
+        private void createRankings(ObservableList<MissionStat> missionStats) {
+            for (MissionStat missionStat : missionStats) {
+                rankings.add(new Ranking(missionStat));
+            }
 
-        int place = 1;
-        for (Ranking candidate : rankingSorted) {
-            candidate.setPlace(place++);
-            candidate.calculateTimeDifference();
+            rankingsSorted.get(0).setReferenceDuration();
+
+            int place = 1;
+            for (Ranking candidate : rankingsSorted) {
+                candidate.setPlace(place++);
+                candidate.calculateTimeDifference();
+            }
         }
-        return rankingSorted;
+
+        private ObservableList<Ranking> get() {
+            return rankingsSorted;
+        }
+
     }
 
 }

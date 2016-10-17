@@ -169,7 +169,6 @@ public class BaseService {
         } else {
             GluonObservableList<Task> obsActiveTasks = activeTasksLocalRepo.retrieveListAsync("tasks");
             AsyncResultReceiver<GluonObservableList<Task>> activeTasksReceiver = AsyncResultReceiver.create(obsActiveTasks)
-                                                                                                    .defaultProgressLayer()
                                                                                                     .onSuccess(result ->
                                                                                                     {
                                                                                                         if (!result.isEmpty() &&
@@ -182,7 +181,6 @@ public class BaseService {
 
             GluonObservableObject<User> obsUser = userLocalRepo.retrieveObjectAsync();
             AsyncResultReceiver.create(obsUser)
-                               .defaultProgressLayer()
                                .onSuccess(result ->
                                {
                                    User _user = result.get();
@@ -191,10 +189,7 @@ public class BaseService {
                                    setDefaultCity(_user.getDefaultCity());
                                    setActiveMission(_user.getActiveMission());
 
-                                   StorableImage image = ImageHandler.retrieveImage(
-                                                                                    _user.getImageUrl(),
-                                                                                    ImageHandler.AVATAR_PLACE_HOLDER);
-
+                                   StorableImage image = ImageHandler.retrieveImage(_user.getImageUrl(), ImageHandler.AVATAR_PLACE_HOLDER);
                                    setProfileImage(image.get());
                                })
                                .exceptionMessage(localize("baseService.error.loadUser"))
@@ -209,8 +204,7 @@ public class BaseService {
         activeMission.addListener((ov, m, m1) -> onActiveMissionChanged(m1));
 
         if (internectConnectionEstablished()) {
-            SyncMetaData syncMetaData = new SyncMetaData().userId(getUserId())
-                                                          .activeMission(getActiveMission());
+            SyncMetaData syncMetaData = new SyncMetaData(getUser(), getActiveMission());
             repoSynchronizer.syncNow(syncMetaData);
         } else {
             initialized.set(true);
