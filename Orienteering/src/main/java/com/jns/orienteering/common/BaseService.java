@@ -131,11 +131,16 @@ public class BaseService {
         {
             LOGGER.debug("syncState: {}", st1);
             if (st1 == ConnectState.SUCCEEDED || st1 == ConnectState.FAILED) {
+
+                if (!cityCache.isInitialized()) {
+                    cityCache.createMappingFromLocalData(getUserId());
+                }
+
                 initialized.set(true);
             }
         });
 
-        activatorDeactivatorService = new ActivatorDeactivatorService();
+        activatorDeactivatorService = ActivatorDeactivatorService.INSTANCE;
         repoService = RepoService.INSTANCE;
 
         initRepos();
@@ -186,6 +191,7 @@ public class BaseService {
                                    User _user = result.get();
                                    setUser(_user);
                                    alias.set(_user.getAlias());
+                                   cityCache.setUserId(_user.getId());
                                    setDefaultCity(_user.getDefaultCity());
                                    setActiveMission(_user.getActiveMission());
 

@@ -80,18 +80,25 @@ public class GluonObservables {
         });
     }
 
+    public static <T> void setInitialized(GluonObservableList<T> observable, Collection<T> items, boolean initialized) {
+            Platform.runLater(() ->
+            {
+                observable.setAll(items);
+                ((SimpleBooleanProperty) observable.initializedProperty()).set(initialized);
+                ((SimpleObjectProperty<ConnectState>) observable.stateProperty()).set(ConnectState.SUCCEEDED);
+            });
+    }
+
     public static void setInitialized(GluonObservable observable) {
         setInitialized(observable, true);
     }
 
     public static void setInitialized(GluonObservable observable, boolean initialized) {
-        if (!observable.isInitialized()) {
             Platform.runLater(() ->
             {
                 ((SimpleBooleanProperty) observable.initializedProperty()).set(initialized);
                 ((SimpleObjectProperty<ConnectState>) observable.stateProperty()).set(ConnectState.SUCCEEDED);
             });
-        }
     }
 
     public static void setException(GluonObservable observable, Throwable ex) {

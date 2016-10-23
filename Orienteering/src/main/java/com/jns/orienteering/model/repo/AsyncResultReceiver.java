@@ -143,6 +143,7 @@ public class AsyncResultReceiver<T extends GluonObservable> {
 
     public void start() {
         runningInstances.increment();
+        LOGGER.debug("running instances: {}", runningInstances.get());
 
         if (observable.isInitialized()) {
             consumer.ifPresent(c -> c.accept(observable));
@@ -207,6 +208,7 @@ public class AsyncResultReceiver<T extends GluonObservable> {
         removeListeners();
         finalizer.ifPresent(f -> f.accept(observable));
         runningInstances.decrement();
+        LOGGER.debug("running instances: {}", runningInstances.get());
 
         if (!next.isPresent()) {
             if (runningInstances.get() == 0) {

@@ -45,12 +45,12 @@ import javafx.scene.layout.HBox;
 
 public class Navigation {
 
-    public static final String NAVIGATION_DRAWER = "navigation_drawer";
+    public static final String   NAVIGATION_DRAWER = "navigation_drawer";
 
     private NavigationDrawer     navigationDrawer;
     private Avatar               avatar;
     private Label                lblAlias;
-    private ObjectProperty<View> view = new SimpleObjectProperty<>();
+    private ObjectProperty<View> view              = new SimpleObjectProperty<>();
 
     public Navigation() {
         avatar = new Avatar(32);

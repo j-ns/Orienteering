@@ -33,7 +33,6 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 import com.jns.orienteering.model.common.ListUpdater;
-import com.jns.orienteering.model.persisted.AccessType;
 
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.SortedList;
@@ -84,12 +83,6 @@ public class ListViewExtended<T> extends ListView<T> implements ActivatableDeact
         if (listUpdater != null) {
             listUpdater.setItems(backing);
         }
-    }
-
-    public ListUpdater<T> getListUpdater(AccessType accessType) {
-        ListUpdater<T> _listUpdater = getListUpdater();
-        _listUpdater.setAccessType(accessType);
-        return _listUpdater;
     }
 
     public ListUpdater<T> getListUpdater() {

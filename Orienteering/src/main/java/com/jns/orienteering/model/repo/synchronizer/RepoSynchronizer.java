@@ -80,10 +80,6 @@ public class RepoSynchronizer {
         });
     }
 
-    public CountProperty pendingSynchronizersProperty() {
-        return pendingSynchronizers;
-    }
-
     public ReadOnlyObjectProperty<ConnectState> syncStateProperty() {
         return syncState;
     }

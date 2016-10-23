@@ -49,11 +49,9 @@ import javafx.util.Duration;
 public class ProgressLayer extends Layer {
 
     public static final double     DEFAULT_DELAY = 150;
-
     private static final GlassPane GLASS_PANE    = MobileApplication.getInstance().getGlassPane();
 
     private StackPane              root;
-
     private ShowHideTransition     showHideTransition;
     private double                 delay         = DEFAULT_DELAY;
     private boolean                fadeLayer;
@@ -121,7 +119,8 @@ public class ProgressLayer extends Layer {
         }
 
         double size = root.prefWidth(-1);
-        resizeRelocate(GLASS_PANE.getWidth() / 2, GLASS_PANE.getHeight() / 2, size, size);
+        root.resize(size, size);
+        resizeRelocate((GLASS_PANE.getWidth() -size) / 2, (GLASS_PANE.getHeight() -size) / 2, size, size);
     }
 
     public abstract static class ShowHideTransition {

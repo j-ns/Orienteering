@@ -42,13 +42,21 @@ import com.jns.orienteering.view.ViewRegistry;
  * Service to activate {@link ActivatableDeactivatable} targets, when the corresponding view is shown.
  * When the currently showing view changes to {@link ViewRegistry#HOME}, all active targets will be deactivated.
  */
-public class ActivatorDeactivatorService {
+public enum ActivatorDeactivatorService {
+
+    INSTANCE;
 
     private MultiValuedMap<String, ActivatorDeactivatorConsumer> activatorDeactivatorConsumers = new MultiValuedMap<>();
     private Set<String>                                          activeViewNames               = new HashSet<>();
 
-    public ActivatorDeactivatorService() {
+    private ActivatorDeactivatorService() {
         MobileApplication.getInstance().viewProperty().addListener((obsValue, v, v1) -> onViewChanged(v1.getName()));
+    }
+
+    public void add(String viewName, ActivatableDeactivatable... target) {
+        for (ActivatableDeactivatable candidate : target) {
+            add(viewName, candidate);
+        }
     }
 
     public void add(String viewName, ActivatableDeactivatable target) {

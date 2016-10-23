@@ -222,7 +222,7 @@ public class AccountPresenter extends BasePresenter {
 
                                service.setUser(result.get());
                                showPreviousView();
-                               platformService().getInfoService().showToast(localize("view.account.info.userUpdated"));
+                               showToast(localize("view.account.info.userUpdated"));
                            })
                            .exceptionMessage(localize("view.account.error.updateUser"))
                            .start();
@@ -249,7 +249,7 @@ public class AccountPresenter extends BasePresenter {
 
                                service.setUser(result.get());
                                showView(ViewRegistry.HOME);
-                               platformService().getInfoService().showToast(localize("view.account.info.userSignedUp"));
+                               showToast(localize("view.account.info.userSignedUp"));
                            })
                            .exceptionMessage(localize("view.account.error.signupUser"))
                            .start();

@@ -81,7 +81,7 @@ public class ChangeLogRepo extends FireBaseRepo<ChangeLogEntry> {
     // todo:delete log entries of the previous month but one. If lastSync was at that time, reload all data
     // limit the max number of delete operations for a single user, to distribute the changeLog cleanup operations amongst all
     // users
-    public void removeLogEntriesUntil(long timeStamp) {
+    public void removeLogEntriesBefore(long timeStamp) {
         removeLogEntries(CITIES, getLogEntriesBefore(CITIES, timeStamp));
         removeLogEntries(TASKS, getLogEntriesBefore(TASKS, timeStamp));
         removeLogEntries(MISSIONS, getLogEntriesBefore(MISSIONS, timeStamp));

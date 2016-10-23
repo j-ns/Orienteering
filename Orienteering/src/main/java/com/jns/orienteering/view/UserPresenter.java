@@ -169,7 +169,7 @@ public class UserPresenter extends BasePresenter {
                                                   {
                                                       service.setUser(resultUser.get());
                                                       showHomeView();
-                                                      platformService().getInfoService().showToast(localize("view.user.info.userLoggedIn"));
+                                                      showToast(localize("view.user.info.userLoggedIn"));
                                                   })
                                                   .start();
                            }).start();

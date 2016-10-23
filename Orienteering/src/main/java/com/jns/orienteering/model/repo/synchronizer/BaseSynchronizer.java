@@ -154,7 +154,7 @@ public abstract class BaseSynchronizer<T extends Synchronizable, L> {
     }
 
     protected void readChangeLogAndSyncLocalData() {
-        AsyncResultReceiver.create(retrieveChangeLog(listIdentifier))
+        AsyncResultReceiver.create(retrieveChangeLogAsync(syncMetaData.getLastSynced(), listIdentifier))
                            .onSuccess(this::syncLocalData)
                            .onException(ex ->
                            {
@@ -162,10 +162,6 @@ public abstract class BaseSynchronizer<T extends Synchronizable, L> {
                                LOGGER.error("failed to sync local data: {}", listIdentifier, ex);
                            })
                            .start();
-    }
-
-    protected GluonObservableList<ChangeLogEntry> retrieveChangeLog(String listIdentifier) {
-        return retrieveChangeLogAsync(syncMetaData.getLastSynced(), listIdentifier);
     }
 
     protected GluonObservableList<ChangeLogEntry> retrieveChangeLogAsync(long startAtTimeStamp, String listIdentifier) {

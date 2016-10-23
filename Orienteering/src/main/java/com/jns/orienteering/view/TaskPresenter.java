@@ -178,14 +178,11 @@ public class TaskPresenter extends BasePresenter {
         ActivatorDeactivatorService activatorDeactivatorService = service.getActivatorDeactivatorService();
         String taskViewName = ViewRegistry.TASK.getViewName();
 
-        activatorDeactivatorService.add(taskViewName, scrollListener);
-        activatorDeactivatorService.add(taskViewName, scrollPositionBuffer);
-        activatorDeactivatorService.add(taskViewName, platformService().getPositionService());
+        activatorDeactivatorService.add(taskViewName, scrollListener, scrollPositionBuffer, platformService().getPositionService());
 
         activatorDeactivatorService.addActivator(taskViewName, () -> platformService().getNodePositionAdjuster(scrollPane, view
                                                                                                                                .getScene()
                                                                                                                                .focusOwnerProperty()));
-        activatorDeactivatorService.addDeactivator(taskViewName, platformService()::removeNodePositionAdjuster);
     }
 
     @Override

@@ -221,4 +221,8 @@ public abstract class BasePresenter {
         return PLATFORM_SERVICE;
     }
 
+    protected void showToast(String message) {
+        PLATFORM_SERVICE.getInfoService().showToast(message);
+    }
+
 }

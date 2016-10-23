@@ -152,8 +152,7 @@ public class CitiesPresenter extends BasePresenter {
             return;
         }
         service.setDefaultCity(city);
-        Platform.runLater(() -> platformService().getInfoService()
-                                                 .showToast(localize("view.cities.defaultCitySetTo") + city.getCityName()));
+        Platform.runLater(() -> showToast(localize("view.cities.defaultCitySetTo") + city.getCityName()));
     }
 
     private void onDelete(City city) {
