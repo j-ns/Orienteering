@@ -27,13 +27,13 @@
  */
 package com.jns.orienteering.model.repo.synchronizer;
 
+import static com.jns.orienteering.control.Dialogs.showInfo;
 import static com.jns.orienteering.locale.Localization.localize;
 
 import com.gluonhq.connect.ConnectState;
-import com.gluonhq.connect.GluonObservableList;
+import com.gluonhq.connect.GluonObservable;
 import com.gluonhq.connect.GluonObservableObject;
 import com.jns.orienteering.common.BaseService;
-import com.jns.orienteering.control.Dialogs;
 import com.jns.orienteering.model.persisted.AccessType;
 import com.jns.orienteering.model.persisted.ChangeLogEntry;
 import com.jns.orienteering.model.persisted.Mission;
@@ -41,8 +41,11 @@ import com.jns.orienteering.model.persisted.Task;
 import com.jns.orienteering.model.persisted.User;
 import com.jns.orienteering.model.repo.AsyncResultReceiver;
 import com.jns.orienteering.model.repo.FireBaseRepo;
+import com.jns.orienteering.model.repo.RepoService;
 
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 
 public class ActiveMissionSynchronizer extends BaseSynchronizer<User, User> {
 
@@ -56,16 +59,6 @@ public class ActiveMissionSynchronizer extends BaseSynchronizer<User, User> {
     public ActiveMissionSynchronizer(BaseService service) {
         super(service.getRepoService().getCloudRepo(User.class), service.getRepoService().getLocalRepo(User.class));
         this.service = service;
-
-        activeTasksSynchronizer = new ActiveTasksSynchronizer(service.getRepoService().getCloudRepo(Task.class),
-                                                              service.getRepoService().getLocalRepo(Task.class));
-
-        activeTasksSynchronizer.syncStateProperty().addListener((obsValue, st, st1) ->
-        {
-            if (st1 != ConnectState.RUNNING) {
-                ((SimpleObjectProperty<ConnectState>) syncStateProperty()).set(st1);
-            }
-        });
     }
 
     @Override
@@ -80,7 +73,6 @@ public class ActiveMissionSynchronizer extends BaseSynchronizer<User, User> {
 
         User user = service.getUser();
         if (user == null) {
-            localRepo.deleteAsync();
             setSucceeded();
             return;
         }
@@ -90,58 +82,43 @@ public class ActiveMissionSynchronizer extends BaseSynchronizer<User, User> {
             setSucceeded();
             return;
         }
+        initActiveTasksSynchronizer(service);
 
-        syncActiveMission(activeMission.getId());
+        if (syncMetaData.isCompleteRefreshNeeded() || !localRepo.fileExists()) {
+            retrieveCloudDataAndStoreLocally();
+            return;
+        }
+
+        readChangeLogAndSyncLocalData();
     }
 
-    private void syncActiveMission(String activeMissionId) {
-        GluonObservableObject<ChangeLogEntry> obsMissionLogEntry = retrieveChangeLogEntryAsync(MISSIONS_LIST_IDENTIFIER, activeMissionId);
+    @Override
+    protected void retrieveCloudDataAndStoreLocally() {
+        Mission activeMission = getSyncMetaData().getActiveMission();
+        GluonObservableObject<User> obsActiveMission = cloudRepo.retrieveObjectAsync(activeMission.getId());
+        AsyncResultReceiver.create(obsActiveMission)
+                           .onSuccess(result ->
+                           {
+                               Mission _activeMission = result.get() == null ? null : result.get().getActiveMission();
+                               service.setActiveMission(_activeMission);
+                               activeTasksSynchronizer.syncNow(getSyncMetaData());
+                           })
+                           .onException(this::setFailed)
+                           .start();
+    }
+
+    @Override
+    protected void readChangeLogAndSyncLocalData() {
+        GluonObservableObject<ChangeLogEntry> obsMissionLogEntry = retrieveChangeLogEntryAsync(MISSIONS_LIST_IDENTIFIER, getSyncMetaData()
+                                                                                                                                          .getActiveMission()
+                                                                                                                                          .getId());
         AsyncResultReceiver.create(obsMissionLogEntry)
                            .onSuccess(result ->
                            {
-                               ChangeLogEntry logEntry = result.get();
-                               if (logEntry == null || logEntry.getTimeStamp() < getSyncMetaData().getLastSynced()) {
-                                   activeTasksSynchronizer.syncNow(getSyncMetaData());
-                                   return;
-                               }
-
-                               switch (logEntry.getAction()) {
-                                   case DELETE:
-                                       service.setActiveMission(null);
-                                       setSucceeded();
-                                       Dialogs.ok(localize("missionSynchronizer.info.activeMissionDeletedByOwner")).showAndWait();
-                                       break;
-
-                                   case UPDATE:
-                                       FireBaseRepo<Mission> missionCloudRepo = service.getRepoService().getCloudRepo(Mission.class);
-
-                                       GluonObservableObject<Mission> obsActiveMission = missionCloudRepo.retrieveObjectAsync(logEntry.getTargetId());
-                                       AsyncResultReceiver.create(obsActiveMission)
-                                                          .defaultProgressLayer()
-                                                          .onSuccess(resultActiveMission ->
-                                                          {
-                                                              Mission _activeMission = resultActiveMission.get();
-                                                              String userId = getSyncMetaData().getUserId();
-                                                              if (_activeMission.getAccessType() == AccessType.PRIVATE && !_activeMission
-                                                                                                                                         .getOwnerId()
-                                                                                                                                         .equals(userId)) {
-                                                                  service.setActiveMission(null);
-                                                                  setSucceeded();
-                                                              } else {
-                                                                  if (!service.getActiveMission().equals(resultActiveMission.get())) {
-                                                                      service.setActiveMission(resultActiveMission.get());
-                                                                      setSucceeded();
-                                                                  } else {
-                                                                      activeTasksSynchronizer.syncNow(getSyncMetaData());
-                                                                  }
-                                                              }
-                                                          })
-                                                          .onException(this::setFailed)
-                                                          .start();
-                                       break;
-
-                                   default:
-                                       break;
+                               if (result.get() != null) {
+                                   syncLocalData(FXCollections.singletonObservableList(result.get()));
+                               } else {
+                                   setSucceeded();
                                }
                            })
                            .onException(this::setFailed)
@@ -149,8 +126,69 @@ public class ActiveMissionSynchronizer extends BaseSynchronizer<User, User> {
     }
 
     @Override
-    protected void syncLocalData(GluonObservableList<ChangeLogEntry> log) {
-        // no op
+    protected void syncLocalData(ObservableList<ChangeLogEntry> log) {
+        ChangeLogEntry logEntry = log.get(0);
+        if (logEntry.getTimeStamp() < getSyncMetaData().getLastSynced()) {
+            activeTasksSynchronizer.syncNow(getSyncMetaData());
+            return;
+        }
+
+        switch (logEntry.getAction()) {
+            case DELETE:
+                service.setActiveMission(null);
+                service.updateActiveTasks(null);
+                setSucceeded();
+
+                showInfo(localize("missionSynchronizer.info.activeMissionDeletedByOwner"));
+                break;
+
+            case UPDATE:
+                FireBaseRepo<Mission> missionCloudRepo = service.getRepoService().getCloudRepo(Mission.class);
+
+                GluonObservableObject<Mission> obsActiveMission = missionCloudRepo.retrieveObjectAsync(logEntry.getTargetId());
+                AsyncResultReceiver.create(obsActiveMission)
+                                   .onSuccess(resultActiveMission ->
+                                   {
+                                       Mission activeMission = resultActiveMission.get();
+                                       String userId = getSyncMetaData().getUserId();
+                                       if (activeMission.getAccessType() == AccessType.PRIVATE && !activeMission.getOwnerId()
+                                                                                                                .equals(userId)) {
+                                           service.setActiveMission(null);
+                                           service.updateActiveTasks(null);
+                                           setSucceeded();
+
+                                       } else {
+                                           if (!service.getActiveMission().equals(activeMission)) {
+                                               service.setActiveMission(activeMission);
+                                           }
+                                           // todo: if tasks changed -> clear localTasks
+                                           GluonObservable obsDelete = RepoService.INSTANCE.getLocalRepo(Task.class).deleteAsync();
+                                           AsyncResultReceiver.create(obsDelete)
+                                                              .onSuccess(e -> activeTasksSynchronizer.syncNow(getSyncMetaData()))
+                                                              .onException(this::setFailed)
+                                                              .start();
+                                       }
+                                   })
+                                   .onException(this::setFailed)
+                                   .start();
+                break;
+
+            default:
+                break;
+        }
+
+    }
+
+    private void initActiveTasksSynchronizer(BaseService service) {
+        activeTasksSynchronizer = new ActiveTasksSynchronizer(service.getRepoService().getCloudRepo(Task.class),
+                                                              service.getRepoService().getLocalRepo(Task.class));
+
+        activeTasksSynchronizer.syncStateProperty().addListener((obsValue, st, st1) ->
+        {
+            if (st1 != ConnectState.RUNNING) {
+                ((SimpleObjectProperty<ConnectState>) syncStateProperty()).set(st1);
+            }
+        });
     }
 
 }

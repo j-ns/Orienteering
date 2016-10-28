@@ -43,6 +43,8 @@ import com.jns.orienteering.model.repo.AsyncResultReceiver;
 import com.jns.orienteering.model.repo.CityFBRepo;
 import com.jns.orienteering.model.repo.LocalRepo;
 
+import javafx.collections.ObservableList;
+
 public class CitySynchronizer extends BaseSynchronizer<City, LocalCityList> {
 
     private static final Logger LOGGER               = LoggerFactory.getLogger(CitySynchronizer.class);
@@ -67,22 +69,27 @@ public class CitySynchronizer extends BaseSynchronizer<City, LocalCityList> {
         setRunning();
         setSyncMetaData(syncMetaData);
 
-        boolean fileExits = localRepo.fileExists();
-        if (fileExits) {
-            readChangeLogAndSyncLocalData();
-        } else {
+        if (syncMetaData.isCompleteRefreshNeeded()) {
             retrieveCloudDataAndStoreLocally();
+            return;
+        }
+
+        boolean fileExits = localRepo.fileExists();
+        if (!fileExits) {
+            retrieveCloudDataAndStoreLocally();
+        } else {
+            readChangeLogAndSyncLocalData();
         }
     }
 
     @Override
-    protected void storeLocally(GluonObservableList<City> cloudData) {
+    protected void storeLocally(ObservableList<City> cloudData) {
         cityCache.createMapping(cloudData, getSyncMetaData().getUserId());
-        super.storeLocally(cityCache.getPublicCities());
+        super.storeLocally(cloudData);
     }
 
     @Override
-    protected void syncLocalData(GluonObservableList<ChangeLogEntry> log) {
+    protected void syncLocalData(ObservableList<ChangeLogEntry> log) {
         GluonObservableList<City> obsLocalData = localRepo.retrieveListAsync(listIdentifier);
         AsyncResultReceiver.create(obsLocalData)
                            .onSuccess(resultLocal ->

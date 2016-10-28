@@ -26,52 +26,42 @@
  *  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  *  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package com.jns.orienteering.model.repo.synchronizer;
+package com.jns.orienteering.common;
 
-import java.time.LocalDate;
+import static com.jns.orienteering.control.Dialogs.showError;
+import static com.jns.orienteering.util.Validators.isNullOrEmpty;
 
-import com.jns.orienteering.model.persisted.ActiveTaskList;
-import com.jns.orienteering.model.persisted.ChangeLogEntry;
-import com.jns.orienteering.model.persisted.Task;
-import com.jns.orienteering.model.repo.image.ImageHandler;
+import java.util.function.Predicate;
+import java.util.function.Supplier;
 
-import javafx.collections.ObservableList;
+public class SingleValidator<T> implements Validator {
 
-public class ImageSynchronizer extends BaseSynchronizer<Task, ActiveTaskList> {
+    private Supplier<T>  supplier;
+    private Predicate<T> predicate;
+    private String       errorMessage;
 
-    public static final String  NAME                  = "image_synchronizer";
-    private static final String IMAGE_LIST_IDENTIFIER = "images";
+    public SingleValidator(Predicate<T> predicate, String errorMessage) {
+        this(null, predicate, errorMessage);
+    }
 
-    public ImageSynchronizer() {
-        super(IMAGE_LIST_IDENTIFIER);
+    public SingleValidator(Supplier<T> supplier, Predicate<T> predicate, String errorMessage) {
+        this.supplier = supplier;
+        this.predicate = predicate;
+        this.errorMessage = errorMessage;
     }
 
     @Override
-    public String getName() {
-        return NAME;
+    public boolean check() {
+        return check(supplier.get());
     }
 
-    @Override
-    public void syncNow(SyncMetaData syncMetaData) {
-        setRunning();
-        setSyncMetaData(syncMetaData);
-
-        LocalDate firstOfMonth = LocalDate.now().withDayOfMonth(1);
-
-        // sync only once a month
-        if (!syncMetaData.isLastSyncedBefore(firstOfMonth)) {
-            setSucceeded();
-            return;
+    public boolean check(T obj) {
+        if (!predicate.test(obj)) {
+            if (!isNullOrEmpty(errorMessage)) {
+                showError(errorMessage);
+            }
+            return false;
         }
-
-        readChangeLogAndSyncLocalData();
+        return true;
     }
-
-    @Override
-    protected void syncLocalData(ObservableList<ChangeLogEntry> log) {
-        // there are only logEntries with action 'delete" for images
-        ImageHandler.removeFromCacheAsync(log);
-        setSucceeded();
-    }
-
 }

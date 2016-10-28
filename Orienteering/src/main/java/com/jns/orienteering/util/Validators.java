@@ -69,7 +69,14 @@ public class Validators {
     }
 
     public static boolean isNotNullOrEmpty(String text) {
-        return isNullOrEmpty(text) == false;
+        return !isNullOrEmpty(text);
+    }
+
+    public static <T> boolean isObjectNullOrEmpty(T input) {
+        if (input instanceof String) {
+            return isNullOrEmpty((String) input);
+        }
+        return input == null;
     }
 
     public static boolean isNullOrEmpty(String text) {

@@ -43,7 +43,7 @@ import com.gluonhq.maps.MapView;
 import com.jns.orienteering.common.BaseService;
 import com.jns.orienteering.common.BaseService.CityBuffer;
 import com.jns.orienteering.common.MultiValidator;
-import com.jns.orienteering.common.Validator;
+import com.jns.orienteering.common.SingleValidator;
 import com.jns.orienteering.control.ChoiceFloatingTextField;
 import com.jns.orienteering.control.FloatingTextField;
 import com.jns.orienteering.control.Icon;
@@ -342,7 +342,7 @@ public class MissionPresenter extends BasePresenter {
     }
 
     private MultiValidator<String> createNameValidator() {
-        Validator<String> nameDoesntExistValidator = new Validator<>(cloudRepo::checkIfMissionNameDoesntExist,
+        SingleValidator<String> nameDoesntExistValidator = new SingleValidator<>(cloudRepo::checkIfMissionNameDoesntExist,
                                                                      localize("view.mission.info.nameExists"));
 
         MultiValidator<String> validator = new MultiValidator<>();

@@ -33,21 +33,32 @@ import static com.jns.orienteering.model.repo.BaseUrls.IMAGES;
 import static com.jns.orienteering.model.repo.BaseUrls.MISSIONS;
 import static com.jns.orienteering.model.repo.BaseUrls.TASKS;
 import static com.jns.orienteering.model.repo.QueryParameter.endAt;
+import static com.jns.orienteering.model.repo.QueryParameter.limitToFirst;
 import static com.jns.orienteering.model.repo.QueryParameter.orderByTimeStamp;
-import static com.jns.orienteering.model.repo.QueryParameter.shallow;
 import static com.jns.orienteering.model.repo.QueryParameter.startAt;
 
+import java.time.LocalDate;
 import java.util.Arrays;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.gluonhq.charm.down.common.SettingService;
 import com.gluonhq.connect.GluonObservableList;
-import com.gluonhq.connect.GluonObservableObject;
 import com.jns.orienteering.model.persisted.ChangeLogEntry;
 import com.jns.orienteering.model.persisted.RepoAction;
 import com.jns.orienteering.model.persisted.Synchronizable;
+import com.jns.orienteering.platform.PlatformProvider;
 
 public class ChangeLogRepo extends FireBaseRepo<ChangeLogEntry> {
 
-    private static ChangeLogRepo instance;
+    private static final Logger   LOGGER                 = LoggerFactory.getLogger(ChangeLogRepo.class);
+
+    private static final String   LAST_CLEAN_UP_PROPERTY = "last_clean_up";
+
+    private static SettingService settingService         = PlatformProvider.getPlatform().getSettingService();
+
+    private static ChangeLogRepo  instance;
 
     private ChangeLogRepo() {
         super(ChangeLogEntry.class, BaseUrls.CHANGE_LOG);
@@ -74,22 +85,47 @@ public class ChangeLogRepo extends FireBaseRepo<ChangeLogEntry> {
         return retrieveListFilteredAsync(Arrays.asList(orderByTimeStamp(), startAt(lastSynced)), urlParts);
     }
 
-    public GluonObservableObject<ChangeLogEntry> readObjectAsync(long lastSynced, String... urlParts) {
-        return retrieveObjectFilteredAsync(Arrays.asList(orderByTimeStamp(), startAt(lastSynced)), urlParts);
+    // public GluonObservableObject<ChangeLogEntry> readObjectAsync(long lastSynced, String... urlParts) {
+    // return retrieveObjectFilteredAsync(Arrays.asList(orderByTimeStamp(), startAt(lastSynced)), urlParts);
+    // }
+
+    public void cleanLog() {
+        LocalDate now = LocalDate.now();
+        int thisMonth = now.getMonthValue();
+
+        if (!isCleanedUp(thisMonth)) {
+            LOGGER.debug("start changeLog cleanUp");
+
+            LocalDate threeMonthsBeforeLastDayOfMonth = now.minusMonths(2).withDayOfMonth(1).minusDays(1);
+            long timeStamp = TimeStampCreator.timeStamp(threeMonthsBeforeLastDayOfMonth);
+            removeLogEntriesUntil(timeStamp);
+
+            storeLastCleanUp(thisMonth);
+        }
     }
 
-    // todo:delete log entries of the previous month but one. If lastSync was at that time, reload all data
-    // limit the max number of delete operations for a single user, to distribute the changeLog cleanup operations amongst all
-    // users
-    public void removeLogEntriesBefore(long timeStamp) {
-        removeLogEntries(CITIES, getLogEntriesBefore(CITIES, timeStamp));
-        removeLogEntries(TASKS, getLogEntriesBefore(TASKS, timeStamp));
-        removeLogEntries(MISSIONS, getLogEntriesBefore(MISSIONS, timeStamp));
-        removeLogEntries(IMAGES, getLogEntriesBefore(IMAGES, timeStamp));
+    private boolean isCleanedUp(int month) {
+        String lastCleanUp = settingService.retrieve(LAST_CLEAN_UP_PROPERTY);
+        return String.valueOf(month).equals(lastCleanUp);
     }
 
-    private GluonObservableList<ChangeLogEntry> getLogEntriesBefore(String url, long timeStamp) {
-        return retrieveListFilteredAsync(Arrays.asList(orderByTimeStamp(), endAt(timeStamp), shallow()), url);
+    /**
+     * Remove log entries unitl <code>timeStamp</code> (inclusive).
+     * The max number of delete operations is limited for a single user, in order to distribute the cleanup operations amongst all
+     * users
+     *
+     * @param timeStamp
+     *            the timeStamp in epochseconds until (inclusive) the logEntries should be deleted
+     */
+    private void removeLogEntriesUntil(long timeStamp) {
+        removeLogEntries(CITIES, getLogEntriesUntil(CITIES, timeStamp));
+        removeLogEntries(TASKS, getLogEntriesUntil(TASKS, timeStamp));
+        removeLogEntries(MISSIONS, getLogEntriesUntil(MISSIONS, timeStamp));
+        removeLogEntries(IMAGES, getLogEntriesUntil(IMAGES, timeStamp));
+    }
+
+    private GluonObservableList<ChangeLogEntry> getLogEntriesUntil(String url, long timeStamp) {
+        return retrieveListFilteredAsync(Arrays.asList(orderByTimeStamp(), endAt(timeStamp), limitToFirst("50")), url);
     }
 
     private void removeLogEntries(String url, GluonObservableList<ChangeLogEntry> logEntries) {
@@ -101,6 +137,10 @@ public class ChangeLogRepo extends FireBaseRepo<ChangeLogEntry> {
                                }
                            })
                            .start();
+    }
+
+    private void storeLastCleanUp(int month) {
+        settingService.store(LAST_CLEAN_UP_PROPERTY, String.valueOf(month));
     }
 
 }

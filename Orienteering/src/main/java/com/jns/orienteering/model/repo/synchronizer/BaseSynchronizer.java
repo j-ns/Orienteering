@@ -52,26 +52,26 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.ObservableList;
 
 /**
- * @param <T>
+ * @param <S>
  *            the type of the synchronizable object
  * @param <L>
  *            the type of the locally stored object
  */
-public abstract class BaseSynchronizer<T extends Synchronizable, L> {
+public abstract class BaseSynchronizer<S extends Synchronizable, L> {
 
     private static final Logger            LOGGER          = LoggerFactory.getLogger(BaseSynchronizer.class);
 
     private static final ChangeLogRepo     CHANGE_LOG_REPO = ChangeLogRepo.getInstance();
 
-    protected FireBaseRepo<T>              cloudRepo;
-    protected LocalRepo<T, L>              localRepo;
+    protected FireBaseRepo<S>              cloudRepo;
+    protected LocalRepo<S, L>              localRepo;
     protected String                       listIdentifier;
 
-    protected BiFunction<List<T>, Long, L> cloudToLocalMapper;
+    protected BiFunction<List<S>, Long, L> cloudToLocalMapper;
 
     private SyncMetaData                   syncMetaData;
     private ObjectProperty<ConnectState>   syncState       = new SimpleObjectProperty<>(ConnectState.READY);
-    private Consumer<ObservableList<T>>    onSynced        = e ->
+    private Consumer<ObservableList<S>>    onSynced        = e ->
                                                            {
                                                            };
 
@@ -79,11 +79,11 @@ public abstract class BaseSynchronizer<T extends Synchronizable, L> {
         this.listIdentifier = listIdentifier;
     }
 
-    public BaseSynchronizer(FireBaseRepo<T> cloudRepo, LocalRepo<T, L> localRepo) {
+    public BaseSynchronizer(FireBaseRepo<S> cloudRepo, LocalRepo<S, L> localRepo) {
         this(cloudRepo, localRepo, null, null);
     }
 
-    public BaseSynchronizer(FireBaseRepo<T> cloudRepo, LocalRepo<T, L> localRepo, BiFunction<List<T>, Long, L> cloudToLocalMapper,
+    public BaseSynchronizer(FireBaseRepo<S> cloudRepo, LocalRepo<S, L> localRepo, BiFunction<List<S>, Long, L> cloudToLocalMapper,
                             String listIdentifier) {
         this.cloudRepo = cloudRepo;
         this.localRepo = localRepo;
@@ -93,7 +93,7 @@ public abstract class BaseSynchronizer<T extends Synchronizable, L> {
 
     public abstract String getName();
 
-    public ReadOnlyObjectProperty<ConnectState> syncStateProperty() {
+    public final ReadOnlyObjectProperty<ConnectState> syncStateProperty() {
         return syncState;
     }
 
@@ -109,11 +109,11 @@ public abstract class BaseSynchronizer<T extends Synchronizable, L> {
         syncState.set(ConnectState.FAILED);
     }
 
-    public Consumer<ObservableList<T>> getOnSynced() {
+    public Consumer<ObservableList<S>> getOnSynced() {
         return onSynced;
     }
 
-    public void setOnSynced(Consumer<ObservableList<T>> onSynced) {
+    public void setOnSynced(Consumer<ObservableList<S>> onSynced) {
         this.onSynced = onSynced;
     }
 
@@ -134,7 +134,7 @@ public abstract class BaseSynchronizer<T extends Synchronizable, L> {
                            .start();
     }
 
-    protected void storeLocally(GluonObservableList<T> cloudData) {
+    protected void storeLocally(ObservableList<S> cloudData) {
         L localData = cloudToLocalMapper.apply(cloudData, syncMetaData.getCurrentTimeStamp());
 
         GluonObservableObject<L> obsLocalData = localRepo.createOrUpdateListAsync(localData);
@@ -176,6 +176,6 @@ public abstract class BaseSynchronizer<T extends Synchronizable, L> {
         return CHANGE_LOG_REPO.retrieveObjectAsync(listIdentifier, id);
     }
 
-    protected abstract void syncLocalData(GluonObservableList<ChangeLogEntry> log);
+    protected abstract void syncLocalData(ObservableList<ChangeLogEntry> log);
 
 }

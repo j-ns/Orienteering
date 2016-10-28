@@ -29,7 +29,7 @@
 package com.jns.orienteering.view;
 
 import static com.jns.orienteering.control.Dialogs.confirmDeleteAnswer;
-import static com.jns.orienteering.util.Validators.isNullOrEmpty;
+import static com.jns.orienteering.control.Dialogs.showInfo;
 
 import javax.inject.Inject;
 
@@ -38,17 +38,17 @@ import com.gluonhq.charm.glisten.control.Avatar;
 import com.gluonhq.connect.GluonObservable;
 import com.gluonhq.connect.GluonObservableObject;
 import com.jns.orienteering.common.BaseService;
-import com.jns.orienteering.control.Dialogs;
+import com.jns.orienteering.common.BiValidator;
+import com.jns.orienteering.common.MandatoryInputValidator;
+import com.jns.orienteering.common.Validator;
 import com.jns.orienteering.control.FloatingTextField;
 import com.jns.orienteering.model.persisted.User;
 import com.jns.orienteering.model.repo.AsyncResultReceiver;
 import com.jns.orienteering.model.repo.UserFBRepo;
-import com.jns.orienteering.model.repo.image.ImageHandler;
 
 import javafx.beans.binding.When;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
-import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.VBox;
@@ -56,24 +56,28 @@ import javafx.scene.layout.VBox;
 public class UserPresenter extends BasePresenter {
 
     @FXML
-    private Avatar            avatar;
+    private Avatar                      avatar;
     @FXML
-    private VBox              boxTextFields;
+    private VBox                        boxTextFields;
     @FXML
-    private FloatingTextField txtUserName;
+    private FloatingTextField           txtUserName;
     @FXML
-    private FloatingTextField txtPassword;
+    private FloatingTextField           txtPassword;
     @FXML
-    private Button            btnLogInOrLogOff;
+    private Button                      btnLogInOrLogOff;
     @FXML
-    private Button            btnSignUpOrUpdate;
+    private Button                      btnSignUpOrUpdate;
     @FXML
-    private Button            btnDeleteUser;
+    private Button                      btnDeleteUser;
+
+    private Validator                   nameIsSetValidator;
+    private Validator                   passwordIsSetValidator;
+    private BiValidator<String, String> passwordMatchesValidator;
 
     @Inject
-    private BaseService       service;
+    private BaseService                 service;
 
-    private UserFBRepo        userCloudRepo;
+    private UserFBRepo                  userCloudRepo;
 
     @Override
     protected void initialize() {
@@ -97,9 +101,9 @@ public class UserPresenter extends BasePresenter {
         btnDeleteUser.setOnAction(e -> onDeleteUser());
         btnDeleteUser.visibleProperty().bind(service.userProperty().isNotNull());
 
+        initValidators();
         userCloudRepo = service.getRepoService().getCloudRepo(User.class);
 
-        // test:
         if (JavaFXPlatform.isDesktop()) {
             view.addEventHandler(KeyEvent.KEY_RELEASED, evt ->
             {
@@ -110,6 +114,13 @@ public class UserPresenter extends BasePresenter {
         }
     }
 
+    private void initValidators() {
+        nameIsSetValidator = new MandatoryInputValidator<>(() -> txtUserName.getText(), localize("view.user.info.enterName"));
+        passwordIsSetValidator = new MandatoryInputValidator<>(() -> txtPassword.getText(), localize("view.user.info.enterPassword"));
+        passwordMatchesValidator = new BiValidator<>((storedPassword, enteredPassword) -> storedPassword.equals(enteredPassword), localize(
+                                                                                                                                           "view.user.info.wrongPassword"));
+    }
+
     @Override
     protected void initAppBar() {
         showAppBar(false);
@@ -117,7 +128,6 @@ public class UserPresenter extends BasePresenter {
 
     @Override
     protected void onShowing() {
-        super.onShowing();
         platformService().getNodePositionAdjuster(boxTextFields, boxTextFields.getScene().focusOwnerProperty());
 
         User user = service.getUser() == null ? new User() : service.getUser();
@@ -131,12 +141,7 @@ public class UserPresenter extends BasePresenter {
 
     private void onLoginOrLogOff() {
         if (service.getUser() == null) {
-            if (isNullOrEmpty(txtUserName.getText())) {
-                Dialogs.ok(localize("view.user.info.enterName")).showAndWait();
-                return;
-            }
-            if (isNullOrEmpty(txtPassword.getText())) {
-                Dialogs.ok(localize("view.user.info.enterPassword")).showAndWait();
+            if (!nameIsSetValidator.check() || !passwordIsSetValidator.check()) {
                 return;
             }
             login();
@@ -149,44 +154,26 @@ public class UserPresenter extends BasePresenter {
         GluonObservableObject<User> obsUser = userCloudRepo.retrieveObjectAsync(txtUserName.getText());
         AsyncResultReceiver.create(obsUser)
                            .defaultProgressLayer()
-                           .onSuccess(resultUser ->
+                           .onSuccess(result ->
                            {
-                               User user = resultUser.get();
+                               User user = result.get();
                                if (user == null) {
-                                   Dialogs.ok(localize("view.user.info.userDoesntExist")).showAndWait();
+                                   showInfo(localize("view.user.info.userDoesntExist"));
                                    return;
                                }
-                               if (!validatePassword(user.getPassword(), txtPassword.getText())) {
+                               if (!passwordMatchesValidator.check(user.getPassword(), txtPassword.getText())) {
                                    return;
                                }
 
-                               GluonObservableObject<Image> obsImage = ImageHandler.retrieveImageAsync(user.getImageUrl(),
-                                                                                                       ImageHandler.AVATAR_PLACE_HOLDER);
-                               AsyncResultReceiver.create(obsImage)
-                                                  .defaultProgressLayer()
-                                                  .onSuccess(resultImage -> service.setProfileImage(resultImage.get()))
-                                                  .finalize(() ->
-                                                  {
-                                                      service.setUser(resultUser.get());
-                                                      showHomeView();
-                                                      showToast(localize("view.user.info.userLoggedIn"));
-                                                  })
-                                                  .start();
+                               service.setUser(user);
+                               showHomeView();
+                               showToast(localize("view.user.info.userLoggedIn"));
+
                            }).start();
-
-    }
-
-    private boolean validatePassword(String storedPassword, String enteredPassword) {
-        if (!enteredPassword.equals(storedPassword)) {
-            Dialogs.ok(localize("view.user.info.wrongPassword")).showAndWait();
-            return false;
-        }
-        return true;
     }
 
     private void logoff() {
         service.setUser(null);
-        service.setProfileImage(ImageHandler.AVATAR_PLACE_HOLDER);
         setFields(new User());
     }
 

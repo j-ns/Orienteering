@@ -43,7 +43,7 @@ import com.gluonhq.connect.GluonObservableObject;
 import com.jns.orienteering.common.ActivatorDeactivatorService;
 import com.jns.orienteering.common.BaseService;
 import com.jns.orienteering.common.MultiValidator;
-import com.jns.orienteering.common.Validator;
+import com.jns.orienteering.common.SingleValidator;
 import com.jns.orienteering.control.ChoiceFloatingTextField;
 import com.jns.orienteering.control.Dialogs;
 import com.jns.orienteering.control.FloatingTextField;
@@ -306,7 +306,7 @@ public class TaskPresenter extends BasePresenter {
     }
 
     private MultiValidator<String> createTaskValidator() {
-        Validator<String> nameDoesntExistValidator = new Validator<>(name -> !cloudRepo.checkIfTaskNameExists(name),
+        SingleValidator<String> nameDoesntExistValidator = new SingleValidator<>(name -> !cloudRepo.checkIfTaskNameExists(name),
                                                                      localize("view.task.info.nameAlreadyExists"));
 
         MultiValidator<String> validator = new MultiValidator<>();

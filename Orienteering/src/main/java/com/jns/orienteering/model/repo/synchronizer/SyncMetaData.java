@@ -31,10 +31,10 @@ package com.jns.orienteering.model.repo.synchronizer;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
-import java.time.ZonedDateTime;
 
 import com.jns.orienteering.model.persisted.Mission;
 import com.jns.orienteering.model.persisted.User;
+import com.jns.orienteering.model.repo.TimeStampCreator;
 
 public class SyncMetaData {
 
@@ -42,11 +42,12 @@ public class SyncMetaData {
     private long    currentTimeStamp;
     private User    user;
     private Mission activeMission;
+    private boolean completeRefreshNeeded;
 
     public SyncMetaData(User user, Mission activeMission) {
         this.user = user;
         this.activeMission = activeMission;
-        currentTimeStamp = createTimeStamp();
+        currentTimeStamp = TimeStampCreator.timeStamp();
     }
 
     public long getLastSynced() {
@@ -55,46 +56,6 @@ public class SyncMetaData {
 
     public void setLastSynced(long lastSynced) {
         this.lastSynced = lastSynced;
-    }
-
-    public long getCurrentTimeStamp() {
-        return currentTimeStamp;
-    }
-
-    public boolean isLastSyncedBefore(LocalDate date) {
-        LocalDate lastSyncedDate = getLastSyncedDate();
-
-        int result = lastSyncedDate.getYear() - date.getYear();
-        if (result == 0) {
-            result = lastSyncedDate.getMonthValue() - date.getMonthValue();
-            if (result == 0) {
-                result = lastSyncedDate.getDayOfMonth() - date.getDayOfMonth();
-            }
-        }
-        return result < 0;
-    }
-
-    private LocalDate getLastSyncedDate() {
-        LocalDate lastSyncedDate = Instant.ofEpochSecond(lastSynced).atZone(ZoneId.systemDefault()).toLocalDate();
-        return lastSyncedDate;
-    }
-
-    public boolean isSyncedToday() {
-        LocalDate now = LocalDate.now(ZoneId.systemDefault());
-        LocalDate lastSynced = getLastSyncedDate();
-        return now.equals(lastSynced);
-    }
-
-    /**
-     * @return
-     *         {@link LocalDate} of today converted to epochSeconds
-     */
-    private long createTimeStamp() {
-        ZonedDateTime now = ZonedDateTime.now(ZoneId.systemDefault());
-        long epochDay = now.toLocalDate().toEpochDay();
-        long secs = epochDay * 86400 + now.toLocalTime().toSecondOfDay();
-        secs -= now.getOffset().getTotalSeconds();
-        return secs;
     }
 
     public User getUser() {
@@ -109,5 +70,40 @@ public class SyncMetaData {
         return activeMission;
     }
 
+    public long getCurrentTimeStamp() {
+        return currentTimeStamp;
+    }
+
+    public boolean isSyncedToday() {
+        return LocalDate.now().equals(getLastSyncedDate());
+    }
+
+    public boolean isLastSyncedBefore(LocalDate date) {
+        return isBefore(getLastSyncedDate(), date);
+    }
+
+    public void checkIfCompleteRefreshIsNeeded() {
+        LocalDate threeMonthsBeforeLastDayOfMonth = LocalDate.now().minusMonths(2).withDayOfMonth(1).minusDays(1);
+        completeRefreshNeeded = isBefore(getLastSyncedDate(), threeMonthsBeforeLastDayOfMonth);
+    }
+
+    public boolean isCompleteRefreshNeeded() {
+        return completeRefreshNeeded;
+    }
+
+    private LocalDate getLastSyncedDate() {
+        return Instant.ofEpochSecond(lastSynced).atZone(ZoneId.systemDefault()).toLocalDate();
+    }
+
+    private boolean isBefore(LocalDate date1, LocalDate date2) {
+        int result = date1.getYear() - date2.getYear();
+        if (result == 0) {
+            result = date1.getMonthValue() - date2.getMonthValue();
+            if (result == 0) {
+                result = date1.getDayOfMonth() - date2.getDayOfMonth();
+            }
+        }
+        return result < 0;
+    }
 
 }

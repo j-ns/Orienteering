@@ -31,6 +31,8 @@ import static com.jns.orienteering.locale.Localization.localize;
 import static com.jns.orienteering.model.repo.BaseUrls.MISSION_STATS;
 import static com.jns.orienteering.model.repo.BaseUrls.STATS_BY_MISSION;
 import static com.jns.orienteering.model.repo.BaseUrls.STATS_BY_USER;
+import static com.jns.orienteering.model.repo.QueryParameter.limitToFirst;
+import static com.jns.orienteering.model.repo.QueryParameter.orderBy;
 
 import java.io.IOException;
 
@@ -90,7 +92,7 @@ public class MissionStatFBRepo extends FireBaseRepo<MissionStat> {
 
     public GluonObservableList<MissionStat> getMissionStatsAsync(String missionId) { // todo: check urls
         String url = UrlBuilder.buildUrl(STATS_BY_MISSION, missionId);
-        RestClient client = RestClientFactory.create(GET, url, QueryParameter.orderBy("duration"), QueryParameter.limitToFirst("5"));
+        RestClient client = RestClientFactory.create(GET, url, orderBy("duration"), limitToFirst("5"));
 
         return DataProvider.retrieveList(new RestObjectsReader<>(client, RestClientFactory.baseClient(), StatByMission.class,
                                                                  url, MissionStat.class, MISSION_STATS));

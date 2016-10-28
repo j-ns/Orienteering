@@ -28,16 +28,19 @@
  */
 package com.jns.orienteering.model.repo.synchronizer;
 
+import static com.jns.orienteering.control.Dialogs.showError;
 import static com.jns.orienteering.locale.Localization.localize;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.gluonhq.connect.GluonObservableList;
-import com.jns.orienteering.control.Dialogs;
 import com.jns.orienteering.model.dynamic.MissionCache;
 import com.jns.orienteering.model.persisted.ActiveTaskList;
 import com.jns.orienteering.model.persisted.ChangeLogEntry;
@@ -49,11 +52,10 @@ import com.jns.orienteering.model.repo.LocalRepo;
 import com.jns.orienteering.model.repo.MissionFBRepo;
 import com.jns.orienteering.model.repo.RepoService;
 import com.jns.orienteering.model.repo.TaskFBRepo;
+import com.jns.orienteering.util.GluonObservables;
 import com.jns.orienteering.util.MapUtils;
 
-import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.collections.transformation.SortedList;
 
 public class ActiveTasksSynchronizer extends BaseSynchronizer<Task, ActiveTaskList> {
 
@@ -77,12 +79,13 @@ public class ActiveTasksSynchronizer extends BaseSynchronizer<Task, ActiveTaskLi
     public void syncNow(SyncMetaData syncMetaData) {
         setRunning();
         setSyncMetaData(syncMetaData);
-        syncActiveTasks();
-    }
 
-    private void syncActiveTasks() {
+        if (getSyncMetaData().isCompleteRefreshNeeded()) {
+            retrieveCloudDataAndStoreLocally();
+            return;
+        }
+
         boolean fileExists = localRepo.fileExists();
-
         if (!fileExists) {
             if (getSyncMetaData().getActiveMission() == null) {
                 setSucceeded();
@@ -102,71 +105,96 @@ public class ActiveTasksSynchronizer extends BaseSynchronizer<Task, ActiveTaskLi
     @Override
     protected void retrieveCloudDataAndStoreLocally() {
         MissionFBRepo missionCloudRepo = RepoService.INSTANCE.getCloudRepo(Mission.class);
+        String missionId = getSyncMetaData().getActiveMission().getId();
 
-        GluonObservableList<Task> obsTasks = missionCloudRepo.retrieveTasksOrderedAsync(getSyncMetaData().getActiveMission().getId());
+        GluonObservableList<Task> obsTasks = missionCloudRepo.retrieveTasksOrderedAsync(missionId);
         AsyncResultReceiver.create(obsTasks)
-                           .onSuccess(this::storeLocally)
+                           .onSuccess(result ->
+                           {
+                               MissionCache.INSTANCE.setActiveMissionTasks(result, missionId);
+                               storeLocally(result);
+                               setSucceeded();
+                           })
                            .onException(this::setFailed)
                            .start();
     }
 
     @Override
-    protected void syncLocalData(GluonObservableList<ChangeLogEntry> log) {
+    protected void syncLocalData(ObservableList<ChangeLogEntry> log) {
         GluonObservableList<Task> obsLocalTasks = localRepo.retrieveListAsync(TASK_LIST_IDENTIFIER);
         AsyncResultReceiver.create(obsLocalTasks)
-                           .onSuccess(result ->
+                           .onSuccess(this::startSyncResultReceiver)
+                           .onException(this::setFailed)
+                           .start();
+    }
+
+    private void startSyncResultReceiver(GluonObservableList<Task> localTasks) {
+        AsyncResultReceiver.create(getObsSyncResult(localTasks))
+                           .onSuccess(syncResult ->
                            {
-                               // async?
-                               Map<String, Task> localTasksMap = MapUtils.createMap(result, Task::getId);
-                               boolean localDataNeedsUpdate = false;
-
-                               for (Task localTask : result) {
-                                   try {
-                                       String taskId = localTask.getId();
-                                       ChangeLogEntry logEntry = retrieveChangeLogEntry(TASK_LIST_IDENTIFIER, taskId);
-
-                                       if (logEntry == null) {
-                                           continue;
-                                       }
-                                       // if (logEntry.getId() != null) { /
-                                       if (logEntry.getAction() == RepoAction.DELETE) {
-                                           localDataNeedsUpdate = localTasksMap.remove(taskId) != null;
-
-                                       } else {
-                                           if (localTask.getTimeStamp() < logEntry.getTimeStamp()) {
-                                               if (logEntry.getAction() == RepoAction.UPDATE) {
-                                                   localTasksMap.remove(taskId);
-                                               }
-                                               Task taskFromCloud = cloudRepo.retrieveObject(taskId);
-                                               localTasksMap.put(taskId, taskFromCloud);
-                                               localDataNeedsUpdate = true;
-
-                                               LOGGER.debug("task added/updated: {}, lastSynced: {}", taskFromCloud.getTaskName(), taskFromCloud
-                                                                                                                                                .getTimeStamp());
-                                           }
-                                           // }
-                                       }
-
-                                   } catch (IOException e) {
-                                       LOGGER.error("Failed to read changeLog for active tasks", e);
-                                       setFailed();
-                                       Dialogs.ok(localize("changeLog.error.readLog")).showAndWait();
-                                       return;
-                                   }
+                               if (!syncResult.isEmpty()) {
+                                   MissionCache.INSTANCE.setActiveMissionTasks(syncResult, getSyncMetaData().getActiveMission().getId());
+                                   localRepo.createOrUpdateListAsync(new ActiveTaskList(syncResult, getSyncMetaData().getCurrentTimeStamp()));
                                }
-                               if (localDataNeedsUpdate) {
-                                   ObservableList<Task> updatedTasks = FXCollections.observableArrayList(localTasksMap.values());
-                                   ObservableList<Task> updatedTasksSorted = new SortedList<>(updatedTasks, Task.getOrderNumberComparator());
-
-                                   MissionCache.INSTANCE.setActiveMissionTasks(updatedTasksSorted, getSyncMetaData().getActiveMission().getId());
-
-                                   localRepo.createOrUpdateListAsync(new ActiveTaskList(updatedTasksSorted, getSyncMetaData().getCurrentTimeStamp()));
-                               }
-
                                setSucceeded();
                            })
                            .onException(this::setFailed)
                            .start();
+    }
+
+    // todo: use executor
+    private GluonObservableList<Task> getObsSyncResult(GluonObservableList<Task> localTasks) {
+        GluonObservableList<Task> obsTasksResult = new GluonObservableList<>();
+        boolean localDataNeedsUpdate = false;
+
+        Map<String, Task> localTasksMap = MapUtils.createMap(LinkedHashMap::new, localTasks, Task::getId, task -> task);
+
+        for (Task localTask : localTasks) {
+            try {
+                String taskId = localTask.getId();
+                ChangeLogEntry logEntry = retrieveChangeLogEntry(TASK_LIST_IDENTIFIER, taskId);
+
+                if (logEntry == null) {
+                    continue;
+                }
+
+                if (logEntry.getAction() == RepoAction.DELETE) {
+                    localTasksMap.remove(taskId);
+                    localDataNeedsUpdate = true;
+
+                } else {
+                    if (localTask.getTimeStamp() < logEntry.getTimeStamp()) {
+                        Task cloudTask = cloudRepo.retrieveObject(taskId);
+                        localTasksMap.put(taskId, cloudTask);
+                        localDataNeedsUpdate = true;
+
+                        LOGGER.debug("task added/updated: {}, lastSynced: {}", cloudTask.getTaskName(), cloudTask
+                                                                                                                 .getTimeStamp());
+                    }
+                }
+
+            } catch (IOException ex) {
+                setFailed();
+                showError(localize("changeLog.error.readLog"));
+                GluonObservables.setException(obsTasksResult, ex);
+                LOGGER.error("Failed to read changeLog for active tasks", ex);
+                break;
+            }
+        }
+
+        if (localDataNeedsUpdate) {
+            List<Task> updatedTasks = new ArrayList<>(localTasksMap.values());
+
+            MissionCache.INSTANCE.setActiveMissionTasks(updatedTasks, getSyncMetaData().getActiveMission().getId());
+            localRepo.createOrUpdateListAsync(new ActiveTaskList(updatedTasks, getSyncMetaData().getCurrentTimeStamp()));
+
+            GluonObservables.setInitialized(obsTasksResult, updatedTasks, true);
+
+        } else {
+            GluonObservables.setInitialized(obsTasksResult, true);
+        }
+
+        return obsTasksResult;
     }
 
 }

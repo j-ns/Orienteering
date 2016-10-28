@@ -28,6 +28,7 @@
  */
 package com.jns.orienteering.model.repo;
 
+import static com.jns.orienteering.control.Dialogs.showError;
 import static com.jns.orienteering.locale.Localization.localize;
 
 import java.net.ConnectException;
@@ -169,8 +170,7 @@ public class AsyncResultReceiver<T extends GluonObservable> {
                                                                                  break;
 
                                                                              case FAILED:
-                                                                                 Dialogs.ok(localize("dialog.error.connectionFailed"))
-                                                                                        .showAndWait();
+                                                                                 showError(localize("dialog.error.connectionFailed"));
                                                                                  startFinalizer();
                                                                                  break;
 
@@ -196,8 +196,7 @@ public class AsyncResultReceiver<T extends GluonObservable> {
 
                                                                              if (ex1 instanceof UnknownHostException ||
                                                                                      ex1 instanceof ConnectException) {
-                                                                                 Dialogs.ok(localize("dialog.error.connectionFailed"))
-                                                                                        .showAndWait();
+                                                                                 showError(localize("dialog.error.connectionFailed"));
                                                                              }
 
                                                                              startFinalizer();

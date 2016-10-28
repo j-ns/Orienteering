@@ -34,7 +34,7 @@ import java.util.function.Predicate;
 
 public class MultiValidator<T> {
 
-    private List<Validator<T>> validators = new ArrayList<>();
+    private List<SingleValidator<T>> validators = new ArrayList<>();
 
     public MultiValidator() {
     }
@@ -44,11 +44,15 @@ public class MultiValidator<T> {
     }
 
     public void addCheck(Predicate<T> predicate, String errorMessage) {
-        validators.add(new Validator<T>(predicate, errorMessage));
+        validators.add(new SingleValidator<T>(predicate, errorMessage));
+    }
+
+    public void addValidator(SingleValidator<T> validator) {
+        validators.add(validator);
     }
 
     public boolean check(T obj) {
-        for (Validator<T> validator : validators) {
+        for (SingleValidator<T> validator : validators) {
             if (!validator.check(obj)) {
                 return false;
             }

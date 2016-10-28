@@ -69,11 +69,11 @@ public class StartPresenter extends BasePresenter {
     protected void onShown() {
         super.onShown();
 
-        PauseTransition pause = new PauseTransition(Duration.seconds(0.5));
+        PauseTransition pause = new PauseTransition(Duration.seconds(1));
         pause.setOnFinished(e ->
         {
             if (service.isInitialized()) {
-                postInit();
+                showHomeView();
             }
         });
         pause.play();
@@ -83,20 +83,12 @@ public class StartPresenter extends BasePresenter {
             {
                 if (b1) {
                     if (pause.getStatus() != Status.RUNNING) {
-                        postInit();
+                        showHomeView();
                     }
                 }
             });
         }
 
-    }
-
-    private void postInit() {
-        showHomeView();
-
-        Navigation navigationDrawer = ViewRegistry.getNavigation();
-        navigationDrawer.aliasProperty().bind(service.aliasProperty());
-        navigationDrawer.profileImageProperty().bind(service.profileImageProperty());
     }
 
 }

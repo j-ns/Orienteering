@@ -51,7 +51,11 @@ public class MissionCache extends ModelCache<Mission> {
     }
 
     public GluonObservableList<Task> retrieveMissionTasksOrdered(String missionId) {
-        if (!missionId.equals(selectedMissionId)) {
+        if (missionId.equals(activeMissionId)) {
+            missionTasks = GluonObservables.newListInitialized(activeMissionTasks);
+            selectedMissionId = missionId;
+
+        } else if (!missionId.equals(selectedMissionId)) {
             clearTasks();
         }
 
@@ -71,6 +75,10 @@ public class MissionCache extends ModelCache<Mission> {
     }
 
     public void setActiveMissionTasks(List<Task> tasks, String activeMissionId) {
+        for (int idx = 0; idx < tasks.size(); idx++) {
+            tasks.get(idx).setOrderNumber(idx);
+        }
+
         activeMissionTasks = GluonObservables.newListInitialized(tasks);
         this.activeMissionId = activeMissionId;
     }
@@ -175,5 +183,9 @@ public class MissionCache extends ModelCache<Mission> {
 
     public void clearActiveMissionTasks() {
         activeMissionTasks = GluonObservables.newListInitialized();
+    }
+
+    public boolean isInitialized() {
+        return activeMissionTasks != null;
     }
 }

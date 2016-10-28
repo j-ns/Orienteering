@@ -36,15 +36,10 @@ import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.gluonhq.connect.GluonObservable;
 import com.gluonhq.connect.GluonObservableList;
-import com.gluonhq.connect.GluonObservableObject;
 import com.jns.orienteering.model.persisted.City;
-import com.jns.orienteering.model.persisted.LocalCityList;
 import com.jns.orienteering.model.repo.AsyncResultReceiver;
-import com.jns.orienteering.model.repo.BaseUrls;
 import com.jns.orienteering.model.repo.CityFBRepo;
-import com.jns.orienteering.model.repo.LocalRepo;
 import com.jns.orienteering.model.repo.RepoService;
 import com.jns.orienteering.util.GluonObservables;
 
@@ -58,41 +53,25 @@ import javafx.collections.transformation.SortedList;
  */
 public class CityCache {
 
-    private static final Logger            LOGGER        = LoggerFactory.getLogger(CityCache.class);
+    private static final Logger       LOGGER        = LoggerFactory.getLogger(CityCache.class);
 
-    public static final CityCache          INSTANCE      = new CityCache();
+    public static final CityCache     INSTANCE      = new CityCache();
 
-    private CityFBRepo                     cloudRepo     = RepoService.INSTANCE.getCloudRepo(City.class);
-    private LocalRepo<City, LocalCityList> localRepo     = RepoService.INSTANCE.getLocalRepo(City.class);
+    private CityFBRepo                cloudRepo     = RepoService.INSTANCE.getCloudRepo(City.class);
+    // private LocalRepo<City, LocalCityList> localRepo = RepoService.INSTANCE.getLocalRepo(City.class);
 
-    private String                         userId;
-    private Map<String, City>              cityIds       = new HashMap<>();                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         // publicIds?
-    private Map<String, City>              userCityIds   = new HashMap<>();                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         // privateIds?
+    private String                    userId;
+    private Map<String, City>         cityIds       = new HashMap<>();                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   // publicIds?
+    private Map<String, City>         userCityIds   = new HashMap<>();                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   // privateIds?
 
-    private GluonObservableList<City>      publicCities  = new GluonObservableList<>();
-    private GluonObservableList<City>      privateCities = new GluonObservableList<>();
+    private GluonObservableList<City> publicCities  = new GluonObservableList<>();
+    private GluonObservableList<City> privateCities = new GluonObservableList<>();
 
-    private SortedList<City>               citiesSorted;
+    private SortedList<City>          citiesSorted;
 
-    private boolean                        initialized;
+    private boolean                   initialized;
 
     private CityCache() {
-    }
-
-    public GluonObservable createMappingFromLocalData(String userId) {
-        GluonObservableObject<Object> obsInitialized = new GluonObservableObject<>();
-
-        GluonObservableList<City> obsCities = localRepo.retrieveListAsync(BaseUrls.CITIES);
-        AsyncResultReceiver.create(obsCities)
-                           .defaultProgressLayer()
-                           .onSuccess(result ->
-                           {
-                               createMapping(result, userId);
-                               GluonObservables.setInitialized(obsInitialized);
-                           })
-                           .start();
-
-        return obsInitialized;
     }
 
     public void createMapping(List<City> cities, String userId) {

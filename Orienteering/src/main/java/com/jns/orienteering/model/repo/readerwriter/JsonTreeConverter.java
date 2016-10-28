@@ -61,10 +61,11 @@ public class JsonTreeConverter<T> extends InputStreamIterableInputConverter<T> i
         try (JsonReader reader = JsonUtil.createJsonReader(getInputStream())) {
             tree = reader.readObject();
 
-        } catch (JsonParsingException e) {
-            LOGGER.error("Failed  to parse json for class: {}", targetClass, e);
+        } catch (JsonParsingException ex) {
+            LOGGER.error("Failed  to parse json for class: {}", targetClass, ex);
             return Collections.emptyIterator();
         }
+        LOGGER.debug("payload: {}", tree);
         iterator = tree.keySet().iterator();
         return this;
     }

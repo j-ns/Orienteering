@@ -47,16 +47,16 @@ import com.jns.orienteering.model.repo.readerwriter.RestMapReader;
 
 public class TaskFBRepo extends FireBaseRepo<Task> {
 
-    private NameLookupFBRepo<TaskNameLookup>           namelookupRepo           = new NameLookupFBRepo<>(TaskNameLookup.class, TASK_NAMES);
+    private NameLookupFBRepo<TaskNameLookup>           namelookupRepo     = new NameLookupFBRepo<>(TaskNameLookup.class, TASK_NAMES);
 
-    private CityLookupFBRepo<CityTaskLookup, Task>     cityLookupRepo           =
+    private CityLookupFBRepo<CityTaskLookup, Task>     cityLookupRepo     =
             new CityLookupFBRepo<>(CityTaskLookup.class, Task.class, TASKS_BY_CITY, TASKS);
 
-    private MultiValueLookupRepo<TasksByMissionLookup> tasksLookupRepo          =
+    private MultiValueLookupRepo<TasksByMissionLookup> tasksLookupRepo    =
             new MultiValueLookupRepo<>(TasksByMissionLookup.class, TASKS_BY_MISSION);
 
     private MissionsByTaskRepo                         missionsByTaskRepo = RepoService.INSTANCE.getCloudRepo(MissionsByTaskLookup.class);
-    private MissionStatFBRepo                          missionStatRepo     = RepoService.INSTANCE.getCloudRepo(MissionStat.class);
+    private MissionStatFBRepo                          missionStatRepo    = RepoService.INSTANCE.getCloudRepo(MissionStat.class);
 
     public TaskFBRepo() {
         super(Task.class, TASKS);
@@ -107,7 +107,8 @@ public class TaskFBRepo extends FireBaseRepo<Task> {
             if (task.cityChanged() || task.accessTypeChanged()) {
                 cityLookupRepo.recreateCityLookup(new CityTaskLookup(task));
             }
-            // todo:
+            // todo: update mission, when task changed
+
             // if (task.locationChanged) {
             // MissionsByTaskLookup missionsLookup = missionsLookupRepo.retrieveObject(task.getId());
             // if (missionsLookup != null) {

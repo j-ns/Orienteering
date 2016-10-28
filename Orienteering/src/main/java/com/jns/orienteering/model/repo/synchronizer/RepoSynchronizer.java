@@ -29,6 +29,7 @@
 package com.jns.orienteering.model.repo.synchronizer;
 
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 import org.slf4j.Logger;
@@ -37,6 +38,7 @@ import org.slf4j.LoggerFactory;
 import com.gluonhq.charm.down.common.SettingService;
 import com.gluonhq.connect.ConnectState;
 import com.jns.orienteering.model.common.CountProperty;
+import com.jns.orienteering.model.repo.ChangeLogRepo;
 import com.jns.orienteering.platform.PlatformProvider;
 
 import javafx.beans.property.ObjectProperty;
@@ -52,7 +54,7 @@ public class RepoSynchronizer {
 
     private SettingService                            settingService       = PlatformProvider.getPlatform().getSettingService();
 
-    private Map<String, BaseSynchronizer<?, ?>>       synchronizers        = new HashMap<>();
+    private Map<String, BaseSynchronizer<?, ?>>       synchronizers        = new LinkedHashMap<>();
     private SyncMetaData                              syncMetaData;
 
     private CountProperty                             pendingSynchronizers = new CountProperty();
@@ -60,6 +62,10 @@ public class RepoSynchronizer {
     private Map<String, ChangeListener<ConnectState>> syncStateListeners   = new HashMap<>();
 
     public RepoSynchronizer() {
+        init();
+    }
+
+    private void init() {
         pendingSynchronizers.addListener(l ->
         {
             LOGGER.debug("pendingSynchronizers: {}", pendingSynchronizers.get());
@@ -71,6 +77,11 @@ public class RepoSynchronizer {
                 if (pendingSynchronizers.succeeded()) {
                     syncState.set(ConnectState.SUCCEEDED);
                     storeLastSyncedTimeStamp(syncMetaData.getCurrentTimeStamp());
+
+                    if (!syncMetaData.isSyncedToday()) {
+                        ChangeLogRepo.getInstance().cleanLog();
+                    }
+
                 } else {
                     syncState.set(ConnectState.FAILED);
                 }
@@ -80,7 +91,7 @@ public class RepoSynchronizer {
         });
     }
 
-    public ReadOnlyObjectProperty<ConnectState> syncStateProperty() {
+    public final ReadOnlyObjectProperty<ConnectState> syncStateProperty() {
         return syncState;
     }
 
@@ -91,6 +102,7 @@ public class RepoSynchronizer {
     public void syncNow(SyncMetaData syncMetaData) {
         this.syncMetaData = syncMetaData;
         syncMetaData.setLastSynced(getLastSyncedTimeStamp());
+        syncMetaData.checkIfCompleteRefreshIsNeeded();
 
         LOGGER.debug("lastSyncTimeStamp: {}", syncMetaData.getLastSynced());
 

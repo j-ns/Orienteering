@@ -41,12 +41,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.gluonhq.charm.down.common.cache.Cache;
-import com.gluonhq.connect.GluonObservableList;
 import com.gluonhq.connect.GluonObservableObject;
 import com.google.cloud.storage.StorageException;
 import com.jns.orienteering.model.persisted.ChangeLogEntry;
 import com.jns.orienteering.platform.PlatformProvider;
 
+import javafx.collections.ObservableList;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 
@@ -200,7 +200,7 @@ public class ImageHandler {
         });
     }
 
-    public static void removeFromCacheAsync(GluonObservableList<ChangeLogEntry> changeLog) {
+    public static void removeFromCacheAsync(ObservableList<ChangeLogEntry> changeLog) {
         if (isNullOrEmpty(changeLog)) {
             return;
         }

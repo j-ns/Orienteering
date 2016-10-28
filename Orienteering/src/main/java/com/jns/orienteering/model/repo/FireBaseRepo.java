@@ -34,8 +34,6 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -276,11 +274,7 @@ public class FireBaseRepo<T extends Model> {
     }
 
     public long createTimeStamp() {
-        ZonedDateTime now = ZonedDateTime.now(ZoneId.systemDefault());
-        long epochDay = now.toLocalDate().toEpochDay();
-        long secs = epochDay * 86400 + now.toLocalTime().toSecondOfDay();
-        secs -= now.getOffset().getTotalSeconds();
-        return secs;
+        return TimeStampCreator.timeStamp();
     }
 
     protected ChangeLogRepo getChangeLogRepo() {

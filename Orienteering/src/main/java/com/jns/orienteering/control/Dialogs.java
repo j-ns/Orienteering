@@ -54,6 +54,22 @@ public class Dialogs {
         return ok(lblTitle, content);
     }
 
+    public static void showError(String title) {
+        ok(title).showAndWait();
+    }
+
+    public static void showError(Message message) {
+        ok(message).showAndWait();
+    }
+
+    public static void showInfo(String title) {
+        ok(title).showAndWait();
+    }
+
+    public static void showInfo(Message message) {
+        ok(message).showAndWait();
+    }
+
     public static Dialog<ButtonType> ok(String title) {
         return ok(new Label(title), contentPlaceHolder(title));
     }
