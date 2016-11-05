@@ -70,7 +70,7 @@ public class CitiesPresenter extends BasePresenter {
     private BaseService                    service;
     private CityFBRepo                     cloudRepo;
     private LocalRepo<City, LocalCityList> localRepo;
-    private CityCache                 localCityCache     = CityCache.INSTANCE;
+    private CityCache                      localCityCache     = CityCache.INSTANCE;
 
     @Override
     protected void initialize() {
@@ -83,9 +83,9 @@ public class CitiesPresenter extends BasePresenter {
         tglAccessType.setOnAction(() -> populateListView());
 
         lview.getPlaceHolder().textProperty().bind(new When(service.userProperty()
-                                                           .isNull().and(tglAccessType.selectedProperty().not()))
-                                                                                                                 .then(USER_NOT_SIGNED_IN)
-                                                                                                                 .otherwise(NO_CITY_EXISTING));
+                                                                   .isNull().and(tglAccessType.selectedProperty().not()))
+                                                                                                                         .then(USER_NOT_SIGNED_IN)
+                                                                                                                         .otherwise(NO_CITY_EXISTING));
 
         lview.setComparator(City::compareTo);
         lview.setOnSelection(this::onSelect);

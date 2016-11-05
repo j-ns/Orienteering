@@ -137,11 +137,11 @@ public class AndroidPlatform implements PlatformService {
 
     @Override
     public NodePositionAdjuster getNodePositionAdjuster(Parent parent, ObservableValue<Node> focusOwner) {
-//        if (nodePositionAdjuster == null) {
-//            nodePositionAdjuster = new AndroidNodePositionAdjuster(parent, focusOwner);
-//        } else {
-//            nodePositionAdjuster.update(parent, focusOwner);
-//        }
+        // if (nodePositionAdjuster == null) {
+        // nodePositionAdjuster = new AndroidNodePositionAdjuster(parent, focusOwner);
+        // } else {
+        // nodePositionAdjuster.update(parent, focusOwner);
+        // }
         return nodePositionAdjuster;
     }
 

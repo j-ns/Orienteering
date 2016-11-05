@@ -81,7 +81,7 @@ public class StartView extends SplashView {
     }
 
     protected void onShown() {
-        PauseTransition pause = new PauseTransition(Duration.seconds(1));
+        PauseTransition pause = new PauseTransition(Duration.seconds(2));
         pause.setOnFinished(e ->
         {
             if (service.isInitialized()) {

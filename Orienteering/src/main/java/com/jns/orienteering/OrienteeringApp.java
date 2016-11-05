@@ -28,6 +28,8 @@
 package com.jns.orienteering;
 
 import com.gluonhq.charm.glisten.application.MobileApplication;
+import com.jns.orienteering.control.ProgressLayer;
+import com.jns.orienteering.platform.PlatformProvider;
 import com.jns.orienteering.view.StartView;
 import com.jns.orienteering.view.ViewRegistry;
 
@@ -45,11 +47,17 @@ public class OrienteeringApp extends MobileApplication {
         ViewRegistry.registerView(this, SPLASH_VIEW, () -> new StartView());
         ViewRegistry.registerViews(this);
         ViewRegistry.registerNavigation(this);
+
+        MobileApplication.getInstance().addLayerFactory(ProgressLayer.DEFAULT_LAYER_NAME, ProgressLayer::new);
+
+        PlatformProvider.getPlatformService().checkPermissions();
     }
 
     @Override
     public void postInit(Scene scene) {
         scene.getStylesheets().add(getClass().getResource("/com/jns/orienteering/base.css").toExternalForm());
         scene.getStylesheets().add(getClass().getResource("/com/jns/orienteering/application.css").toExternalForm());
+        // Stage stage = (Stage) scene.getWindow();
+        // stage.setOnCloseRequest(e -> ImageHandler.shutdownExecutor());
     }
 }
