@@ -88,7 +88,7 @@ public class Navigation {
         boxHeader.setOnMouseClicked(e ->
         {
             MobileApplication.getInstance().hideLayer(NAVIGATION_DRAWER);
-            MobileApplication.getInstance().switchView(ViewRegistry.USER.getViewName(), ViewStackPolicy.SKIP);
+            MobileApplication.getInstance().switchView(ViewRegistry.USER.getViewName());
         });
         return boxHeader;
     }
