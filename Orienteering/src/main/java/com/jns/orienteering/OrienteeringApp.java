@@ -48,7 +48,7 @@ public class OrienteeringApp extends MobileApplication {
         ViewRegistry.registerViews(this);
         ViewRegistry.registerNavigation(this);
 
-        MobileApplication.getInstance().addLayerFactory(ProgressLayer.DEFAULT_LAYER_NAME, ProgressLayer::new);
+        addLayerFactory(ProgressLayer.DEFAULT_LAYER_NAME, ProgressLayer::new);
 
         PlatformProvider.getPlatformService().checkPermissions();
     }
