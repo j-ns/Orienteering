@@ -43,12 +43,12 @@ import java.util.Arrays;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.gluonhq.charm.down.common.SettingService;
+import com.gluonhq.charm.down.Services;
+import com.gluonhq.charm.down.plugins.SettingsService;
 import com.gluonhq.connect.GluonObservableList;
 import com.jns.orienteering.model.persisted.ChangeLogEntry;
 import com.jns.orienteering.model.persisted.RepoAction;
 import com.jns.orienteering.model.persisted.Synchronizable;
-import com.jns.orienteering.platform.PlatformProvider;
 
 public class ChangeLogRepo extends FireBaseRepo<ChangeLogEntry> {
 
@@ -56,7 +56,8 @@ public class ChangeLogRepo extends FireBaseRepo<ChangeLogEntry> {
 
     private static final String   LAST_CLEAN_UP_PROPERTY = "last_clean_up";
 
-    private static SettingService settingService         = PlatformProvider.getPlatform().getSettingService();
+    private static SettingsService settingService         = Services.get(SettingsService.class).orElseThrow(() -> new IllegalStateException(
+                                                                                                                                           "Failed to get SettingsService"));
 
     private static ChangeLogRepo  instance;
 

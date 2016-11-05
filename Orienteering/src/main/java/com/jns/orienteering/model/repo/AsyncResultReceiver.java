@@ -39,12 +39,11 @@ import java.util.function.Consumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.gluonhq.charm.glisten.application.MobileApplication;
 import com.gluonhq.connect.ConnectState;
 import com.gluonhq.connect.GluonObservable;
-import com.jns.orienteering.control.Dialogs;
 import com.jns.orienteering.control.Message;
 import com.jns.orienteering.control.ProgressLayer;
-import com.jns.orienteering.control.ProgressLayer.PauseFadeInHide;
 import com.jns.orienteering.model.common.CountProperty;
 import com.jns.orienteering.util.GluonObservables;
 import com.jns.orienteering.util.Trigger;
@@ -53,21 +52,22 @@ import javafx.beans.value.ChangeListener;
 
 public class AsyncResultReceiver<T extends GluonObservable> {
 
-    private static final Logger                                      LOGGER                 = LoggerFactory.getLogger(AsyncResultReceiver.class);
+    private static final Logger                                      LOGGER              = LoggerFactory.getLogger(AsyncResultReceiver.class);
 
-    private static final ProgressLayer                               DEFAULT_PROGRESS_LAYER = new ProgressLayer(PauseFadeInHide::new);
-    private static CountProperty                                     runningInstances       = new CountProperty();
+    private static final MobileApplication                           APPLICATION         = MobileApplication.getInstance();
+
+    private static CountProperty                                     runningInstances    = new CountProperty();
 
     private T                                                        observable;
-    private Optional<Consumer<T>>                                    consumer               = Optional.empty();
+    private Optional<Consumer<T>>                                    consumer            = Optional.empty();
 
-    private Optional<ProgressLayer>                                  progressLayer          = Optional.empty();
-    private Optional<GluonObservable>                                initializeOnSuccess    = Optional.empty();
-    private Optional<Consumer<Throwable>>                            onException            = Optional.empty();
-    private Optional<Message>                                        exceptionMessage       = Optional.empty();
-    private Optional<Consumer<T>>                                    finalizer              = Optional.empty();
+    private Optional<String>                                         progressLayerName   = Optional.empty();
+    private Optional<GluonObservable>                                initializeOnSuccess = Optional.empty();
+    private Optional<Consumer<Throwable>>                            onException         = Optional.empty();
+    private Optional<Message>                                        exceptionMessage    = Optional.empty();
+    private Optional<Consumer<T>>                                    finalizer           = Optional.empty();
 
-    private Optional<AsyncResultReceiver<? extends GluonObservable>> next                   = Optional.empty();
+    private Optional<AsyncResultReceiver<? extends GluonObservable>> next                = Optional.empty();
 
     private AsyncResultReceiver(T observable) {
         this.observable = observable;
@@ -78,12 +78,12 @@ public class AsyncResultReceiver<T extends GluonObservable> {
     }
 
     public AsyncResultReceiver<T> defaultProgressLayer() {
-        this.progressLayer = Optional.of(DEFAULT_PROGRESS_LAYER);
+        this.progressLayerName = Optional.of(ProgressLayer.DEFAULT_LAYER_NAME);
         return this;
     }
 
     public AsyncResultReceiver<T> progressLayer(ProgressLayer progressLayer) {
-        this.progressLayer = Optional.of(progressLayer);
+        this.progressLayerName = Optional.of(progressLayer.getLayerName());
         return this;
     }
 
@@ -154,7 +154,7 @@ public class AsyncResultReceiver<T extends GluonObservable> {
             observable.initializedProperty().addListener(initializedListener);
             observable.exceptionProperty().addListener(exceptionListener);
 
-            progressLayer.ifPresent(ProgressLayer::show);
+            progressLayerName.ifPresent(APPLICATION::showLayer);
         }
     }
 
@@ -192,7 +192,7 @@ public class AsyncResultReceiver<T extends GluonObservable> {
                                                                          if (ex1 != null) {
                                                                              LOGGER.error("AsyncRestultReceiver exception:", ex1);
                                                                              onException.ifPresent(c -> c.accept(ex1));
-                                                                             exceptionMessage.ifPresent(msg -> Dialogs.ok(msg).showAndWait());
+                                                                             exceptionMessage.ifPresent(msg -> showError(msg));
 
                                                                              if (ex1 instanceof UnknownHostException ||
                                                                                      ex1 instanceof ConnectException) {
@@ -211,8 +211,7 @@ public class AsyncResultReceiver<T extends GluonObservable> {
 
         if (!next.isPresent()) {
             if (runningInstances.get() == 0) {
-                progressLayer.ifPresent(ProgressLayer::hide);
-                DEFAULT_PROGRESS_LAYER.hide();
+                progressLayerName.ifPresent(APPLICATION::hideLayer);
             }
         } else {
             next.get().start();

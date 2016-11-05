@@ -33,7 +33,7 @@ import static com.jns.orienteering.control.Dialogs.showInfo;
 
 import javax.inject.Inject;
 
-import com.gluonhq.charm.down.common.JavaFXPlatform;
+import com.gluonhq.charm.down.Platform;
 import com.gluonhq.charm.glisten.control.Avatar;
 import com.gluonhq.connect.GluonObservable;
 import com.gluonhq.connect.GluonObservableObject;
@@ -104,7 +104,7 @@ public class UserPresenter extends BasePresenter {
         initValidators();
         userCloudRepo = service.getRepoService().getCloudRepo(User.class);
 
-        if (JavaFXPlatform.isDesktop()) {
+        if (Platform.isDesktop()) {
             view.addEventHandler(KeyEvent.KEY_RELEASED, evt ->
             {
                 if (evt.getCode() == KeyCode.ESCAPE) {

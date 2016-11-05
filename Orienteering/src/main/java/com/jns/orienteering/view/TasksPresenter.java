@@ -29,6 +29,7 @@
 package com.jns.orienteering.view;
 
 import static com.jns.orienteering.control.Dialogs.confirmDeleteAnswer;
+import static com.jns.orienteering.control.Dialogs.showInfo;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -37,7 +38,6 @@ import com.gluonhq.charm.glisten.layout.MobileLayoutPane;
 import com.gluonhq.charm.glisten.layout.layer.FloatingActionButton;
 import com.gluonhq.connect.GluonObservableList;
 import com.gluonhq.connect.GluonObservableObject;
-import com.jns.orienteering.control.Dialogs;
 import com.jns.orienteering.control.Icon;
 import com.jns.orienteering.control.cell.TaskCellSmall;
 import com.jns.orienteering.model.dynamic.MissionCache;
@@ -182,20 +182,20 @@ public class TasksPresenter extends ListViewPresenter<Task> {
         Platform.runLater(() ->
         {
             if (!task.getOwnerId().equals(service.getUserId())) {
-                Dialogs.ok(localize("view.tasks.info.taskCanOnlyBeDeletedByOwner")).showAndWait();
+                showInfo(localize("view.tasks.info.taskCanOnlyBeDeletedByOwner"));
                 return;
             }
             if (!confirmDeleteAnswer(localize("view.tasks.question.deleteTask")).isYesOrOk()) {
                 return;
             }
-    
+
             GluonObservableObject<Task> obsTask = cloudRepo.deleteTaskAsync(task);
             AsyncResultReceiver.create(obsTask)
                                .defaultProgressLayer()
                                .onSuccess(e ->
                                {
                                    taskCache.removeItem(task);
-    
+
                                    if (service.activeMissionContainsTask(task)) {
                                        service.setActiveMission(null);
                                    }

@@ -40,14 +40,20 @@ import org.slf4j.LoggerFactory;
 
 import com.jns.orienteering.util.DateTimeFormatters;
 
+import android.Manifest;
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.media.Ringtone;
 import android.media.RingtoneManager;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Environment;
 import android.os.Vibrator;
 import android.provider.MediaStore;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ObservableValue;
@@ -58,12 +64,18 @@ import javafxports.android.FXActivity;
 
 public class AndroidPlatform implements PlatformService {
 
-    private static final Logger     LOGGER           = LoggerFactory.getLogger(AndroidPlatform.class);
+    private static final Logger     LOGGER                       = LoggerFactory.getLogger(AndroidPlatform.class);
 
-    private static final long[]     VIBRATOR_PATTERN = { 0, 1000, 500, 1000 };
+    private static final long[]     VIBRATOR_PATTERN             = { 0, 1000, 500, 1000 };
 
-    private static final int        SELECT_PICTURE   = 1;
-    private static final int        TAKE_PICTURE     = 2;
+    private static final int        SELECT_PICTURE               = 1;
+    private static final int        TAKE_PICTURE                 = 2;
+
+    private static final int        MARSHMALLOW                  = 23;
+
+    private static final String     KEY_PERMISSIONS              = "permissions";
+    private static final String     KEY_REQUEST_CODE             = "requestCode";
+    private static final int        REQUEST_CODE_ASK_PERMISSIONS = 246;
 
     private Storage                 storage;
 
@@ -81,6 +93,22 @@ public class AndroidPlatform implements PlatformService {
 
     public AndroidPlatform() {
         super();
+    }
+
+    @Override
+    public void checkPermissions() {
+        if (Build.VERSION.SDK_INT >= MARSHMALLOW) {
+            FXActivity activity = FXActivity.getInstance();
+
+            if (ContextCompat.checkSelfPermission(activity, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+                Intent permIntent = new Intent(activity, PermissionRequestActivity.class);
+                permIntent.putExtra(KEY_PERMISSIONS, new String[] { Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.CAMERA,
+                        Manifest.permission.INTERNET });
+                permIntent.putExtra(KEY_REQUEST_CODE, 11111);
+                activity.startActivityForResult(permIntent, REQUEST_CODE_ASK_PERMISSIONS);
+                return;
+            }
+        }
     }
 
     @Override
@@ -109,11 +137,11 @@ public class AndroidPlatform implements PlatformService {
 
     @Override
     public NodePositionAdjuster getNodePositionAdjuster(Parent parent, ObservableValue<Node> focusOwner) {
-        if (nodePositionAdjuster == null) {
-            nodePositionAdjuster = new AndroidNodePositionAdjuster(parent, focusOwner);
-        } else {
-            nodePositionAdjuster.update(parent, focusOwner);
-        }
+//        if (nodePositionAdjuster == null) {
+//            nodePositionAdjuster = new AndroidNodePositionAdjuster(parent, focusOwner);
+//        } else {
+//            nodePositionAdjuster.update(parent, focusOwner);
+//        }
         return nodePositionAdjuster;
     }
 
@@ -255,6 +283,27 @@ public class AndroidPlatform implements PlatformService {
             storageDir.mkdirs();
         }
         return File.createTempFile(imageFileName, ".jpg", storageDir);
+    }
+
+    public static class PermissionRequestActivity extends Activity {
+
+        private String[] permissions;
+        private int      requestCode;
+
+        @Override
+        public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
+            FXActivity.getInstance().onRequestPermissionsResult(requestCode, permissions, grantResults);
+            finish();
+        }
+
+        @Override
+        protected void onStart() {
+            super.onStart();
+            permissions = this.getIntent().getStringArrayExtra(KEY_PERMISSIONS);
+            requestCode = this.getIntent().getIntExtra(KEY_REQUEST_CODE, 0);
+
+            ActivityCompat.requestPermissions(this, permissions, requestCode);
+        }
     }
 
 }

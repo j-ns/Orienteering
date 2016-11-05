@@ -27,12 +27,13 @@
  */
 package com.jns.orienteering.view;
 
+import static com.jns.orienteering.control.Dialogs.showInfo;
+
 import javax.inject.Inject;
 
 import com.gluonhq.connect.GluonObservableList;
 import com.gluonhq.connect.GluonObservableObject;
 import com.jns.orienteering.common.BaseService;
-import com.jns.orienteering.control.Dialogs;
 import com.jns.orienteering.control.ListViewExtended;
 import com.jns.orienteering.control.cell.RankingCell;
 import com.jns.orienteering.control.cell.StatCell;
@@ -157,7 +158,7 @@ public class ReportPresenter extends BasePresenter {
                                } else {
                                    missionStatRepo.deleteStatByUserAsync(service.getUserId(), stat.getMissionId());
 
-                                   Dialogs.ok(localize("view.report.info.statDeletedBecauseOfMissionUpdate")).showAndWait();
+                                   showInfo(localize("view.report.info.statDeletedBecauseOfMissionUpdate"));
 
                                    lviewMissionStats.getListUpdater().remove(stat);
                                    lviewMissionStat.setItems(FXCollections.emptyObservableList());

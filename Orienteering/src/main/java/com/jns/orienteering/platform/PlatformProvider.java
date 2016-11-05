@@ -31,25 +31,34 @@ package com.jns.orienteering.platform;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.gluonhq.charm.down.common.JavaFXPlatform;
-import com.gluonhq.charm.down.common.Platform;
-import com.gluonhq.charm.down.common.PlatformFactory;
+import com.gluonhq.charm.down.Platform;
 
 public class PlatformProvider {
+    private static final Logger    LOGGER          = LoggerFactory.getLogger(PlatformProvider.class);
 
-    private static final Logger    LOGGER = LoggerFactory.getLogger(PlatformProvider.class);
+    private static final String    JAVAFX_PLATFORM = "javafx.platform";
 
     private static PlatformService platformService;
-    private static Platform        platform;
 
     private PlatformProvider() {
     }
 
-    public static Platform getPlatform() {
-        if (platform == null) {
-            platform = PlatformFactory.getPlatform();
+    public static PlatformService getPlatformService(String platform) {
+        switch (platform) {
+            case "android":
+                System.setProperty(JAVAFX_PLATFORM, "android");
+                break;
+            case "desktop":
+                System.setProperty(JAVAFX_PLATFORM, "desktop");
+                break;
+            case "ios":
+                System.setProperty(JAVAFX_PLATFORM, "ios");
+                break;
+            default:
+                throw new IllegalArgumentException("Unknown platform");
+
         }
-        return platform;
+        return getPlatformService();
     }
 
     public static PlatformService getPlatformService() {
@@ -65,13 +74,13 @@ public class PlatformProvider {
     }
 
     private static String getPlatformClassName() {
-        switch (JavaFXPlatform.getCurrent()) {
-            case DESKTOP:
-                return "com.jns.orienteering.platform.DesktopPlatform";
-            case IOS:
-                throw new UnsupportedOperationException("IOS platform not implemented yet");
-            default:
-                return "com.jns.orienteering.platform.AndroidPlatform";
+        if (Platform.isDesktop()) {
+            return "com.jns.orienteering.platform.DesktopPlatform";
+        } else if (Platform.isAndroid()) {
+            return "com.jns.orienteering.platform.AndroidPlatform";
+        } else if (Platform.isIOS()) {
+            throw new UnsupportedOperationException("IOS platform not implemented yet");
         }
+        throw new UnsupportedOperationException("unsupported platform");
     }
 }

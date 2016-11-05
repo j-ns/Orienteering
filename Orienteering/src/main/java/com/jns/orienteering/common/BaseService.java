@@ -29,6 +29,7 @@
 
 package com.jns.orienteering.common;
 
+import static com.jns.orienteering.control.Dialogs.showInfo;
 import static com.jns.orienteering.locale.Localization.localize;
 import static com.jns.orienteering.model.repo.BaseUrls.CITIES;
 import static com.jns.orienteering.model.repo.BaseUrls.TASKS;
@@ -43,7 +44,6 @@ import com.gluonhq.charm.glisten.application.MobileApplication;
 import com.gluonhq.connect.ConnectState;
 import com.gluonhq.connect.GluonObservableList;
 import com.gluonhq.connect.GluonObservableObject;
-import com.jns.orienteering.control.Dialogs;
 import com.jns.orienteering.model.dynamic.CityCache;
 import com.jns.orienteering.model.dynamic.MissionCache;
 import com.jns.orienteering.model.persisted.ActiveTaskList;
@@ -167,8 +167,14 @@ public class BaseService {
         {
             LOGGER.debug("syncState: {}", st1);
             if (st1 == ConnectState.SUCCEEDED || st1 == ConnectState.FAILED) {
-                ensureCachesInitialized();
                 initialized.set(true);
+            }
+        });
+
+        initialized.addListener((obsValue, b, b1) ->
+        {
+            if (b1) {
+                ensureCachesInitialized();
             }
         });
 
@@ -232,8 +238,7 @@ public class BaseService {
 
             setDefaultCity(user.getDefaultCity());
             if (user.getDefaultCity() == null) {
-                Platform.runLater(() -> Dialogs.ok("baseService.info.selectDefaultCity")
-                                               .showAndWait());
+                Platform.runLater(() -> showInfo("baseService.info.selectDefaultCity"));
             }
 
             setActiveMission(user.getActiveMission());
@@ -286,6 +291,9 @@ public class BaseService {
 
         if (mission != null) {
             activeMissionName.set(mission.getMissionName());
+            if (isInitialized()) {
+                updateActiveTasks(mission);
+            }
 
         } else {
             activeMissionName.set(null);

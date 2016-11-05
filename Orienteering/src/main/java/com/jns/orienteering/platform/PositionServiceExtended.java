@@ -28,8 +28,8 @@
  */
 package com.jns.orienteering.platform;
 
-import com.gluonhq.charm.down.common.Position;
-import com.gluonhq.charm.down.common.PositionService;
+import com.gluonhq.charm.down.plugins.Position;
+import com.gluonhq.charm.down.plugins.PositionService;
 import com.jns.orienteering.control.ActivatableDeactivatable;
 
 public interface PositionServiceExtended extends PositionService, ActivatableDeactivatable{

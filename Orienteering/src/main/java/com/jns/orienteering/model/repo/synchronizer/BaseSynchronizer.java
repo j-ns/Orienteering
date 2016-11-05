@@ -117,11 +117,11 @@ public abstract class BaseSynchronizer<S extends Synchronizable, L> {
         this.onSynced = onSynced;
     }
 
-    public SyncMetaData getSyncMetaData() {
+    protected SyncMetaData getSyncMetaData() {
         return syncMetaData;
     }
 
-    public void setSyncMetaData(SyncMetaData syncMetaData) {
+    protected void setSyncMetaData(SyncMetaData syncMetaData) {
         this.syncMetaData = syncMetaData;
     }
 

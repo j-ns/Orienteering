@@ -1,13 +1,24 @@
 package com.jns.orienteering.platform;
 
-import com.gluonhq.charm.down.common.Position;
+import com.gluonhq.charm.down.Services;
+import com.gluonhq.charm.down.plugins.Position;
+import com.gluonhq.charm.down.plugins.SettingsService;
 
 public class PositionHelper {
 
-    private static final String   DEFAULT_POSITION_KEY = "default_position";
-    private static final String   START_POSITION_KEY   = "start_position";
+    private static final String          DEFAULT_POSITION_KEY = "default_position";
+    private static final String          START_POSITION_KEY   = "start_position";
 
-    private static final Position FRANKURT_AM_MAIN     = new Position(50.107180, 8.663756);
+    private static final Position        FRANKURT_AM_MAIN     = new Position(50.107180, 8.663756);
+
+    private static final SettingsService settingsService;
+
+    static {
+        settingsService = Services.get(SettingsService.class).orElseThrow(() -> new IllegalStateException("Failed to get SettingsService"));
+    }
+
+    private PositionHelper() {
+    }
 
     public static Position retrieveDefaultPosition() {
         return retrieve(DEFAULT_POSITION_KEY, FRANKURT_AM_MAIN);
@@ -32,7 +43,7 @@ public class PositionHelper {
     }
 
     private static Position retrieve(String key, Position defaultValue) {
-        String result = PlatformProvider.getPlatform().getSettingService().retrieve(key);
+        String result = settingsService.retrieve(key);
         if (result == null) {
             return defaultValue;
         }
@@ -40,7 +51,7 @@ public class PositionHelper {
     }
 
     private static void store(String key, Position position) {
-        PlatformProvider.getPlatform().getSettingService().store(key, toPositionString(position));
+        settingsService.store(key, toPositionString(position));
     }
 
     public static Position toPosition(String positionText) {

@@ -113,7 +113,7 @@ public class CitySynchronizer extends BaseSynchronizer<City, LocalCityList> {
                                                cityCache.put(cityFromCloud);
                                                localDataNeedsUpdate = true;
 
-                                               LOGGER.debug("added/udpated locally {}: {}", listIdentifier, cityFromCloud);
+                                               LOGGER.debug("city locally added/udpated  {}: {}", listIdentifier, cityFromCloud);
 
                                            } catch (IOException e) {
                                                // consume

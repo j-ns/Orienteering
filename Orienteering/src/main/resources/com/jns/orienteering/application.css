@@ -92,7 +92,7 @@
 
 .app-bar > .action-items> #sortIcon:selected{
 	-fx-background-color: -color-orange;	
-	-fx-background-radius: 25;
+	-fx-background-radius: 25.0;
 }
 
 .action-bar {
@@ -401,29 +401,33 @@
 	 -fx-background-color: -color-army-green51;
 }
 
-.dialog .label{
+.dialog > .container {
+	-fx-padding: 0.0 24.0 0.0 24.0;
 }
 
 .dialog-title.label{
-	-fx-padding: 0.0 24.0 0.0  24.0;
+	-fx-padding: 0.0 0.0 20.0  0.0;
 	-fx-font-family: "Roboto Medium";
 	-fx-font-size: 20.0;
 }
 
 .dialog-content{
-	-fx-padding: 20.0 24.0 24.0 24.0;
+	/*
+	 * 
+	 */
+	-fx-padding: 0.0 0 24 0;
 	-fx-font-size: 16.0;
 	-fx-effect: null;
 }
 
-.dialog-button-bar{
+.dialog > .dialog-button-bar{
 	-fx-padding: 8.0 8.0 8.0 24.0;
 	-fx-pref-height: 52.0;
 	-fx-spacing: 8.0;
 	-fx-alignment: center-right ;
 }
 
-.dialog-button-bar .button.flat{
+.dialog > .dialog-button-bar .button.flat{
 	-fx-background-color: null;
 	-fx-padding: 0.0 8.0 0.0 8.0;
 	-fx-min-width: 64.0;
@@ -434,7 +438,7 @@
 	-fx-effect: null;
 }
 
-.dialog-button-bar .button:hover{
+.dialog > .dialog-button-bar .button:hover{
 	-fx-background-color: null;
 }
 

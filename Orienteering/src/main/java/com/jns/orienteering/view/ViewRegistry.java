@@ -29,6 +29,8 @@ package com.jns.orienteering.view;
 
 import static com.jns.orienteering.locale.Localization.localize;
 
+import java.util.function.Supplier;
+
 import com.airhacks.afterburner.injection.Injector;
 import com.gluonhq.charm.glisten.application.MobileApplication;
 import com.gluonhq.charm.glisten.control.NavigationDrawer;
@@ -37,12 +39,10 @@ import com.gluonhq.charm.glisten.layout.layer.SidePopupView;
 import com.gluonhq.charm.glisten.mvc.View;
 import com.jns.orienteering.control.Icon;
 
-import javafx.beans.value.ChangeListener;
 import javafx.scene.Node;
 
 public enum ViewRegistry {
 
-    START("start", StartPresenter.class),
     HOME("home", HomePresenter.class),
     USER("user", UserPresenter.class),
     ACCOUNT("account", AccountPresenter.class),
@@ -69,7 +69,7 @@ public enum ViewRegistry {
         Injector.setInstanceSupplier(c ->
         {
             if (BasePresenter.class.isAssignableFrom(c)) {
-                return ViewRegistry.getPresenter(c);
+                return getPresenter(c);
             }
             return createInstance(c);
         });
@@ -100,13 +100,17 @@ public enum ViewRegistry {
         }
     }
 
-    public void registerView(MobileApplication app) {
+    private void registerView(MobileApplication app) {
         app.addViewFactory(viewId, () ->
         {
             View view = new BaseView(presenterClass).getView();
             view.setName(viewId);
             return view;
         });
+    }
+
+    public static void registerView(MobileApplication app, String viewName, Supplier<View> supplier) {
+        app.addViewFactory(viewName, supplier);
     }
 
     public static void registerNavigation(MobileApplication app) {
@@ -150,20 +154,10 @@ public enum ViewRegistry {
 
     public Item getMenuItem() {
         if (menuItem == null && menuGraphic != null) {
-            menuItem = new NavigationDrawer.Item(menuTitle, menuGraphic);
-            menuItem.selectedProperty().addListener(selectedItemListener);
+            menuItem = new NavigationDrawer.ViewItem(menuTitle, menuGraphic, viewId);
         }
         return menuItem;
     }
-
-    private ChangeListener<? super Boolean> selectedItemListener = (obsValue, b, b1) ->
-    {
-        if (b1) {
-            MobileApplication.getInstance().hideLayer(Navigation.NAVIGATION_DRAWER);
-            MobileApplication.getInstance().switchView(viewId);
-            menuItem.setSelected(false);
-        }
-    };
 
     private static String iconSize() {
         return "22";

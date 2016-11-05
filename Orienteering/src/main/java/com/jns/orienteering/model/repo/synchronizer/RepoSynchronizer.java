@@ -35,11 +35,11 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.gluonhq.charm.down.common.SettingService;
+import com.gluonhq.charm.down.Services;
+import com.gluonhq.charm.down.plugins.SettingsService;
 import com.gluonhq.connect.ConnectState;
 import com.jns.orienteering.model.common.CountProperty;
 import com.jns.orienteering.model.repo.ChangeLogRepo;
-import com.jns.orienteering.platform.PlatformProvider;
 
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
@@ -52,7 +52,9 @@ public class RepoSynchronizer {
 
     private static final String                       LAST_SYNCED_PROPERTY = "lastSync";
 
-    private SettingService                            settingService       = PlatformProvider.getPlatform().getSettingService();
+    private static final SettingsService              settingService       = Services.get(SettingsService.class).orElseThrow(
+                                                                                                                             () -> new IllegalStateException(
+                                                                                                                                                             "Failed to get SettingsService"));
 
     private Map<String, BaseSynchronizer<?, ?>>       synchronizers        = new LinkedHashMap<>();
     private SyncMetaData                              syncMetaData;
@@ -81,7 +83,6 @@ public class RepoSynchronizer {
                     if (!syncMetaData.isSyncedToday()) {
                         ChangeLogRepo.getInstance().cleanLog();
                     }
-
                 } else {
                     syncState.set(ConnectState.FAILED);
                 }

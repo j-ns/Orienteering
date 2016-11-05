@@ -62,6 +62,7 @@ public enum Icon {
     EDIT(FontAwesomeIcon.PENCIL),
     ELECTRICITY(OctIcon.PLUG),
     EXCLAMATION_CIRCLE(FontAwesomeIcon.EXCLAMATION_CIRCLE),
+    EXIT(FontAwesomeIcon.SIGN_OUT),
     EYE(FontAwesomeIcon.EYE),
     FILE(MaterialDesignIcon.FILE),
     FILE_DOWNLOAD(MaterialDesignIcon.DOWNLOAD),

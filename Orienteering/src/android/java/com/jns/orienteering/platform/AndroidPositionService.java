@@ -29,7 +29,7 @@ package com.jns.orienteering.platform;
 
 import java.util.List;
 
-import com.gluonhq.charm.down.common.Position;
+import com.gluonhq.charm.down.plugins.Position;
 
 import android.content.Context;
 import android.content.Intent;

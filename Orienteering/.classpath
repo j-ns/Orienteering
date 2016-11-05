@@ -35,22 +35,15 @@
 			<attribute name="FROM_GRADLE_MODEL" value="true"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="con" path="org.eclipse.fx.ide.jdt.core.JAVAFX_CONTAINER"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.8"/>
-	<classpathentry exported="true" kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry exported="true" kind="lib" path="C:/Users/jns/.gradle/caches/modules-2/files-2.1/com.airhacks/afterburner.mfx/1.6.2/ac4ebd50da2e6ca84859dc1d1e571277c87bc252/afterburner.mfx-1.6.2.jar" sourcepath="C:/Users/jns/.gradle/caches/modules-2/files-2.1/com.airhacks/afterburner.mfx/1.6.2/91e3185fd4170f2f954ddab25658563de094cc01/afterburner.mfx-1.6.2-sources.jar">
+	<classpathentry exported="true" kind="lib" path="C:/Users/jns/.gradle/caches/modules-2/files-2.1/org.javafxports/jfxdvk/8.60.8/8d3b1b00af28d49f41b41faf466821053c44819e/jfxdvk-8.60.8.jar" sourcepath="C:/Users/jns/.gradle/caches/modules-2/files-2.1/org.javafxports/jfxdvk/8.60.8/e68bb464cc8ae7ee287091041aeac39ae471abf/jfxdvk-8.60.8-sources.jar">
 		<attributes>
-			<attribute name="javadoc_location" value="jar:file:/C:/Users/jns/.gradle/caches/modules-2/files-2.1/com.airhacks/afterburner.mfx/1.6.2/41383febbe1688b4f2544c3ddf31b03be456f3f6/afterburner.mfx-1.6.2-javadoc.jar!/"/>
+			<attribute name="javadoc_location" value="jar:file:/C:/Users/jns/.gradle/caches/modules-2/files-2.1/org.javafxports/jfxdvk/8.60.8/e68bb464cc8ae7ee287091041aeac39ae471abf/jfxdvk-8.60.8-javadoc.jar!/"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry exported="true" kind="lib" path="C:/Users/jns/.gradle/caches/modules-2/files-2.1/com.gluonhq/charm/3.0.0/7a9f3485292b2a0086145063d393ed55b42a8a2b/charm-3.0.0.jar" sourcepath="/connect">
+	<classpathentry exported="true" kind="lib" path="C:/Users/jns/.gradle/caches/modules-2/files-2.1/com.gluonhq/charm/4.0.1/5a56688b91165f1d847d39222597488e7e2f58d6/charm-4.0.1.jar">
 		<attributes>
-			<attribute name="javadoc_location" value="jar:file:/C:/Users/jns/.gradle/caches/modules-2/files-2.1/com.gluonhq/charm/3.0.0/df8490f2737c40e534a1e6ea9240fb73a9cae48b/charm-3.0.0-javadoc.jar!/"/>
-		</attributes>
-	</classpathentry>
-	<classpathentry exported="true" kind="lib" path="C:/Users/jns/.gradle/caches/modules-2/files-2.1/org.javafxports/jfxdvk/8.60.6/b80bde82687687d2af450af3a863eb60defb51eb/jfxdvk-8.60.6.jar" sourcepath="C:/Users/jns/.gradle/caches/modules-2/files-2.1/org.javafxports/jfxdvk/8.60.6/3a5134fb45aac3905c724fd6a4104dab484ed8d3/jfxdvk-8.60.6-sources.jar">
-		<attributes>
-			<attribute name="javadoc_location" value="jar:file:/C:/Users/jns/.gradle/caches/modules-2/files-2.1/org.javafxports/jfxdvk/8.60.6/3a5134fb45aac3905c724fd6a4104dab484ed8d3/jfxdvk-8.60.6-javadoc.jar!/"/>
+			<attribute name="javadoc_location" value="jar:file:/C:/Users/jns/.gradle/caches/modules-2/files-2.1/com.gluonhq/charm/4.0.1/5378a97ded565fcceed8b1d8f6685fe704d1f600/charm-4.0.1-javadoc.jar!/"/>
 		</attributes>
 	</classpathentry>
 	<classpathentry exported="true" kind="lib" path="C:/Users/jns/.gradle/caches/modules-2/files-2.1/org.slf4j/slf4j-api/1.7.21/139535a69a4239db087de9bab0bee568bf8e0b70/slf4j-api-1.7.21.jar" sourcepath="C:/Users/jns/.gradle/caches/modules-2/files-2.1/org.slf4j/slf4j-api/1.7.21/f285ac123f201fb4b028bac556928d7cf527ef48/slf4j-api-1.7.21-sources.jar">
@@ -58,9 +51,34 @@
 			<attribute name="javadoc_location" value="jar:file:/C:/Users/jns/.gradle/caches/modules-2/files-2.1/org.slf4j/slf4j-api/1.7.21/72e00d8dc052190c5d0aca77f9a9c5124ec3a1c1/slf4j-api-1.7.21-javadoc.jar!/"/>
 		</attributes>
 	</classpathentry>
+	<classpathentry exported="true" kind="lib" path="C:/Users/jns/.gradle/caches/modules-2/files-2.1/com.google.cloud/google-cloud-storage/0.3.0/7dd94fa6e42a29cf64e7788851e404170f21d567/google-cloud-storage-0.3.0.jar" sourcepath="C:/Users/jns/.gradle/caches/modules-2/files-2.1/com.google.cloud/google-cloud-storage/0.3.0/3c4ba1be69e03e677d921b79b8c023da6eb53b61/google-cloud-storage-0.3.0-sources.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:file:/C:/Users/jns/.gradle/caches/modules-2/files-2.1/com.google.cloud/google-cloud-storage/0.3.0/7b8478e7a8780fdb3fe0e58be840edbe4c4353de/google-cloud-storage-0.3.0-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
 	<classpathentry exported="true" kind="lib" path="C:/Users/jns/.gradle/caches/modules-2/files-2.1/de.jensd/fontawesomefx/8.8/5e4e67aa922f3e9b5c3c5e29b0330f7186963bbc/fontawesomefx-8.8.jar" sourcepath="C:/Users/jns/.gradle/caches/modules-2/files-2.1/de.jensd/fontawesomefx/8.8/280ebde8e16c34c2f9e42a86c47e8def1e9e13f7/fontawesomefx-8.8-sources.jar">
 		<attributes>
 			<attribute name="javadoc_location" value="jar:file:/C:/Users/jns/.gradle/caches/modules-2/files-2.1/de.jensd/fontawesomefx/8.8/308f677e0d2c69afdc7f7ac0342004e0bcd57e9a/fontawesomefx-8.8-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry exported="true" kind="lib" path="C:/Users/jns/.gradle/caches/modules-2/files-2.1/com.gluonhq/charm-down-plugin-display/3.0.0/a059caf183dd59be9586e2225ccaa0a6f07f5dc8/charm-down-plugin-display-3.0.0.jar" sourcepath="C:/Users/jns/.gradle/caches/modules-2/files-2.1/com.gluonhq/charm-down-plugin-display/3.0.0/901a254a0bfc8818c97b85b9f0a0bf76870d63c2/charm-down-plugin-display-3.0.0-sources.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:file:/C:/Users/jns/.gradle/caches/modules-2/files-2.1/com.gluonhq/charm-down-plugin-display/3.0.0/d6457f387a40211cca140ea83e2186d27ff2f57f/charm-down-plugin-display-3.0.0-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry exported="true" kind="lib" path="C:/Users/jns/.gradle/caches/modules-2/files-2.1/com.gluonhq/charm-down-plugin-lifecycle/3.0.0/3221f33059cb5eb837772b51e3caa0fadcb7d8bb/charm-down-plugin-lifecycle-3.0.0.jar" sourcepath="C:/Users/jns/.gradle/caches/modules-2/files-2.1/com.gluonhq/charm-down-plugin-lifecycle/3.0.0/1b43187ec1051baf1074744ac693a0a76c68d987/charm-down-plugin-lifecycle-3.0.0-sources.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:file:/C:/Users/jns/.gradle/caches/modules-2/files-2.1/com.gluonhq/charm-down-plugin-lifecycle/3.0.0/fdb07de89161a37ee15977b2b1b904efd9bfff18/charm-down-plugin-lifecycle-3.0.0-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry exported="true" kind="lib" path="C:/Users/jns/.gradle/caches/modules-2/files-2.1/com.gluonhq/charm-down-plugin-storage/3.0.0/da12c0d8536b7321c08b72d1f63241d433fdf1d6/charm-down-plugin-storage-3.0.0.jar" sourcepath="C:/Users/jns/.gradle/caches/modules-2/files-2.1/com.gluonhq/charm-down-plugin-storage/3.0.0/8f2e627170d0b8feabc5c611fe8850cfdca04c4c/charm-down-plugin-storage-3.0.0-sources.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:file:/C:/Users/jns/.gradle/caches/modules-2/files-2.1/com.gluonhq/charm-down-plugin-storage/3.0.0/ae0ccc928ed614ce455c31ef6072740f465183b3/charm-down-plugin-storage-3.0.0-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry exported="true" kind="lib" path="C:/Users/jns/.gradle/caches/modules-2/files-2.1/com.airhacks/afterburner.mfx/1.6.2/ac4ebd50da2e6ca84859dc1d1e571277c87bc252/afterburner.mfx-1.6.2.jar" sourcepath="C:/Users/jns/.gradle/caches/modules-2/files-2.1/com.airhacks/afterburner.mfx/1.6.2/91e3185fd4170f2f954ddab25658563de094cc01/afterburner.mfx-1.6.2-sources.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:file:/C:/Users/jns/.gradle/caches/modules-2/files-2.1/com.airhacks/afterburner.mfx/1.6.2/41383febbe1688b4f2544c3ddf31b03be456f3f6/afterburner.mfx-1.6.2-javadoc.jar!/"/>
 		</attributes>
 	</classpathentry>
 	<classpathentry exported="true" kind="lib" path="C:/Users/jns/.gradle/caches/modules-2/files-2.1/junit/junit/4.12/2973d150c0dc1fefe998f834810d68f278ea58ec/junit-4.12.jar" sourcepath="C:/Users/jns/.gradle/caches/modules-2/files-2.1/junit/junit/4.12/a6c32b40bf3d76eca54e3c601e5d1470c86fcdfa/junit-4.12-sources.jar">
@@ -78,6 +96,36 @@
 			<attribute name="javadoc_location" value="jar:file:/C:/Users/jns/.gradle/caches/modules-2/files-2.1/ch.qos.logback/logback-classic/1.1.7/776ed0f0f714fe8d76787fd540a60d621c7400bb/logback-classic-1.1.7-javadoc.jar!/"/>
 		</attributes>
 	</classpathentry>
+	<classpathentry exported="true" kind="lib" path="C:/Users/jns/.gradle/caches/modules-2/files-2.1/com.gluonhq/connect/1.1.0/38418454d9e2ec894cda55c9b442cc246cb72151/connect-1.1.0.jar" sourcepath="C:/Users/jns/.gradle/caches/modules-2/files-2.1/com.gluonhq/connect/1.1.0/f5154afca06d9fe0cf10ebe4725fd43bc8cfcb2/connect-1.1.0-sources.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:file:/C:/Users/jns/.gradle/caches/modules-2/files-2.1/com.gluonhq/connect/1.1.0/4d27c4c1184cc735beae7ef9b6e5ff13e3f5780c/connect-1.1.0-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry exported="true" kind="lib" path="C:/Users/jns/.gradle/caches/modules-2/files-2.1/com.gluonhq/charm-glisten-connect-view/4.0.1/f3d61f161835388db2e460b74c966cfb4e4c0c48/charm-glisten-connect-view-4.0.1.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:file:/C:/Users/jns/.gradle/caches/modules-2/files-2.1/com.gluonhq/charm-glisten-connect-view/4.0.1/6c476139a44e279d79ace865b0e2245213a9828a/charm-glisten-connect-view-4.0.1-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry exported="true" kind="lib" path="C:/Users/jns/.gradle/caches/modules-2/files-2.1/com.gluonhq/charm-glisten/4.0.1/7d90c4d39d695c09f57006bfdaf0d6c6a6cb2569/charm-glisten-4.0.1.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:file:/C:/Users/jns/.gradle/caches/modules-2/files-2.1/com.gluonhq/charm-glisten/4.0.1/f6a5e5b6dd43eb5f17c4388c06132582b72e63d0/charm-glisten-4.0.1-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry exported="true" kind="lib" path="C:/Users/jns/.gradle/caches/modules-2/files-2.1/com.google.cloud/google-cloud-core/0.3.0/bb5ff0ed9307f1da7003396f3e382b2eddb84f6/google-cloud-core-0.3.0.jar" sourcepath="C:/Users/jns/.gradle/caches/modules-2/files-2.1/com.google.cloud/google-cloud-core/0.3.0/94933ed98e4e2e5e914a2f022860ed58d125bc6e/google-cloud-core-0.3.0-sources.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:file:/C:/Users/jns/.gradle/caches/modules-2/files-2.1/com.google.cloud/google-cloud-core/0.3.0/35ee24d07581a32c4a32d1d0498124e1420284dd/google-cloud-core-0.3.0-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry exported="true" kind="lib" path="C:/Users/jns/.gradle/caches/modules-2/files-2.1/com.google.apis/google-api-services-storage/v1-rev62-1.21.0/6dc479cd87579b6b4beff450c56c881180e26a3e/google-api-services-storage-v1-rev62-1.21.0.jar" sourcepath="C:/Users/jns/.gradle/caches/modules-2/files-2.1/com.google.apis/google-api-services-storage/v1-rev62-1.21.0/44aaf1e6a7ebc8f69cfec0bec1366baa7a21f28e/google-api-services-storage-v1-rev62-1.21.0-sources.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:file:/C:/Users/jns/.gradle/caches/modules-2/files-2.1/com.google.apis/google-api-services-storage/v1-rev62-1.21.0/f7122fd2572aabc4cd38678a2e2bd31d4ce47d05/google-api-services-storage-v1-rev62-1.21.0-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry exported="true" kind="lib" path="C:/Users/jns/.gradle/caches/modules-2/files-2.1/com.gluonhq/charm-down-core/3.0.0/c94a52aaf63ca1b5669cb269da638ea02a0667ab/charm-down-core-3.0.0.jar" sourcepath="C:/Users/jns/.gradle/caches/modules-2/files-2.1/com.gluonhq/charm-down-core/3.0.0/53b4fe40442dbaed758b7aa4904cc07e5adcd379/charm-down-core-3.0.0-sources.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:file:/C:/Users/jns/.gradle/caches/modules-2/files-2.1/com.gluonhq/charm-down-core/3.0.0/5ba80e265e5f4fc33e21f36cfa2a421d401163cf/charm-down-core-3.0.0-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
 	<classpathentry exported="true" kind="lib" path="C:/Users/jns/.gradle/caches/modules-2/files-2.1/org.hamcrest/hamcrest-core/1.3/42a25dc3219429f0e5d060061f71acb49bf010a0/hamcrest-core-1.3.jar" sourcepath="C:/Users/jns/.gradle/caches/modules-2/files-2.1/org.hamcrest/hamcrest-core/1.3/1dc37250fbc78e23a65a67fbbaf71d2e9cbc3c0b/hamcrest-core-1.3-sources.jar">
 		<attributes>
 			<attribute name="javadoc_location" value="jar:file:/C:/Users/jns/.gradle/caches/modules-2/files-2.1/org.hamcrest/hamcrest-core/1.3/ad09811315f1d4f5756986575b0ea16b99cd686f/hamcrest-core-1.3-javadoc.jar!/"/>
@@ -88,10 +136,259 @@
 			<attribute name="javadoc_location" value="jar:file:/C:/Users/jns/.gradle/caches/modules-2/files-2.1/ch.qos.logback/logback-core/1.1.7/fa2cbf9704ad3b77032bd97b868323ce15c53724/logback-core-1.1.7-javadoc.jar!/"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="lib" path="F:/AndroidSDK/platforms/android-23/android.jar" sourcepath="F:/AndroidSDK/sources/android-23"/>
-	<classpathentry kind="lib" path="libs/charm-desktop-3.0.0.jar"/>
-	<classpathentry kind="lib" path="libs/jfoenix-0.0.0-SNAPSHOT-retrolambda.jar"/>
-	<classpathentry kind="lib" path="libs/maps-1.0.1-SNAPSHOT.jar"/>
+	<classpathentry exported="true" kind="lib" path="C:/Users/jns/.gradle/caches/modules-2/files-2.1/org.glassfish/javax.json/1.0.4/3178f73569fd7a1e5ffc464e680f7a8cc784b85a/javax.json-1.0.4.jar" sourcepath="C:/Users/jns/.gradle/caches/modules-2/files-2.1/org.glassfish/javax.json/1.0.4/ef782abad0d3f1d30644c4023a6bbc6fe371e23a/javax.json-1.0.4-sources.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:file:/C:/Users/jns/.gradle/caches/modules-2/files-2.1/org.glassfish/javax.json/1.0.4/fdbe247c2f712862e8ba7ea9266b062e6c0f361c/javax.json-1.0.4-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry exported="true" kind="lib" path="C:/Users/jns/.gradle/caches/modules-2/files-2.1/com.gluonhq/charm-down-plugin-statusbar/3.0.0/6aeda0e258b79b23a7d92085ba77e11c7d2413bc/charm-down-plugin-statusbar-3.0.0.jar" sourcepath="C:/Users/jns/.gradle/caches/modules-2/files-2.1/com.gluonhq/charm-down-plugin-statusbar/3.0.0/b9473b233dced8df0c7a79f4e9c949a11910a596/charm-down-plugin-statusbar-3.0.0-sources.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:file:/C:/Users/jns/.gradle/caches/modules-2/files-2.1/com.gluonhq/charm-down-plugin-statusbar/3.0.0/be4279a2a1a57ba6f5f91f0cac094d8010fb22c3/charm-down-plugin-statusbar-3.0.0-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry exported="true" kind="lib" path="C:/Users/jns/.gradle/caches/modules-2/files-2.1/com.google.http-client/google-http-client/1.21.0/42631630fe1276d4d6d6397bb07d53a4e4fec278/google-http-client-1.21.0.jar" sourcepath="C:/Users/jns/.gradle/caches/modules-2/files-2.1/com.google.http-client/google-http-client/1.21.0/6f08741d5314f72181cf187fd42c5cb8a21c4c82/google-http-client-1.21.0-sources.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:file:/C:/Users/jns/.gradle/caches/modules-2/files-2.1/com.google.http-client/google-http-client/1.21.0/9ea0537033f27ea08bbadffb23e2f6c77c3f7035/google-http-client-1.21.0-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry exported="true" kind="lib" path="C:/Users/jns/.gradle/caches/modules-2/files-2.1/com.google.oauth-client/google-oauth-client/1.21.0/61ec42bbfc51aafde5eb8b4923c602c5b5965bc2/google-oauth-client-1.21.0.jar" sourcepath="C:/Users/jns/.gradle/caches/modules-2/files-2.1/com.google.oauth-client/google-oauth-client/1.21.0/6e018d74402415b69edf8b9a46ac4f6464234909/google-oauth-client-1.21.0-sources.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:file:/C:/Users/jns/.gradle/caches/modules-2/files-2.1/com.google.oauth-client/google-oauth-client/1.21.0/a861a1efc528b850753ec084c3e79772673d0cee/google-oauth-client-1.21.0-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry exported="true" kind="lib" path="C:/Users/jns/.gradle/caches/modules-2/files-2.1/com.google.guava/guava/19.0/6ce200f6b23222af3d8abb6b6459e6c44f4bb0e9/guava-19.0.jar" sourcepath="C:/Users/jns/.gradle/caches/modules-2/files-2.1/com.google.guava/guava/19.0/91a4d115400e904f22b03a78deb355e9ea803cd4/guava-19.0-sources.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:file:/C:/Users/jns/.gradle/caches/modules-2/files-2.1/com.google.guava/guava/19.0/1b83a1c2f6138f09b5d3adf1b33e3d06d0c4ea2b/guava-19.0-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry exported="true" kind="lib" path="C:/Users/jns/.gradle/caches/modules-2/files-2.1/com.google.api-client/google-api-client-appengine/1.21.0/b4246cf952f6c536465bb58727a4037176003602/google-api-client-appengine-1.21.0.jar" sourcepath="C:/Users/jns/.gradle/caches/modules-2/files-2.1/com.google.api-client/google-api-client-appengine/1.21.0/f7f3512489ec97e46a59b9d655f12619e1fee7e4/google-api-client-appengine-1.21.0-sources.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:file:/C:/Users/jns/.gradle/caches/modules-2/files-2.1/com.google.api-client/google-api-client-appengine/1.21.0/33ace2b31798a7b236138d73febabc4d79d39571/google-api-client-appengine-1.21.0-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry exported="true" kind="lib" path="C:/Users/jns/.gradle/caches/modules-2/files-2.1/com.google.http-client/google-http-client-jackson/1.21.0/5a8b90f8e128d28f88a301a4c5ff7c2336dcc725/google-http-client-jackson-1.21.0.jar" sourcepath="C:/Users/jns/.gradle/caches/modules-2/files-2.1/com.google.http-client/google-http-client-jackson/1.21.0/d91afb3b7b60e4821ebb2fac6d81fe4dc85380c4/google-http-client-jackson-1.21.0-sources.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:file:/C:/Users/jns/.gradle/caches/modules-2/files-2.1/com.google.http-client/google-http-client-jackson/1.21.0/404954d54f8a07de7304371df2a77d7ef6c78c8b/google-http-client-jackson-1.21.0-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry exported="true" kind="lib" path="C:/Users/jns/.gradle/caches/modules-2/files-2.1/joda-time/joda-time/2.9.2/36d6e77a419cb455e6fd5909f6f96b168e21e9d0/joda-time-2.9.2.jar" sourcepath="C:/Users/jns/.gradle/caches/modules-2/files-2.1/joda-time/joda-time/2.9.2/95a8bd67d07e893710325efd4edd94b91f0d6bbf/joda-time-2.9.2-sources.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:file:/C:/Users/jns/.gradle/caches/modules-2/files-2.1/joda-time/joda-time/2.9.2/6a0f6a6bd6a0fa804e15eefccad77786edeffe29/joda-time-2.9.2-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry exported="true" kind="lib" path="C:/Users/jns/.gradle/caches/modules-2/files-2.1/org.json/json/20151123/1675d5c1142000dedd6627a73af26a8b885ef0e1/json-20151123.jar" sourcepath="C:/Users/jns/.gradle/caches/modules-2/files-2.1/org.json/json/20151123/9c179a1becb79c6af729c89f7b212b1cb5e68da3/json-20151123-sources.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:file:/C:/Users/jns/.gradle/caches/modules-2/files-2.1/org.json/json/20151123/5dfba2d9d0390d221cf93adf08f22303d4b70cd7/json-20151123-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry exported="true" kind="lib" path="C:/Users/jns/.gradle/caches/modules-2/files-2.1/com.google.protobuf/protobuf-java/3.0.0-beta-3/ed8c2f9a63cfa770292f8173fd0172bdaa014fe3/protobuf-java-3.0.0-beta-3.jar"/>
+	<classpathentry exported="true" kind="lib" path="C:/Users/jns/.gradle/caches/modules-2/files-2.1/com.google.api/gax/0.0.16/73e8a0187a58b67d7a3e22ae0ac6475420541e11/gax-0.0.16.jar" sourcepath="C:/Users/jns/.gradle/caches/modules-2/files-2.1/com.google.api/gax/0.0.16/6977d9cdacccf46075d32921d396c68383211e7a/gax-0.0.16-sources.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:file:/C:/Users/jns/.gradle/caches/modules-2/files-2.1/com.google.api/gax/0.0.16/df4711485dff3f768d07237c05d260298d4d7df5/gax-0.0.16-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry exported="true" kind="lib" path="C:/Users/jns/.gradle/caches/modules-2/files-2.1/com.google.api.grpc/grpc-google-common-protos/0.0.7/5f5fa30395871909c18d0839f16efb2534a4f9e7/grpc-google-common-protos-0.0.7.jar" sourcepath="C:/Users/jns/.gradle/caches/modules-2/files-2.1/com.google.api.grpc/grpc-google-common-protos/0.0.7/2e1d56fe281b5ae7b6be1fe3f56889e09501bbc4/grpc-google-common-protos-0.0.7-sources.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:file:/C:/Users/jns/.gradle/caches/modules-2/files-2.1/com.google.api.grpc/grpc-google-common-protos/0.0.7/30c204bd3e9f6d3e69f09a0f0efe3c69645f0f03/grpc-google-common-protos-0.0.7-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry exported="true" kind="lib" path="C:/Users/jns/.gradle/caches/modules-2/files-2.1/com.google.oauth-client/google-oauth-client-appengine/1.21.0/c11014f06ade0a418b2028df41b17f3b17d9cb21/google-oauth-client-appengine-1.21.0.jar" sourcepath="C:/Users/jns/.gradle/caches/modules-2/files-2.1/com.google.oauth-client/google-oauth-client-appengine/1.21.0/ce48ea707cf8d49184f5b7c4ce124e58c17582df/google-oauth-client-appengine-1.21.0-sources.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:file:/C:/Users/jns/.gradle/caches/modules-2/files-2.1/com.google.oauth-client/google-oauth-client-appengine/1.21.0/33818ecc9496b9204ff9ef58ce36b3cf48600f31/google-oauth-client-appengine-1.21.0-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry exported="true" kind="lib" path="C:/Users/jns/.gradle/caches/modules-2/files-2.1/com.google.api-client/google-api-client/1.21.0/16a6b3c680f3bf7b81bb42790ff5c1b72c5bbedc/google-api-client-1.21.0.jar" sourcepath="C:/Users/jns/.gradle/caches/modules-2/files-2.1/com.google.api-client/google-api-client/1.21.0/ad979208f5e04c1dd399f1756a846fce3e5c2fef/google-api-client-1.21.0-sources.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:file:/C:/Users/jns/.gradle/caches/modules-2/files-2.1/com.google.api-client/google-api-client/1.21.0/a11a2221dd9eef55c816c2bc156c1091d5e79084/google-api-client-1.21.0-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry exported="true" kind="lib" path="C:/Users/jns/.gradle/caches/modules-2/files-2.1/com.google.api-client/google-api-client-servlet/1.21.0/1a8de0231a50981a5307f3a3485769b7f661700f/google-api-client-servlet-1.21.0.jar" sourcepath="C:/Users/jns/.gradle/caches/modules-2/files-2.1/com.google.api-client/google-api-client-servlet/1.21.0/8fa5e49c905c0c87b388d4e3dc31232b7824de30/google-api-client-servlet-1.21.0-sources.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:file:/C:/Users/jns/.gradle/caches/modules-2/files-2.1/com.google.api-client/google-api-client-servlet/1.21.0/737ab686ef28e93a1a39508d8fcda0b82db887f3/google-api-client-servlet-1.21.0-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry exported="true" kind="lib" path="C:/Users/jns/.gradle/caches/modules-2/files-2.1/com.google.http-client/google-http-client-appengine/1.21.0/7244bd3c110b15066f4288baa61e350d6a14120c/google-http-client-appengine-1.21.0.jar" sourcepath="C:/Users/jns/.gradle/caches/modules-2/files-2.1/com.google.http-client/google-http-client-appengine/1.21.0/3e3e5f072a9f911880e14b173ceb91ed4258bcab/google-http-client-appengine-1.21.0-sources.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:file:/C:/Users/jns/.gradle/caches/modules-2/files-2.1/com.google.http-client/google-http-client-appengine/1.21.0/82b441b42fb9f66621747cc5c7633f0987376e1d/google-http-client-appengine-1.21.0-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry exported="true" kind="lib" path="C:/Users/jns/.gradle/caches/modules-2/files-2.1/org.codehaus.jackson/jackson-core-asl/1.9.11/e32303ef8bd18a5c9272780d49b81c95e05ddf43/jackson-core-asl-1.9.11.jar" sourcepath="C:/Users/jns/.gradle/caches/modules-2/files-2.1/org.codehaus.jackson/jackson-core-asl/1.9.11/e61687a76d77cda609bab7479acbded1f7cceec4/jackson-core-asl-1.9.11-sources.jar"/>
+	<classpathentry exported="true" kind="lib" path="C:/Users/jns/.gradle/caches/modules-2/files-2.1/io.grpc/grpc-all/0.15.0/3f27be5c75ceecc9b7948fef3838410b5a0c79e8/grpc-all-0.15.0.jar" sourcepath="C:/Users/jns/.gradle/caches/modules-2/files-2.1/io.grpc/grpc-all/0.15.0/45923f438f6db1c5af9df57b9772116ae80c1e42/grpc-all-0.15.0-sources.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:file:/C:/Users/jns/.gradle/caches/modules-2/files-2.1/io.grpc/grpc-all/0.15.0/cc933352ab0a27fc1c3962118c08ecdd745d5aec/grpc-all-0.15.0-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry exported="true" kind="lib" path="C:/Users/jns/.gradle/caches/modules-2/files-2.1/com.google.auto.value/auto-value/1.1/f6951c141ea3e89c0f8b01da16834880a1ebf162/auto-value-1.1.jar" sourcepath="C:/Users/jns/.gradle/caches/modules-2/files-2.1/com.google.auto.value/auto-value/1.1/2080a469bb5d47f63c7d422954fbcea85bd576cf/auto-value-1.1-sources.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:file:/C:/Users/jns/.gradle/caches/modules-2/files-2.1/com.google.auto.value/auto-value/1.1/41e644986a512b11bae82a61ef46a67e22d0cc93/auto-value-1.1-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry exported="true" kind="lib" path="C:/Users/jns/.gradle/caches/modules-2/files-2.1/com.google.inject/guice/4.0/f990a43d3725781b6db7cd0acf0a8b62dfd1649/guice-4.0.jar" sourcepath="C:/Users/jns/.gradle/caches/modules-2/files-2.1/com.google.inject/guice/4.0/961359f8352b791c6443a207c847e25d6d3ca7cd/guice-4.0-sources.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:file:/C:/Users/jns/.gradle/caches/modules-2/files-2.1/com.google.inject/guice/4.0/779faccc0065fe6efea2ed9752ff1ab046262df7/guice-4.0-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry exported="true" kind="lib" path="C:/Users/jns/.gradle/caches/modules-2/files-2.1/com.google.oauth-client/google-oauth-client-servlet/1.21.0/1f6b1abb2e10c3ae37cc0892ce9894a3313e74e9/google-oauth-client-servlet-1.21.0.jar" sourcepath="C:/Users/jns/.gradle/caches/modules-2/files-2.1/com.google.oauth-client/google-oauth-client-servlet/1.21.0/14225e166e859c654f3004dd52c808ebb8ee5c85/google-oauth-client-servlet-1.21.0-sources.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:file:/C:/Users/jns/.gradle/caches/modules-2/files-2.1/com.google.oauth-client/google-oauth-client-servlet/1.21.0/dd8da490c7a11e252cd99ba714525bd1be048ec4/google-oauth-client-servlet-1.21.0-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry exported="true" kind="lib" path="C:/Users/jns/.gradle/caches/modules-2/files-2.1/javax.servlet/servlet-api/2.5/5959582d97d8b61f4d154ca9e495aafd16726e34/servlet-api-2.5.jar" sourcepath="C:/Users/jns/.gradle/caches/modules-2/files-2.1/javax.servlet/servlet-api/2.5/21599814ad9a605b86f3e6381571beccd861a32/servlet-api-2.5-sources.jar"/>
+	<classpathentry exported="true" kind="lib" path="C:/Users/jns/.gradle/caches/modules-2/files-2.1/javax.jdo/jdo2-api/2.3-eb/ec6b839251fb235a86ccd23adc4fc62dab07a7d8/jdo2-api-2.3-eb.jar" sourcepath="C:/Users/jns/.gradle/caches/modules-2/files-2.1/javax.jdo/jdo2-api/2.3-eb/42596956298b59fb58f013082c75bcb41c70bca9/jdo2-api-2.3-eb-sources.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:file:/C:/Users/jns/.gradle/caches/modules-2/files-2.1/javax.jdo/jdo2-api/2.3-eb/a4f1da0adafef2efa84858f0d302d1cd11ec8046/jdo2-api-2.3-eb-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry exported="true" kind="lib" path="C:/Users/jns/.gradle/caches/modules-2/files-2.1/io.grpc/grpc-auth/0.15.0/6b182116731aaa6236c4e0632a2bd8347390d6e2/grpc-auth-0.15.0.jar" sourcepath="C:/Users/jns/.gradle/caches/modules-2/files-2.1/io.grpc/grpc-auth/0.15.0/acc4d1e8b7713e50e6a2f7f4e2c4dc3b6713f169/grpc-auth-0.15.0-sources.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:file:/C:/Users/jns/.gradle/caches/modules-2/files-2.1/io.grpc/grpc-auth/0.15.0/cbfd81b8a31fa9aefb8640863993ecbd43e48fef/grpc-auth-0.15.0-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry exported="true" kind="lib" path="C:/Users/jns/.gradle/caches/modules-2/files-2.1/io.grpc/grpc-netty/0.15.0/d759340d9ddd8b08eab9314022cde4a075d8d843/grpc-netty-0.15.0.jar" sourcepath="C:/Users/jns/.gradle/caches/modules-2/files-2.1/io.grpc/grpc-netty/0.15.0/25bed85e6069a0703c27c4c6be9e0cbfafa2358e/grpc-netty-0.15.0-sources.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:file:/C:/Users/jns/.gradle/caches/modules-2/files-2.1/io.grpc/grpc-netty/0.15.0/e3327d5f34ef15403cb4db4161994d0c1f4413e3/grpc-netty-0.15.0-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry exported="true" kind="lib" path="C:/Users/jns/.gradle/caches/modules-2/files-2.1/io.grpc/grpc-okhttp/0.15.0/e0bff98f22d55da441ac7a73bef02892a73c01dc/grpc-okhttp-0.15.0.jar" sourcepath="C:/Users/jns/.gradle/caches/modules-2/files-2.1/io.grpc/grpc-okhttp/0.15.0/30f8bcb4c5281689f0665eae363fbd556414a3a/grpc-okhttp-0.15.0-sources.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:file:/C:/Users/jns/.gradle/caches/modules-2/files-2.1/io.grpc/grpc-okhttp/0.15.0/64211f5f5127b09cfcb55decf85de773651d3312/grpc-okhttp-0.15.0-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry exported="true" kind="lib" path="C:/Users/jns/.gradle/caches/modules-2/files-2.1/io.grpc/grpc-protobuf-nano/0.15.0/5a9c1c8c64d33413d0f3ef014bb54d66b2456abc/grpc-protobuf-nano-0.15.0.jar" sourcepath="C:/Users/jns/.gradle/caches/modules-2/files-2.1/io.grpc/grpc-protobuf-nano/0.15.0/f99dcaf023868b8fdf14f62eeb7591e468f42687/grpc-protobuf-nano-0.15.0-sources.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:file:/C:/Users/jns/.gradle/caches/modules-2/files-2.1/io.grpc/grpc-protobuf-nano/0.15.0/5d0b18941c6fd45ee8ea4e269283563d1079ee2e/grpc-protobuf-nano-0.15.0-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry exported="true" kind="lib" path="C:/Users/jns/.gradle/caches/modules-2/files-2.1/io.grpc/grpc-stub/0.15.0/333da5bdf154b80f1fe2bc34b14d4836de16cc63/grpc-stub-0.15.0.jar" sourcepath="C:/Users/jns/.gradle/caches/modules-2/files-2.1/io.grpc/grpc-stub/0.15.0/a4d2400a6070f9b76993805609f8cd882f49066e/grpc-stub-0.15.0-sources.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:file:/C:/Users/jns/.gradle/caches/modules-2/files-2.1/io.grpc/grpc-stub/0.15.0/52512e2914cd34e2c030d940432130431a92a847/grpc-stub-0.15.0-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry exported="true" kind="lib" path="C:/Users/jns/.gradle/caches/modules-2/files-2.1/io.grpc/grpc-protobuf/0.15.0/2b76d45c6a721b08a0ca58b3904f7a9010a217a1/grpc-protobuf-0.15.0.jar" sourcepath="C:/Users/jns/.gradle/caches/modules-2/files-2.1/io.grpc/grpc-protobuf/0.15.0/4dfcee2c4fbb43a3f254189c74da7a64ccc54b98/grpc-protobuf-0.15.0-sources.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:file:/C:/Users/jns/.gradle/caches/modules-2/files-2.1/io.grpc/grpc-protobuf/0.15.0/8af4c6e5ac2f9646a928abe3eddc637bc45fd3ac/grpc-protobuf-0.15.0-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry exported="true" kind="lib" path="C:/Users/jns/.gradle/caches/modules-2/files-2.1/io.grpc/grpc-protobuf-lite/0.15.0/2a762e567f881e4d4db0310770830e0a675bc0eb/grpc-protobuf-lite-0.15.0.jar" sourcepath="C:/Users/jns/.gradle/caches/modules-2/files-2.1/io.grpc/grpc-protobuf-lite/0.15.0/78cd5f20a5786b94054acb47ba6db1f88a03e18a/grpc-protobuf-lite-0.15.0-sources.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:file:/C:/Users/jns/.gradle/caches/modules-2/files-2.1/io.grpc/grpc-protobuf-lite/0.15.0/9c1b793b9a31fc90b1fcf45a5a08cf5c1a7eda13/grpc-protobuf-lite-0.15.0-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry exported="true" kind="lib" path="C:/Users/jns/.gradle/caches/modules-2/files-2.1/io.grpc/grpc-core/0.15.0/1bb8d29217e87324eddc97c478cb26486bb022d5/grpc-core-0.15.0.jar" sourcepath="C:/Users/jns/.gradle/caches/modules-2/files-2.1/io.grpc/grpc-core/0.15.0/c63b00f19f0105c6b5210a7c09a83396a28e189c/grpc-core-0.15.0-sources.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:file:/C:/Users/jns/.gradle/caches/modules-2/files-2.1/io.grpc/grpc-core/0.15.0/a6478c9ed23764448436336b2b7097e4347f4cc9/grpc-core-0.15.0-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry exported="true" kind="lib" path="C:/Users/jns/.gradle/caches/modules-2/files-2.1/aopalliance/aopalliance/1.0/235ba8b489512805ac13a8f9ea77a1ca5ebe3e8/aopalliance-1.0.jar" sourcepath="C:/Users/jns/.gradle/caches/modules-2/files-2.1/aopalliance/aopalliance/1.0/4a4b6d692e17846a9f3da036438a7ac491d3c814/aopalliance-1.0-sources.jar"/>
+	<classpathentry exported="true" kind="lib" path="C:/Users/jns/.gradle/caches/modules-2/files-2.1/com.google.http-client/google-http-client-jdo/1.21.0/b02781a4605935597e017e4b2f50d48e7c2d5f2c/google-http-client-jdo-1.21.0.jar" sourcepath="C:/Users/jns/.gradle/caches/modules-2/files-2.1/com.google.http-client/google-http-client-jdo/1.21.0/4df3c3d693e4526a73425810bb9f2be199cd3ea4/google-http-client-jdo-1.21.0-sources.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:file:/C:/Users/jns/.gradle/caches/modules-2/files-2.1/com.google.http-client/google-http-client-jdo/1.21.0/ae6efacb9082b8b1980f92c61f3208689e47ba9c/google-http-client-jdo-1.21.0-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry exported="true" kind="lib" path="C:/Users/jns/.gradle/caches/modules-2/files-2.1/javax.transaction/transaction-api/1.1/2ca09f0b36ca7d71b762e14ea2ff09d5eac57558/transaction-api-1.1.jar" sourcepath="C:/Users/jns/.gradle/caches/modules-2/files-2.1/javax.transaction/transaction-api/1.1/d5dad66d06246bd2e1e369cebff27faa9beb065a/transaction-api-1.1-sources.jar"/>
+	<classpathentry exported="true" kind="lib" path="C:/Users/jns/.gradle/caches/modules-2/files-2.1/io.netty/netty-codec-http2/4.1.1.Final/fc4baf0e7285b622162885d3724c1d419cb42ddd/netty-codec-http2-4.1.1.Final.jar" sourcepath="C:/Users/jns/.gradle/caches/modules-2/files-2.1/io.netty/netty-codec-http2/4.1.1.Final/1f417494a45d0be4161c9fec86d8de0baa45e959/netty-codec-http2-4.1.1.Final-sources.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:file:/C:/Users/jns/.gradle/caches/modules-2/files-2.1/io.netty/netty-codec-http2/4.1.1.Final/5775b3c17a6e07676967f3140d308151ebfab4c7/netty-codec-http2-4.1.1.Final-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry exported="true" kind="lib" path="C:/Users/jns/.gradle/caches/modules-2/files-2.1/com.squareup.okio/okio/1.6.0/98476622f10715998eacf9240d6b479f12c66143/okio-1.6.0.jar" sourcepath="C:/Users/jns/.gradle/caches/modules-2/files-2.1/com.squareup.okio/okio/1.6.0/fb6ec0fbaa0229088b0d3dfe3b1f9d24add3e775/okio-1.6.0-sources.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:file:/C:/Users/jns/.gradle/caches/modules-2/files-2.1/com.squareup.okio/okio/1.6.0/d25d744996b028d3e244849a4a773e0bdebe4e79/okio-1.6.0-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry exported="true" kind="lib" path="C:/Users/jns/.gradle/caches/modules-2/files-2.1/com.squareup.okhttp/okhttp/2.5.0/4de2b4ed3445c37ec1720a7d214712e845a24636/okhttp-2.5.0.jar" sourcepath="C:/Users/jns/.gradle/caches/modules-2/files-2.1/com.squareup.okhttp/okhttp/2.5.0/cd4ddf1fb4ad84ea5d67ee3b386aea25f02ea096/okhttp-2.5.0-sources.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:file:/C:/Users/jns/.gradle/caches/modules-2/files-2.1/com.squareup.okhttp/okhttp/2.5.0/ccfa98043107579862d46bdc26db2f6b308239b2/okhttp-2.5.0-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry exported="true" kind="lib" path="C:/Users/jns/.gradle/caches/modules-2/files-2.1/com.google.protobuf.nano/protobuf-javanano/3.0.0-alpha-5/357e60f95cebb87c72151e49ba1f570d899734f8/protobuf-javanano-3.0.0-alpha-5.jar" sourcepath="C:/Users/jns/.gradle/caches/modules-2/files-2.1/com.google.protobuf.nano/protobuf-javanano/3.0.0-alpha-5/617692a902ec4dd5eac1f86a99e26b5a94191b42/protobuf-javanano-3.0.0-alpha-5-sources.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:file:/C:/Users/jns/.gradle/caches/modules-2/files-2.1/com.google.protobuf.nano/protobuf-javanano/3.0.0-alpha-5/779ce973fe1618f40c4525f65aed8e8a697ed580/protobuf-javanano-3.0.0-alpha-5-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry exported="true" kind="lib" path="C:/Users/jns/.gradle/caches/modules-2/files-2.1/com.google.protobuf/protobuf-java-util/3.0.0-beta-3/5c39485775c197fc1938e594dc358bfec1c188a0/protobuf-java-util-3.0.0-beta-3.jar"/>
+	<classpathentry exported="true" kind="lib" path="C:/Users/jns/.gradle/caches/modules-2/files-2.1/io.netty/netty-codec-http/4.1.1.Final/f224d753c5f4dbf7c2a69d3e1e453d7ef562ad0/netty-codec-http-4.1.1.Final.jar" sourcepath="C:/Users/jns/.gradle/caches/modules-2/files-2.1/io.netty/netty-codec-http/4.1.1.Final/43b525eb4bd2f57ad26f499239fe372931f69473/netty-codec-http-4.1.1.Final-sources.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:file:/C:/Users/jns/.gradle/caches/modules-2/files-2.1/io.netty/netty-codec-http/4.1.1.Final/1972519695f74c384c321d372426620187459648/netty-codec-http-4.1.1.Final-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry exported="true" kind="lib" path="C:/Users/jns/.gradle/caches/modules-2/files-2.1/io.netty/netty-handler/4.1.1.Final/e63c889c4401ebe9dad042990ee1aa8bc4799cee/netty-handler-4.1.1.Final.jar" sourcepath="C:/Users/jns/.gradle/caches/modules-2/files-2.1/io.netty/netty-handler/4.1.1.Final/a18a34c64167d2c240706338059b13e1d1e77c78/netty-handler-4.1.1.Final-sources.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:file:/C:/Users/jns/.gradle/caches/modules-2/files-2.1/io.netty/netty-handler/4.1.1.Final/f50e68fabce0c2ff5eba108528bda732e8ba60aa/netty-handler-4.1.1.Final-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry exported="true" kind="lib" path="C:/Users/jns/.gradle/caches/modules-2/files-2.1/com.google.code.gson/gson/2.3/5fc52c41ef0239d1093a1eb7c3697036183677ce/gson-2.3.jar" sourcepath="C:/Users/jns/.gradle/caches/modules-2/files-2.1/com.google.code.gson/gson/2.3/21e31b9298ed677b17fcac6dd0eb0a82ec35adc2/gson-2.3-sources.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:file:/C:/Users/jns/.gradle/caches/modules-2/files-2.1/com.google.code.gson/gson/2.3/26514997c36f78b5532ba096953c2b72da41e46f/gson-2.3-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry exported="true" kind="lib" path="C:/Users/jns/.gradle/caches/modules-2/files-2.1/io.netty/netty-codec/4.1.1.Final/dad7f30d68a0ff53412397c6c6053e251f8e78a6/netty-codec-4.1.1.Final.jar" sourcepath="C:/Users/jns/.gradle/caches/modules-2/files-2.1/io.netty/netty-codec/4.1.1.Final/749c30fa424a51b288dc0de7206097ee2552fdd9/netty-codec-4.1.1.Final-sources.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:file:/C:/Users/jns/.gradle/caches/modules-2/files-2.1/io.netty/netty-codec/4.1.1.Final/2679b4eaaad698a53362d4ee8402fa71ed57a928/netty-codec-4.1.1.Final-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry exported="true" kind="lib" path="C:/Users/jns/.gradle/caches/modules-2/files-2.1/io.netty/netty-buffer/4.1.1.Final/1a04a8250c4e8780d79fdd2d0f4e74e00a9b8042/netty-buffer-4.1.1.Final.jar" sourcepath="C:/Users/jns/.gradle/caches/modules-2/files-2.1/io.netty/netty-buffer/4.1.1.Final/2c38105857d7e4a537c50c9facf15243ae2e371c/netty-buffer-4.1.1.Final-sources.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:file:/C:/Users/jns/.gradle/caches/modules-2/files-2.1/io.netty/netty-buffer/4.1.1.Final/7330dc247c2c11dfebd13b2e90e230e3ea382415/netty-buffer-4.1.1.Final-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry exported="true" kind="lib" path="C:/Users/jns/.gradle/caches/modules-2/files-2.1/io.netty/netty-transport/4.1.1.Final/1bfc5b0e863966d164e3f96317d7e67de5dff2b0/netty-transport-4.1.1.Final.jar" sourcepath="C:/Users/jns/.gradle/caches/modules-2/files-2.1/io.netty/netty-transport/4.1.1.Final/56e0730bd5aed710a89771cc8159d2064b86fc8f/netty-transport-4.1.1.Final-sources.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:file:/C:/Users/jns/.gradle/caches/modules-2/files-2.1/io.netty/netty-transport/4.1.1.Final/c5c18b10a9fa037f32d856b92275a5baf4554aab/netty-transport-4.1.1.Final-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry exported="true" kind="lib" path="C:/Users/jns/.gradle/caches/modules-2/files-2.1/io.netty/netty-common/4.1.1.Final/c2d41a3420357bf4d81da4980dc1973c66e5bab6/netty-common-4.1.1.Final.jar" sourcepath="C:/Users/jns/.gradle/caches/modules-2/files-2.1/io.netty/netty-common/4.1.1.Final/9978df28609eaf6871283e1061fe2330ecc35e0c/netty-common-4.1.1.Final-sources.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:file:/C:/Users/jns/.gradle/caches/modules-2/files-2.1/io.netty/netty-common/4.1.1.Final/86fb6a2c6a0cec8a029f68f353bdf5c214e2baa7/netty-common-4.1.1.Final-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry exported="true" kind="lib" path="C:/Users/jns/.gradle/caches/modules-2/files-2.1/io.netty/netty-resolver/4.1.1.Final/8495cc4a14a4b25e5442004aabaa20101b7aeba7/netty-resolver-4.1.1.Final.jar" sourcepath="C:/Users/jns/.gradle/caches/modules-2/files-2.1/io.netty/netty-resolver/4.1.1.Final/1e0e0908cb2d212aeb80eb22e42fb5c7bede5eec/netty-resolver-4.1.1.Final-sources.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:file:/C:/Users/jns/.gradle/caches/modules-2/files-2.1/io.netty/netty-resolver/4.1.1.Final/4b1c1466124413c6588f0f0f4e0a6336b719d546/netty-resolver-4.1.1.Final-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry exported="true" kind="lib" path="C:/Users/jns/.gradle/caches/modules-2/files-2.1/org.apache.httpcomponents/httpclient/4.0.1/1d7d28fa738bdbfe4fbd895d9486308999bdf440/httpclient-4.0.1.jar" sourcepath="C:/Users/jns/.gradle/caches/modules-2/files-2.1/org.apache.httpcomponents/httpclient/4.0.1/2480b1ac944ebdd15f5f7b6730e9a151d39f4d88/httpclient-4.0.1-sources.jar"/>
+	<classpathentry exported="true" kind="lib" path="C:/Users/jns/.gradle/caches/modules-2/files-2.1/org.apache.httpcomponents/httpcore/4.0.1/e813b8722c387b22e1adccf7914729db09bcb4a9/httpcore-4.0.1.jar" sourcepath="C:/Users/jns/.gradle/caches/modules-2/files-2.1/org.apache.httpcomponents/httpcore/4.0.1/69febd50593a006a4593ef64a697b14208a55b7b/httpcore-4.0.1-sources.jar"/>
+	<classpathentry exported="true" kind="lib" path="C:/Users/jns/.gradle/caches/modules-2/files-2.1/commons-logging/commons-logging/1.1.1/5043bfebc3db072ed80fbd362e7caf00e885d8ae/commons-logging-1.1.1.jar" sourcepath="C:/Users/jns/.gradle/caches/modules-2/files-2.1/commons-logging/commons-logging/1.1.1/f3f156cbff0e0fb0d64bfce31a352cce4a33bc19/commons-logging-1.1.1-sources.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:file:/C:/Users/jns/.gradle/caches/modules-2/files-2.1/commons-logging/commons-logging/1.1.1/23a8a81d489a6aec1cfda5740cad27853263578c/commons-logging-1.1.1-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry exported="true" kind="lib" path="C:/Users/jns/.gradle/caches/modules-2/files-2.1/commons-codec/commons-codec/1.3/fd32786786e2adb664d5ecc965da47629dca14ba/commons-codec-1.3.jar" sourcepath="C:/Users/jns/.gradle/caches/modules-2/files-2.1/commons-codec/commons-codec/1.3/ee264b5d7a0f939d5999398c7f1ade031db3fcec/commons-codec-1.3-sources.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:file:/C:/Users/jns/.gradle/caches/modules-2/files-2.1/commons-codec/commons-codec/1.3/f55d497638032e107a78638fac7b3622b0789fac/commons-codec-1.3-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry exported="true" kind="lib" path="C:/Users/jns/.gradle/caches/modules-2/files-2.1/com.google.code.findbugs/jsr305/3.0.0/5871fb60dc68d67da54a663c3fd636a10a532948/jsr305-3.0.0.jar" sourcepath="C:/Users/jns/.gradle/caches/modules-2/files-2.1/com.google.code.findbugs/jsr305/3.0.0/936f4430478909ed7b138d42f9ad73c919a87b26/jsr305-3.0.0-sources.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:file:/C:/Users/jns/.gradle/caches/modules-2/files-2.1/com.google.code.findbugs/jsr305/3.0.0/936f4430478909ed7b138d42f9ad73c919a87b26/jsr305-3.0.0-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry exported="true" kind="lib" path="C:/Users/jns/.gradle/caches/modules-2/files-2.1/com.google.auth/google-auth-library-oauth2-http/0.4.0/da066377ea85dd54f667efae1f2f04f12124744f/google-auth-library-oauth2-http-0.4.0.jar" sourcepath="C:/Users/jns/.gradle/caches/modules-2/files-2.1/com.google.auth/google-auth-library-oauth2-http/0.4.0/60f5a3f951bfe3cf976678581ac99f0982325cbf/google-auth-library-oauth2-http-0.4.0-sources.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:file:/C:/Users/jns/.gradle/caches/modules-2/files-2.1/com.google.auth/google-auth-library-oauth2-http/0.4.0/f4f25e5dafcf304d00314bfe01e7eb0ed004ffd9/google-auth-library-oauth2-http-0.4.0-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry exported="true" kind="lib" path="C:/Users/jns/.gradle/caches/modules-2/files-2.1/com.google.http-client/google-http-client-jackson2/1.21.0/8ce17bdd15fff0fd8cf359757f29e778fc7191ad/google-http-client-jackson2-1.21.0.jar" sourcepath="C:/Users/jns/.gradle/caches/modules-2/files-2.1/com.google.http-client/google-http-client-jackson2/1.21.0/cdabbac02c390698b2b69a16e074337bea168253/google-http-client-jackson2-1.21.0-sources.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:file:/C:/Users/jns/.gradle/caches/modules-2/files-2.1/com.google.http-client/google-http-client-jackson2/1.21.0/67e398e1be1620d2b748124f6df15075b11976c0/google-http-client-jackson2-1.21.0-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry exported="true" kind="lib" path="C:/Users/jns/.gradle/caches/modules-2/files-2.1/com.fasterxml.jackson.core/jackson-core/2.1.3/f6c3aed1cdfa21b5c1737c915186ea93a95a58bd/jackson-core-2.1.3.jar" sourcepath="C:/Users/jns/.gradle/caches/modules-2/files-2.1/com.fasterxml.jackson.core/jackson-core/2.1.3/d313b1839906da7422387b180a124c81e13e65a2/jackson-core-2.1.3-sources.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:file:/C:/Users/jns/.gradle/caches/modules-2/files-2.1/com.fasterxml.jackson.core/jackson-core/2.1.3/837a8815e0744bcce9f30eda2e0f02b2c05764f7/jackson-core-2.1.3-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry exported="true" kind="lib" path="C:/Users/jns/.gradle/caches/modules-2/files-2.1/com.google.auth/google-auth-library-credentials/0.4.0/171da91494a1391aef13b88bd7302b29edb8d3b3/google-auth-library-credentials-0.4.0.jar" sourcepath="C:/Users/jns/.gradle/caches/modules-2/files-2.1/com.google.auth/google-auth-library-credentials/0.4.0/f7fb19163663279feed9f81d0260fdbaccd8bb2f/google-auth-library-credentials-0.4.0-sources.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:file:/C:/Users/jns/.gradle/caches/modules-2/files-2.1/com.google.auth/google-auth-library-credentials/0.4.0/91fc1137c1dc00d4f6dcae68b257211e0629fc7d/google-auth-library-credentials-0.4.0-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry exported="true" kind="lib" path="F:/Git/Orientieering/Orienteering/libs/jfoenix-0.0.0-SNAPSHOT-retrolambda.jar"/>
+	<classpathentry kind="lib" path="libs/maps-1.0.2-SNAPSHOT.jar"/>
+	<classpathentry kind="lib" path="libs/android-support-v4.jar"/>
 	<classpathentry kind="con" path="org.eclipse.buildship.core.gradleclasspathcontainer"/>
+	<classpathentry kind="lib" path="F:/AndroidSDK/platforms/android-23/android.jar" sourcepath="F:/AndroidSDK/sources/android-23"/>
+	<classpathentry kind="con" path="org.eclipse.fx.ide.jdt.core.JAVAFX_CONTAINER"/>
 	<classpathentry kind="output" path="build"/>
 </classpath>

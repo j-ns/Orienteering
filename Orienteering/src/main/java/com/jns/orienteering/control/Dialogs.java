@@ -33,7 +33,6 @@ import static com.jns.orienteering.locale.Localization.localize;
 import java.util.Optional;
 
 import com.gluonhq.charm.glisten.control.Dialog;
-import com.jns.orienteering.util.Calculations;
 
 import javafx.scene.Node;
 import javafx.scene.control.Button;
@@ -49,7 +48,7 @@ public class Dialogs {
         String title = message.getTitle();
 
         Node lblTitle = title == null ? null : new Label(title);
-        Node content = message.getText() == null ? contentPlaceHolder(title) : new Label(message.getText());
+        Node content = message.getText() == null ? null : new Label(message.getText());
 
         return ok(lblTitle, content);
     }
@@ -71,12 +70,12 @@ public class Dialogs {
     }
 
     public static Dialog<ButtonType> ok(String title) {
-        return ok(new Label(title), contentPlaceHolder(title));
+        return ok(new Label(title), null);
     }
 
     public static Dialog<ButtonType> ok(String title, String text) {
         Node lblTitle = title == null ? null : new Label(title);
-        Node content = text == null ? contentPlaceHolder(title) : new Label(text);
+        Node content = text == null ? null : new Label(text);
         return ok(lblTitle, content);
     }
 
@@ -95,8 +94,16 @@ public class Dialogs {
         return new DialogAnswer(cancelOk(title, cancelText, okText));
     }
 
+    public static DialogAnswer cancelOkAnswer(Message message, String cancelText, String okText) {
+        return new DialogAnswer(cancelOk(message, cancelText, okText));
+    }
+
     public static Dialog<ButtonType> cancelOk(String title, String cancelText, String okText) {
-        return cancelOk(new Label(title), contentPlaceHolder(title), cancelText, okText);
+        return cancelOk(new Label(title), null, cancelText, okText);
+    }
+
+    public static Dialog<ButtonType> cancelOk(Message message, String cancelText, String okText) {
+        return cancelOk(new Label(message.getTitle()), new Label(message.getText()), cancelText, okText);
     }
 
     public static Dialog<ButtonType> cancelOk(Node title, Node content, String cancelText, String okText) {
@@ -132,14 +139,6 @@ public class Dialogs {
 
     public static boolean answerIsYes(Dialog<ButtonType> dialog) {
         return new DialogAnswer(dialog).isYesOrOk();
-    }
-
-    private static Label contentPlaceHolder(String title) {
-        Label label = new Label();
-        label.setPrefWidth(Math.max(Calculations.textWidth(title), 280));
-        label.setMinHeight(16);
-        label.setPrefHeight(16);
-        return label;
     }
 
     public static class DialogAnswer {

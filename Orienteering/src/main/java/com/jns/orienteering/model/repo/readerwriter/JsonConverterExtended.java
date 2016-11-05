@@ -50,8 +50,6 @@ import javax.json.JsonString;
 import javax.json.JsonValue;
 import javax.json.JsonValue.ValueType;
 
-//gluon copyright einfügen?
-
 import com.gluonhq.impl.connect.converter.ClassInspector;
 
 import javafx.beans.property.BooleanProperty;
@@ -86,7 +84,7 @@ public class JsonConverterExtended<T> {
      */
     public JsonConverterExtended(Class<T> targetClass) {
         this.targetClass = targetClass;
-        this.inspector = new ClassInspector<>(targetClass);
+        this.inspector = ClassInspector.resolve(targetClass);
     }
 
     /**

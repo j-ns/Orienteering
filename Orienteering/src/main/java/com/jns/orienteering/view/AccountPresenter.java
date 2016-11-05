@@ -28,6 +28,7 @@
  */
 package com.jns.orienteering.view;
 
+import static com.jns.orienteering.control.Dialogs.showInfo;
 import static com.jns.orienteering.util.Validators.isNullOrEmpty;
 
 import java.io.FileNotFoundException;
@@ -36,12 +37,11 @@ import java.util.function.Consumer;
 
 import javax.inject.Inject;
 
-import com.gluonhq.charm.down.common.JavaFXPlatform;
+import com.gluonhq.charm.down.Platform;
 import com.gluonhq.charm.glisten.control.Avatar;
 import com.gluonhq.connect.GluonObservableObject;
 import com.jns.orienteering.common.BaseService;
 import com.jns.orienteering.control.ChoiceFloatingTextField;
-import com.jns.orienteering.control.Dialogs;
 import com.jns.orienteering.control.FloatingTextField;
 import com.jns.orienteering.control.Icon;
 import com.jns.orienteering.control.Message;
@@ -136,8 +136,7 @@ public class AccountPresenter extends BasePresenter {
 
         userCloudRepo = service.getRepoService().getCloudRepo(User.class);
 
-        // test:
-        if (JavaFXPlatform.isDesktop()) {
+        if (Platform.isDesktop()) {
             view.addEventHandler(KeyEvent.KEY_RELEASED, evt ->
             {
                 if (evt.getCode() == KeyCode.ESCAPE) {
@@ -289,7 +288,7 @@ public class AccountPresenter extends BasePresenter {
     private boolean validateUserIsNew() {
         boolean userExists = userCloudRepo.checkIfUserExists(txtUserName.getText());
         if (userExists) {
-            Dialogs.ok(localize("view.account.info.userAlreadyExists")).showAndWait();
+            showInfo(localize("view.account.info.userAlreadyExists"));
             return false;
         }
         return true;
@@ -301,7 +300,7 @@ public class AccountPresenter extends BasePresenter {
         String passwordConfirmation = txtPasswordConfirmation.getText();
 
         if (isNullOrEmpty(password)) {
-            Dialogs.ok(localize("view.account.info.enterPassword")).showAndWait();
+            showInfo(localize("view.account.info.enterPassword"));
             return false;
         }
 
@@ -311,32 +310,32 @@ public class AccountPresenter extends BasePresenter {
                 storedPassword = user.getPassword();
 
                 if (!password.equals(storedPassword)) {
-                    Dialogs.ok(localize("view.account.info.wrongPassword")).showAndWait();
+                    showInfo(localize("view.account.info.wrongPassword"));
                     return false;
                 }
             } catch (IOException e) {
-                Dialogs.ok(localize("view.account.error.retrieveUser")).showAndWait();
+                showInfo(localize("view.account.error.retrieveUser"));
                 return false;
             }
 
             boolean changePassword = !isNullOrEmpty(passwordNew);
             if (changePassword) {
                 if (isNullOrEmpty(passwordConfirmation)) {
-                    Dialogs.ok(localize("view.account.info.confirmPassword")).showAndWait();
+                    showInfo(localize("view.account.info.confirmPassword"));
                     return false;
                 }
                 if (passwordNew.compareTo(passwordConfirmation) != 0) {
-                    Dialogs.ok(localize("view.account.info.passwordsDontMatch")).showAndWait();
+                    showInfo(localize("view.account.info.passwordsDontMatch"));
                     return false;
                 }
             }
         } else {
             if (isNullOrEmpty(passwordConfirmation)) {
-                Dialogs.ok(localize("view.account.info.confirmPassword")).showAndWait();
+                showInfo(localize("view.account.info.confirmPassword"));
                 return false;
             }
             if (password.compareTo(passwordConfirmation) != 0) {
-                Dialogs.ok(localize("view.account.info.passwordsDontMatch")).showAndWait();
+                showInfo(localize("view.account.info.passwordsDontMatch"));
                 return false;
             }
 

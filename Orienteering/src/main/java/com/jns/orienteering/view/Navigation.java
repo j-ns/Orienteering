@@ -28,11 +28,18 @@
  */
 package com.jns.orienteering.view;
 
+import static com.jns.orienteering.locale.Localization.localize;
+
+import com.gluonhq.charm.down.Platform;
+import com.gluonhq.charm.down.Services;
+import com.gluonhq.charm.down.plugins.LifecycleService;
 import com.gluonhq.charm.glisten.application.MobileApplication;
+import com.gluonhq.charm.glisten.application.ViewStackPolicy;
 import com.gluonhq.charm.glisten.control.Avatar;
 import com.gluonhq.charm.glisten.control.NavigationDrawer;
 import com.gluonhq.charm.glisten.control.NavigationDrawer.Item;
 import com.gluonhq.charm.glisten.mvc.View;
+import com.jns.orienteering.control.Icon;
 
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -53,6 +60,20 @@ public class Navigation {
     private ObjectProperty<View> view              = new SimpleObjectProperty<>();
 
     public Navigation() {
+        navigationDrawer = new NavigationDrawer();
+        navigationDrawer.setHeader(createHeader());
+        addViewItems();
+
+        navigationDrawer.addEventHandler(NavigationDrawer.ITEM_SELECTED,
+                                         e -> MobileApplication.getInstance().hideLayer(NAVIGATION_DRAWER));
+
+        viewProperty().addListener((obs, v, v1) ->
+        {
+            navigationDrawer.setSelectedItem(null);
+        });
+    }
+
+    private HBox createHeader() {
         avatar = new Avatar(32);
 
         lblAlias = new Label();
@@ -67,23 +88,28 @@ public class Navigation {
         boxHeader.setOnMouseClicked(e ->
         {
             MobileApplication.getInstance().hideLayer(NAVIGATION_DRAWER);
-            MobileApplication.getInstance().switchView(ViewRegistry.USER.getViewName());
+            MobileApplication.getInstance().switchView(ViewRegistry.USER.getViewName(), ViewStackPolicy.SKIP);
         });
+        return boxHeader;
+    }
 
-        navigationDrawer = new NavigationDrawer();
-        navigationDrawer.setHeader(boxHeader);
-        navigationDrawer.selectedItemProperty().addListener((obs, t, t1) ->
-        {
-            if (t1 != null) {
-                navigationDrawer.setSelectedItem(null);
-            }
-        });
-
+    private void addViewItems() {
         for (ViewRegistry registry : ViewRegistry.values()) {
             Item menuItem = registry.getMenuItem();
             if (menuItem != null) {
                 navigationDrawer.getItems().add(menuItem);
             }
+        }
+
+        if (Platform.isDesktop()) {
+            final Item quitItem = new Item(localize("navigation.item.quit"), Icon.EXIT.icon("22"));
+            quitItem.selectedProperty().addListener((obs, ov, nv) ->
+            {
+                if (nv) {
+                    Services.get(LifecycleService.class).ifPresent(LifecycleService::shutdown);
+                }
+            });
+            navigationDrawer.getItems().add(quitItem);
         }
     }
 

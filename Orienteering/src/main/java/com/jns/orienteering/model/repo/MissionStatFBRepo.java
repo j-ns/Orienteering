@@ -27,6 +27,7 @@
  */
 package com.jns.orienteering.model.repo;
 
+import static com.jns.orienteering.control.Dialogs.showInfo;
 import static com.jns.orienteering.locale.Localization.localize;
 import static com.jns.orienteering.model.repo.BaseUrls.MISSION_STATS;
 import static com.jns.orienteering.model.repo.BaseUrls.STATS_BY_MISSION;
@@ -42,7 +43,6 @@ import org.slf4j.LoggerFactory;
 import com.gluonhq.connect.GluonObservableList;
 import com.gluonhq.connect.provider.DataProvider;
 import com.gluonhq.connect.provider.RestClient;
-import com.jns.orienteering.control.Dialogs;
 import com.jns.orienteering.model.persisted.MissionStat;
 import com.jns.orienteering.model.persisted.StatByMission;
 import com.jns.orienteering.model.persisted.StatByUser;
@@ -78,7 +78,7 @@ public class MissionStatFBRepo extends FireBaseRepo<MissionStat> {
 
         } catch (IOException ex) {
             LOGGER.error("Failed to save mission stat", ex);
-            Dialogs.ok(localize("view.activeMission.error.saveStat")).showAndWait();
+            showInfo(localize("view.activeMission.error.saveStat"));
         }
     }
 

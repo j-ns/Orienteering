@@ -29,6 +29,7 @@
 package com.jns.orienteering.view;
 
 import static com.jns.orienteering.control.Dialogs.confirmDeleteAnswer;
+import static com.jns.orienteering.control.Dialogs.showError;
 import static com.jns.orienteering.util.Validators.isNotNullOrEmpty;
 
 import java.io.FileNotFoundException;
@@ -36,7 +37,7 @@ import java.util.function.Consumer;
 
 import javax.inject.Inject;
 
-import com.gluonhq.charm.down.common.Position;
+import com.gluonhq.charm.down.plugins.Position;
 import com.gluonhq.charm.glisten.control.Dialog;
 import com.gluonhq.charm.glisten.control.ProgressBar;
 import com.gluonhq.connect.GluonObservableObject;
@@ -45,7 +46,6 @@ import com.jns.orienteering.common.BaseService;
 import com.jns.orienteering.common.MultiValidator;
 import com.jns.orienteering.common.SingleValidator;
 import com.jns.orienteering.control.ChoiceFloatingTextField;
-import com.jns.orienteering.control.Dialogs;
 import com.jns.orienteering.control.FloatingTextField;
 import com.jns.orienteering.control.Icon;
 import com.jns.orienteering.control.Message;
@@ -246,6 +246,7 @@ public class TaskPresenter extends BasePresenter {
                                                                                           .getLongitude());
             txtPosition.setText(position);
             gpsDialog.hide();
+            gpsDialog = null;
             removePositionListener();
         }
     };
@@ -255,9 +256,10 @@ public class TaskPresenter extends BasePresenter {
     }
 
     private void showGpsDialog() {
-        if (gpsDialog == null) {
-            gpsDialog = new GPSDialog();
-        }
+        // todo: Dialog.showAndWait NPE when called twice
+        // if (gpsDialog == null) {
+        gpsDialog = new GPSDialog();
+        // }
         gpsDialog.showAndWait();
     }
 
@@ -291,8 +293,7 @@ public class TaskPresenter extends BasePresenter {
             Message msg = Message.create()
                                  .title(localize("view.task.error.invalidCoordinates"))
                                  .text(localize("view.task.error.validCoordinates"));
-
-            Dialogs.ok(msg).showAndWait();
+            showError(msg);
             return false;
         }
         return getTaskValidator().check(txtName.getText());
@@ -307,7 +308,7 @@ public class TaskPresenter extends BasePresenter {
 
     private MultiValidator<String> createTaskValidator() {
         SingleValidator<String> nameDoesntExistValidator = new SingleValidator<>(name -> !cloudRepo.checkIfTaskNameExists(name),
-                                                                     localize("view.task.info.nameAlreadyExists"));
+                                                                                 localize("view.task.info.nameAlreadyExists"));
 
         MultiValidator<String> validator = new MultiValidator<>();
         validator.addCheck(Validators::isNotNullOrEmpty, localize("view.task.info.taskNameCantBeEmpty"));
@@ -345,7 +346,7 @@ public class TaskPresenter extends BasePresenter {
         boolean createImageId = isEditorModus() ? imageChanged && image.get() != null : image.get() != null;
 
         Task newTask = new Task(cityId, name, description, getPosition(), points, accessType, service.getUser().getId(), createImageId);
-        newTask.setScancode(scanCode);
+        newTask.setScanCode(scanCode);
 
         if (isEditorModus()) {
             newTask.setId(task.getId());

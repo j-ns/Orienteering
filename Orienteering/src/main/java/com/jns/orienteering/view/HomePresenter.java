@@ -28,6 +28,8 @@
  */
 package com.jns.orienteering.view;
 
+import static com.jns.orienteering.control.Dialogs.cancelOkAnswer;
+import static com.jns.orienteering.control.Dialogs.showInfo;
 import static com.jns.orienteering.util.DateTimeFormatters.formatLong;
 import static com.jns.orienteering.util.DateTimeFormatters.formatTime;
 
@@ -37,7 +39,6 @@ import java.time.LocalTime;
 import javax.inject.Inject;
 
 import com.jns.orienteering.common.BaseService;
-import com.jns.orienteering.control.Dialogs;
 import com.jns.orienteering.control.DurationDisplay;
 import com.jns.orienteering.model.persisted.Mission;
 import com.jns.orienteering.model.persisted.MissionStat;
@@ -137,13 +138,6 @@ public class HomePresenter extends BasePresenter {
     }
 
     @Override
-    protected void onShowing() {
-        if (!service.isInitialized()) {
-            showView(ViewRegistry.START);
-        }
-    }
-
-    @Override
     protected void onShown() {
         super.onShown();
 
@@ -186,11 +180,11 @@ public class HomePresenter extends BasePresenter {
     }
 
     private void showMissionIsActiveInfo() {
-        Dialogs.ok(localize("view.home.info.navigationUnavailable")).showAndWait();
+        showInfo(localize("view.home.info.navigationUnavailable"));
     }
 
     private boolean confirmChangeMission() {
-        return Dialogs.cancelOkAnswer(localize("view.home.question.changeMission"), localize("button.cancel"), localize("button.change")).isYesOrOk();
+        return cancelOkAnswer(localize("view.home.question.changeMission"), localize("button.cancel"), localize("button.change")).isYesOrOk();
     }
 
     private void clearFields() {

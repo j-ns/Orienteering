@@ -26,6 +26,35 @@
  *  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  *  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
+/**
+*
+*  Copyright (c) 2016, Jens Stroh
+*
+*  This program is free software: you can redistribute it and/or modify
+*  it under the terms of the GNU General Public License as published by
+*  the Free Software Foundation, either version 3 of the License, or
+*  (at your option) any later version.
+*
+*  This program is distributed in the hope that it will be useful,
+*  but WITHOUT ANY WARRANTY; without even the implied warranty of
+*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+*  GNU General Public License for more details.
+*
+*  You should have received a copy of the GNU General Public License
+*  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*
+*  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+*  ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+*  WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+*  DISCLAIMED. IN NO EVENT SHALL JENS STROH BE LIABLE FOR ANY
+*  DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+*  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+*  ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+*  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+*  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+*/
 package com.jns.orienteering.control;
 
 import java.util.function.Function;
@@ -43,37 +72,81 @@ import javafx.animation.Animation.Status;
 import javafx.animation.PauseTransition;
 import javafx.animation.Transition;
 import javafx.event.EventHandler;
+import javafx.scene.Node;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.StackPane;
+import javafx.scene.shape.Circle;
 import javafx.util.Duration;
 
 public class ProgressLayer extends Layer {
 
-    public static final double     DEFAULT_DELAY = 150;
-    private static final GlassPane GLASS_PANE    = MobileApplication.getInstance().getGlassPane();
+    public static final String     DEFAULT_LAYER_NAME = "default_progress_layer";
+    public static final double     DEFAULT_RADIUS     = 15;
+    public static final double     DEFAULT_DELAY      = 150;
 
-    private StackPane              root;
+    private static final GlassPane GLASS_PANE         = MobileApplication.getInstance().getGlassPane();
+
+    private String                 layerName          = DEFAULT_LAYER_NAME;
+
     private ShowHideTransition     showHideTransition;
-    private double                 delay         = DEFAULT_DELAY;
+    private double                 delay              = DEFAULT_DELAY;
     private boolean                fadeLayer;
 
+    private StackPane              root;
+    private Circle                 clip;
+
     public ProgressLayer() {
-        this(PauseFadeInFadeOut::new);
+        this(PauseFadeInHide::new, DEFAULT_LAYER_NAME);
     }
 
-    public ProgressLayer(Function<ProgressLayer, ShowHideTransition> transitionProvider) {
+    public ProgressLayer(Function<ProgressLayer, ShowHideTransition> transitionProvider, String layerName) {
+        this(transitionProvider, null, DEFAULT_RADIUS, layerName);
+    }
+
+    public ProgressLayer(Node icon) {
+        this(PauseFadeInHide::new, icon, DEFAULT_RADIUS, DEFAULT_LAYER_NAME);
+    }
+
+    public ProgressLayer(Node icon, String layerName) {
+        this(PauseFadeInHide::new, icon, DEFAULT_RADIUS, layerName);
+    }
+
+    public ProgressLayer(Function<ProgressLayer, ShowHideTransition> transitionProvider, Node icon, double radius) {
+        this(transitionProvider, icon, radius, DEFAULT_LAYER_NAME);
+    }
+
+    public ProgressLayer(Function<ProgressLayer, ShowHideTransition> transitionProvider, Node icon, double radius, String layerName) {
         getStyleClass().add("progress-layer");
         setAutoHide(false);
+        this.layerName = layerName;
 
         ProgressIndicator progress = new ProgressIndicator();
         progress.setStyle("-fx-color:#ff9100");
+        progress.setRadius(radius);
 
         root = new StackPane(progress);
-        getChildren().add(root);
 
+        if (icon != null) {
+            icon.getStyleClass().add("progress-icon");
+
+            clip = new Circle(radius - 1);
+            icon.setClip(clip);
+
+            root.getChildren().add(icon);
+
+            addEventFilter(MouseEvent.MOUSE_CLICKED, evt ->
+            {
+                if (evt.getTarget() != icon) {
+                    evt.consume();
+                }
+            });
+        }
+
+        getChildren().add(root);
         GLASS_PANE.getLayers().add(this);
 
         showHideTransition = transitionProvider.apply(this);
-        showHideTransition.setOnFinished(() -> super.hide());
+        showHideTransition.setOnFinished(super::hide);
 
         showingProperty().addListener((ov, b, b1) ->
         {
@@ -81,6 +154,26 @@ public class ProgressLayer extends Layer {
                 showHideTransition.startShow();
             }
         });
+
+    }
+
+    @Override
+    public void layoutChildren() {
+        root.setVisible(isShowing());
+        if (!isShowing()) {
+            return;
+        }
+
+        root.resize(GLASS_PANE.getWidth(), GLASS_PANE.getHeight());
+
+        if (clip != null) {
+            clip.setLayoutX(root.getWidth() / 2 - 1);
+            clip.setLayoutY(root.getHeight() / 2 - 1);
+        }
+    }
+
+    public String getLayerName() {
+        return layerName;
     }
 
     public void setDelay(double millis) {
@@ -96,6 +189,10 @@ public class ProgressLayer extends Layer {
         getStyleClass().add("cancelable");
     }
 
+    public void setOnCancelled(EventHandler<MouseEvent> handler) {
+        root.setOnMouseClicked(handler);
+    }
+
     @Override
     public void show() {
         if (!isShowing()) {
@@ -108,19 +205,7 @@ public class ProgressLayer extends Layer {
         if (isShowing()) {
             showHideTransition.startHide();
         }
-        GLASS_PANE.setBackgroundFade(0d);
-    }
-
-    @Override
-    public void layoutChildren() {
-        root.setVisible(isShowing());
-        if (!isShowing()) {
-            return;
-        }
-
-        double size = root.prefWidth(-1);
-        root.resize(size, size);
-        resizeRelocate((GLASS_PANE.getWidth() -size) / 2, (GLASS_PANE.getHeight() -size) / 2, size, size);
+        setBackgroundFade(0d);
     }
 
     public abstract static class ShowHideTransition {
@@ -165,7 +250,7 @@ public class ProgressLayer extends Layer {
             {
                 if (progressLayer.isShowing()) {
                     if (progressLayer.fadeLayer) {
-                        ProgressLayer.GLASS_PANE.setBackgroundFade(GlassPane.DEFAULT_BACKGROUND_FADE_LEVEL);
+                        progressLayer.setBackgroundFade(GlassPane.DEFAULT_BACKGROUND_FADE_LEVEL);
                     }
                     showTransition.playFromStart();
                     running = true;

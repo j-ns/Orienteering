@@ -69,7 +69,7 @@ public class ImageSynchronizer extends BaseSynchronizer<Task, ActiveTaskList> {
 
     @Override
     protected void syncLocalData(ObservableList<ChangeLogEntry> log) {
-        // there are only logEntries with action 'delete" for images
+        // there are only ImagelogEntries with action DELETE
         ImageHandler.removeFromCacheAsync(log);
         setSucceeded();
     }

@@ -140,4 +140,9 @@ public class DesktopPlatform implements PlatformService {
         return new FileInputStream(imageUrl);
     }
 
+    @Override
+    public void checkPermissions() {
+        // no-op
+    }
+
 }

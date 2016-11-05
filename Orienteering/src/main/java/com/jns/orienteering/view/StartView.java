@@ -28,66 +28,76 @@
  */
 package com.jns.orienteering.view;
 
+import static com.jns.orienteering.locale.Localization.localize;
+
 import javax.inject.Inject;
 
+import com.airhacks.afterburner.injection.Injector;
 import com.gluonhq.charm.glisten.control.ProgressBar;
+import com.gluonhq.charm.glisten.mvc.SplashView;
 import com.jns.orienteering.common.BaseService;
 
 import javafx.animation.Animation.Status;
 import javafx.animation.PauseTransition;
-import javafx.fxml.FXML;
-import javafx.scene.image.Image;
+import javafx.geometry.Pos;
+import javafx.scene.control.Label;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.Region;
+import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import javafx.util.Duration;
 
 /**
  * Shows a splashscreen at the start of the application until {@link BaseService} is initialized
  */
-public class StartPresenter extends BasePresenter {
-
-    @FXML
-    private ImageView   image;
-    @FXML
-    private ProgressBar progressBar;
+public class StartView extends SplashView {
 
     @Inject
     private BaseService service;
 
-    @Override
-    protected void initialize() {
-        super.initialize();
-        image.setImage(new Image("/images/compass.png"));
+    public StartView() {
+        Injector.registerExistingAndInject(this);
+        initContent();
+        setOnShown(e -> onShown());
+    }
+
+    private void initContent() {
+        ImageView image = new ImageView("/images/compass.png");
+
+        Region spacer = new Region();
+        spacer.setPrefHeight(60);
+
+        Label lblTitle = new Label(localize("view.splash.title"));
+        lblTitle.setId("startTitle");
+
+        ProgressBar progressBar = new ProgressBar();
         progressBar.setStyle("-fx-color: #89C63B");
+        progressBar.setMaxWidth(200);
+
+        VBox boxContent = new VBox(20, spacer, image, lblTitle, progressBar);
+        boxContent.setAlignment(Pos.TOP_CENTER);
+
+        setCenter(new StackPane(boxContent));
     }
 
-    @Override
-    protected void initAppBar() {
-        showAppBar(false);
-    }
-
-    @Override
     protected void onShown() {
-        super.onShown();
-
         PauseTransition pause = new PauseTransition(Duration.seconds(1));
         pause.setOnFinished(e ->
         {
             if (service.isInitialized()) {
-                showHomeView();
+                hideSplashView();
+            } else {
+                service.initializedProperty().addListener((obsValue, b, b1) ->
+                {
+                    if (b1) {
+                        if (pause.getStatus() != Status.RUNNING) {
+                            hideSplashView();
+                        }
+                    }
+                });
             }
         });
         pause.play();
-
-        if (!service.isInitialized()) {
-            service.initializedProperty().addListener((obsValue, b, b1) ->
-            {
-                if (b1) {
-                    if (pause.getStatus() != Status.RUNNING) {
-                        showHomeView();
-                    }
-                }
-            });
-        }
 
     }
 

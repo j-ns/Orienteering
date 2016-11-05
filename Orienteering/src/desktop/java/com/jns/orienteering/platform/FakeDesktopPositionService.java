@@ -28,7 +28,7 @@
  */
 package com.jns.orienteering.platform;
 
-import com.gluonhq.charm.down.common.Position;
+import com.gluonhq.charm.down.plugins.Position;
 
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;

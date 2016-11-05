@@ -29,11 +29,11 @@
 package com.jns.orienteering.view;
 
 import static com.jns.orienteering.control.Dialogs.confirmDeleteAnswer;
+import static com.jns.orienteering.control.Dialogs.showInfo;
 
 import com.gluonhq.charm.glisten.layout.layer.FloatingActionButton;
 import com.gluonhq.connect.GluonObservableList;
 import com.gluonhq.connect.GluonObservableObject;
-import com.jns.orienteering.control.Dialogs;
 import com.jns.orienteering.control.cell.MissionCell;
 import com.jns.orienteering.model.dynamic.MissionCache;
 import com.jns.orienteering.model.dynamic.ModelCache;
@@ -131,7 +131,7 @@ public class MissionsPresenter extends ListViewPresenter<Mission> {
 
     private void onSetActiveMission(Mission mission) {
         if (!cloudRepo.missionContainsTasks(mission.getId())) {
-            Platform.runLater(() -> Dialogs.ok(localize("view.missions.info.missionDoesntContainTask")).showAndWait());
+            Platform.runLater(() -> showInfo(localize("view.missions.info.missionDoesntContainTask")));
             return;
         }
 
@@ -143,7 +143,7 @@ public class MissionsPresenter extends ListViewPresenter<Mission> {
         Platform.runLater(() ->
         {
             if (!mission.getOwnerId().equals(service.getUserId())) {
-                Dialogs.ok(localize("missions.info.missionCanOnlyBeDeletedByOwner")).showAndWait();
+                showInfo(localize("missions.info.missionCanOnlyBeDeletedByOwner"));
                 return;
             }
 

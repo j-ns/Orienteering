@@ -1,12 +1,12 @@
 package com.jns.orienteering.model.repo;
 
-import com.jns.orienteering.util.Validators;
+import static com.jns.orienteering.util.Validators.isNullOrEmpty;
 
 public class UrlBuilder {
 
-    protected static final String JSON_SUFFIX = ".json";
+    private static final String JSON_SUFFIX = ".json";
 
-    private String                baseUrl;
+    private final String        baseUrl;
 
     public UrlBuilder(String baseUrl) {
         if (!baseUrl.startsWith("/")) {
@@ -38,19 +38,19 @@ public class UrlBuilder {
      */
     public static String buildPath(String... urlParts) {
         String result = "";
-    
+
         for (String child : urlParts) {
-            if (Validators.isNullOrEmpty(child)) {
+            if (isNullOrEmpty(child)) {
                 continue;
             }
-    
+
             if (!child.startsWith("/")) {
                 result = result + "/" + child;
             } else {
                 result = result + child;
             }
         }
-        if (Validators.isNullOrEmpty(result)) {
+        if (isNullOrEmpty(result)) {
             throw new IllegalArgumentException("url can not be empty");
         }
         return result;

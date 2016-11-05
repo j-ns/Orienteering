@@ -28,6 +28,8 @@
  */
 package com.jns.orienteering.control.skin;
 
+import com.gluonhq.charm.glisten.application.GlassPane;
+import com.gluonhq.charm.glisten.application.MobileApplication;
 import com.gluonhq.charm.glisten.layout.layer.PopupView;
 import com.jns.orienteering.control.BaseChoiceField;
 import com.jns.orienteering.control.ChoiceMenu;
@@ -46,15 +48,17 @@ import javafx.scene.layout.StackPane;
 
 public class BaseChoiceFieldSkin<T, C extends BaseChoiceField<T>> extends SkinBase<C> {
 
-    private Node                  displayNode;
-    private TextField             textField;
+    private static final GlassPane GLASS_PANE = MobileApplication.getInstance().getGlassPane();
 
-    private StackPane             pneOpenButton;
-    private Label                 openButton;
-    private ChoiceMenu<T>         choiceMenu;
-    private PopupView             popup;
+    protected Node                 displayNode;
+    private TextField              textField;
 
-    private SelectionModelBase<T> selectionModel;
+    protected StackPane            pneOpenButton;
+    private Label                  openButton;
+    protected ChoiceMenu<T>        choiceMenu;
+    private PopupView              popup;
+
+    private SelectionModelBase<T>  selectionModel;
 
     public BaseChoiceFieldSkin(C control) {
         super(control);
@@ -79,7 +83,12 @@ public class BaseChoiceFieldSkin<T, C extends BaseChoiceField<T>> extends SkinBa
         });
 
         choiceMenu.addEventHandler(ChoiceMenu.ON_SHOWING, e -> showPopup());
-        choiceMenu.addEventHandler(ChoiceMenu.ON_HIDING, e -> popup.hide());
+        choiceMenu.addEventHandler(ChoiceMenu.ON_HIDING, e ->
+        {
+            // todo: BUG popup
+            popup.setShowing(false);
+            popup.hide();
+        });
     }
 
     private void initialize() {
@@ -97,8 +106,9 @@ public class BaseChoiceFieldSkin<T, C extends BaseChoiceField<T>> extends SkinBa
     private void initOpenButton() {
         openButton = getSkinnable().getOpenButton();
         if (openButton == null) {
-            openButton = Icon.TRIANGLE_DOWN.label();
+            openButton = Icon.TRIANGLE_DOWN.label("14");
         }
+
         pneOpenButton = new StackPane(openButton);
         getChildren().add(pneOpenButton);
     }
@@ -108,6 +118,8 @@ public class BaseChoiceFieldSkin<T, C extends BaseChoiceField<T>> extends SkinBa
             getSkinnable().showMissingDataMessage();
             return;
         }
+        // todo: bug popup
+        popup.mobileLayoutPaneProperty().set(GLASS_PANE);
         popup.show();
         popup.requestFocus();
     }

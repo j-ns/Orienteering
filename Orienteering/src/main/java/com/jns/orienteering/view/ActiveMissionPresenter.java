@@ -32,16 +32,19 @@ import static com.jns.orienteering.util.Validators.isNullOrEmpty;
 
 import java.time.LocalTime;
 import java.util.Iterator;
+import java.util.Optional;
 
 import javax.inject.Inject;
 
-import com.gluonhq.charm.down.common.Position;
+import com.gluonhq.charm.down.Services;
+import com.gluonhq.charm.down.plugins.BarcodeScanService;
+import com.gluonhq.charm.down.plugins.Position;
 import com.gluonhq.maps.MapView;
 import com.jns.orienteering.common.BaseService;
 import com.jns.orienteering.control.Dialogs;
+import com.jns.orienteering.control.Dialogs.DialogAnswer;
 import com.jns.orienteering.control.Icon;
 import com.jns.orienteering.control.ListViewExtended;
-import com.jns.orienteering.control.Dialogs.DialogAnswer;
 import com.jns.orienteering.control.cell.TaskCellLarge;
 import com.jns.orienteering.control.cell.TaskCellSmall;
 import com.jns.orienteering.control.cell.TimeLineCell;
@@ -51,12 +54,9 @@ import com.jns.orienteering.model.persisted.Task;
 import com.jns.orienteering.model.persisted.TaskStat;
 import com.jns.orienteering.model.persisted.TrackData;
 import com.jns.orienteering.model.repo.MissionStatFBRepo;
-import com.jns.orienteering.platform.PlatformProvider;
 import com.jns.orienteering.platform.PositionServiceExtended;
-import com.jns.orienteering.util.Validators;
 
 import javafx.beans.property.ReadOnlyObjectProperty;
-import javafx.beans.property.StringProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -124,7 +124,7 @@ public class ActiveMissionPresenter extends BasePresenter {
     private Task                             activeTask;
 
     private StatsCollector                   statsCollector;
-    private StringProperty                   barcode;
+
     private ReadOnlyObjectProperty<Position> position;
     private PositionServiceExtended          positionService;
 
@@ -232,22 +232,19 @@ public class ActiveMissionPresenter extends BasePresenter {
     }
 
     private void scanBarcode() {
-        barcode = PlatformProvider.getPlatform().getScanService().scan();
-        barcode.addListener(barcodeListener);
+        Optional<BarcodeScanService> scanService = Services.get(BarcodeScanService.class);
+        scanService.ifPresent(s ->
+        {
+            s.scan().ifPresent(barcode -> onBarcodeScaned(barcode));
+        });
     }
 
-    private ChangeListener<? super String> barcodeListener = (ov, s, s1) ->
-    {
-        if (s1 != null && s1.equals(activeTask.getScanCode())) {
+    private void onBarcodeScaned(String barcode) {
+        if (barcode != null && barcode.equals(activeTask.getScanCode())) {
             advanceTask(COMPLETED);
             notifyTaskCompleted();
         }
-        removeBarcodeListener();
     };
-
-    private void removeBarcodeListener() {
-        barcode.removeListener(barcodeListener);
-    }
 
     @Override
     protected void onShown() {
@@ -273,7 +270,7 @@ public class ActiveMissionPresenter extends BasePresenter {
             position.addListener(positionListener);
             positionService.activate();
 
-            btnScan.setVisible(!Validators.isNullOrEmpty(activeTask.getScanCode()));
+            btnScan.setVisible(!isNullOrEmpty(activeTask.getScanCode()));
             btnSkipTask.setVisible(true);
         }
     }
@@ -321,7 +318,7 @@ public class ActiveMissionPresenter extends BasePresenter {
             mapLargeHelper.addMarker(activeTask, completed);
 
             lviewTasks.scrollTo(taskIterator.idx - 1);
-            btnScan.setVisible(!Validators.isNullOrEmpty(activeTask.getScanCode()));
+            btnScan.setVisible(!isNullOrEmpty(activeTask.getScanCode()));
 
         } else {
             statsCollector.setMissionFinished();

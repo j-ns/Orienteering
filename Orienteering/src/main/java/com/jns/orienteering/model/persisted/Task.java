@@ -36,7 +36,7 @@ import java.util.Objects;
 
 import javax.xml.bind.annotation.XmlTransient;
 
-import com.gluonhq.charm.down.common.Position;
+import com.gluonhq.charm.down.plugins.Position;
 import com.gluonhq.maps.MapPoint;
 import com.jns.orienteering.locale.Localization;
 
@@ -54,7 +54,7 @@ public class Task extends BasePostableSynchronizable implements CityAssignable, 
     private double                        latitude;
     private boolean                       createImageId;
     private String                        imageId;
-    private String                        scancode;
+    private String                        scanCode;
     private int                           points;
 
     private int                           orderNumber;
@@ -179,11 +179,11 @@ public class Task extends BasePostableSynchronizable implements CityAssignable, 
     }
 
     public String getScanCode() {
-        return scancode;
+        return scanCode;
     }
 
-    public void setScancode(String barcode) {
-        scancode = barcode;
+    public void setScanCode(String barcode) {
+        scanCode = barcode;
     }
 
     public int getPoints() {

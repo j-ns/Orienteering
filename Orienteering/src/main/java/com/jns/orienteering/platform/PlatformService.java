@@ -66,4 +66,6 @@ public interface PlatformService {
 
     FileInputStream getImageInputStream() throws FileNotFoundException;
 
+    void checkPermissions();
+
 }

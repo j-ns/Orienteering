@@ -27,16 +27,11 @@
  */
 package com.jns.orienteering;
 
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.util.logging.LogManager;
-
-import com.gluonhq.charm.down.common.JavaFXPlatform;
 import com.gluonhq.charm.glisten.application.MobileApplication;
+import com.jns.orienteering.view.StartView;
 import com.jns.orienteering.view.ViewRegistry;
 
 import javafx.scene.Scene;
-import javafx.stage.Stage;
 
 public class OrienteeringApp extends MobileApplication {
 
@@ -47,36 +42,14 @@ public class OrienteeringApp extends MobileApplication {
 
     @Override
     public void init() {
+        ViewRegistry.registerView(this, SPLASH_VIEW, () -> new StartView());
         ViewRegistry.registerViews(this);
         ViewRegistry.registerNavigation(this);
-
-        // PlatformFactory.getPlatform().setOnLifecycleEvent(param ->
-        // {
-        // if (param == LifecycleEvent.STOP) {
-        // ImageHandler.shutdownExecutor();
-        // }
-        // return null;
-        // });
     }
 
     @Override
     public void postInit(Scene scene) {
         scene.getStylesheets().add(getClass().getResource("/com/jns/orienteering/base.css").toExternalForm());
         scene.getStylesheets().add(getClass().getResource("/com/jns/orienteering/application.css").toExternalForm());
-
-        if (JavaFXPlatform.isDesktop()) {
-            scene.getWindow().setWidth(340);
-            scene.getWindow().setHeight(550);
-            ((Stage) scene.getWindow()).setAlwaysOnTop(true);
-
-            try {
-                LogManager.getLogManager().readConfiguration(new FileInputStream("src/desktop/resources/logging.properties"));
-            } catch (SecurityException | IOException e) {
-                e.printStackTrace();
-            }
-        }
-
-        // Stage stage = (Stage) scene.getWindow();
-        // stage.setOnCloseRequest(e -> ImageHandler.shutdownExecutor());
     }
 }

@@ -40,7 +40,9 @@ import java.util.function.Consumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.gluonhq.charm.down.common.cache.Cache;
+import com.gluonhq.charm.down.Services;
+import com.gluonhq.charm.down.plugins.Cache;
+import com.gluonhq.charm.down.plugins.CacheService;
 import com.gluonhq.connect.GluonObservableObject;
 import com.google.cloud.storage.StorageException;
 import com.jns.orienteering.model.persisted.ChangeLogEntry;
@@ -236,6 +238,8 @@ public class ImageHandler {
         });
     }
 
+    // todo: cleanUp images which have not been used for a while
+
     private static GluonObservableObject<Image> executeAsync(StorableImage image, Consumer<StorableImage> action) {
         GluonObservableObject<Image> obsImage = new GluonObservableObject<>();
 
@@ -267,7 +271,8 @@ public class ImageHandler {
 
         private ImageCache() {
             imageStore = PlatformProvider.getPlatformService().getStorage().getPrivateFile(IMAGES_DIR);
-            cache = PlatformProvider.getPlatform().getCacheManager().createCache("image_cache");
+            cache = Services.get(CacheService.class).orElseThrow(() -> new IllegalStateException("Failed to get CacheService")).getCache(
+                                                                                                                                         "image_cache");
 
             LOGGER.debug("imageStore: {}", imageStore);
         }

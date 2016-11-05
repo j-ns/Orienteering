@@ -28,6 +28,8 @@
 
 package com.jns.orienteering.view;
 
+import java.util.Optional;
+
 import com.gluonhq.charm.glisten.application.MobileApplication;
 import com.gluonhq.charm.glisten.application.ViewStackPolicy;
 import com.gluonhq.charm.glisten.control.AppBar;
@@ -139,14 +141,14 @@ public abstract class BasePresenter {
 
     protected FloatingActionButton addFab(MobileLayoutPane pane, String text, EventHandler<ActionEvent> handler) {
         FloatingActionButton fab = new FloatingActionButton(text, handler);
-        pane.getLayers().add(fab);
+        pane.getLayers().add(fab.getLayer());
         return fab;
     }
 
     protected FloatingActionButton addFab(MobileLayoutPane pane, EventHandler<ActionEvent> handler) {
         FloatingActionButton fab = new FloatingActionButton();
         fab.setOnAction(handler);
-        pane.getLayers().add(fab);
+        pane.getLayers().add(fab.getLayer());
         return fab;
     }
 
@@ -171,8 +173,8 @@ public abstract class BasePresenter {
     }
 
     protected void showPreviousView() {
-        boolean viewSwitched = APPLICATION.switchToPreviousView();
-        if (!viewSwitched) {
+        Optional<View> previousView = APPLICATION.switchToPreviousView();
+        if (!previousView.isPresent()) {
             APPLICATION.goHome();
         }
     }

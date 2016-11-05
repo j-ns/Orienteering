@@ -34,7 +34,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
 
-import com.gluonhq.charm.down.common.Position;
+import com.gluonhq.charm.down.plugins.Position;
 import com.gluonhq.maps.MapPoint;
 import com.gluonhq.maps.MapView;
 import com.jns.orienteering.control.Icon;

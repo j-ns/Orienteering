@@ -28,6 +28,7 @@
 package com.jns.orienteering.view;
 
 import static com.jns.orienteering.control.Dialogs.confirmDeleteAnswer;
+import static com.jns.orienteering.control.Dialogs.showInfo;
 
 import java.util.function.Consumer;
 
@@ -37,7 +38,6 @@ import com.gluonhq.charm.glisten.layout.layer.FloatingActionButton;
 import com.gluonhq.connect.GluonObservableList;
 import com.gluonhq.connect.GluonObservableObject;
 import com.jns.orienteering.common.BaseService;
-import com.jns.orienteering.control.Dialogs;
 import com.jns.orienteering.control.Icon;
 import com.jns.orienteering.control.ListViewExtended;
 import com.jns.orienteering.control.ScrollEventFilter;
@@ -138,7 +138,7 @@ public class CitiesPresenter extends BasePresenter {
     private void onSelect(City city) {
         if (city != null) {
             if (!isPrivateAccess() && !city.getOwnerId().equals(service.getUserId())) {
-                Dialogs.ok(localize("view.cities.info.onlyOwnerCanEditCity")).showAndWait();
+                showInfo(localize("view.cities.info.onlyOwnerCanEditCity"));
                 return;
             }
             service.setSelectedCity(city);
@@ -148,7 +148,7 @@ public class CitiesPresenter extends BasePresenter {
 
     private void onSetDefault(City city) {
         if (service.getUser() == null) {
-            Platform.runLater(() -> Dialogs.ok(localize("view.cities.info.userNotLoggedInCantSetCity")).showAndWait());
+            Platform.runLater(() -> showInfo(localize("view.cities.info.userNotLoggedInCantSetCity")));
             return;
         }
         service.setDefaultCity(city);
@@ -162,7 +162,7 @@ public class CitiesPresenter extends BasePresenter {
                 return;
             }
             if (!cloudRepo.isCityValidForDelete(city.getId())) {
-                Dialogs.ok(localize("view.cities.error.cityIsUsedByTaskOrMission")).showAndWait();
+                showInfo(localize("view.cities.error.cityIsUsedByTaskOrMission"));
                 return;
             }
 

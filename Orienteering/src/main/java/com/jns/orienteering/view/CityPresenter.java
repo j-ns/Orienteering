@@ -29,6 +29,7 @@
 package com.jns.orienteering.view;
 
 import static com.jns.orienteering.control.Dialogs.confirmDeleteAnswer;
+import static com.jns.orienteering.control.Dialogs.showInfo;
 
 import javax.inject.Inject;
 
@@ -36,7 +37,6 @@ import com.gluonhq.connect.GluonObservable;
 import com.gluonhq.connect.GluonObservableObject;
 import com.jns.orienteering.common.BaseService;
 import com.jns.orienteering.common.MultiValidator;
-import com.jns.orienteering.control.Dialogs;
 import com.jns.orienteering.control.FloatingTextField;
 import com.jns.orienteering.control.Icon;
 import com.jns.orienteering.model.dynamic.CityCache;
@@ -196,7 +196,7 @@ public class CityPresenter extends BasePresenter {
             return;
         }
         if (!cloudRepo.isCityValidForDelete(city.getId())) {
-            Dialogs.ok(localize("view.city.error.usedByTaskOrMission")).showAndWait();
+            showInfo(localize("view.city.error.usedByTaskOrMission"));
             return;
         }
 
