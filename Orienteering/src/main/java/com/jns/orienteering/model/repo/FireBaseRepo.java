@@ -53,13 +53,13 @@ import com.gluonhq.connect.provider.ObjectDataRemover;
 import com.gluonhq.connect.provider.ObjectDataWriter;
 import com.gluonhq.connect.provider.RestClient;
 import com.gluonhq.connect.source.RestDataSource;
+import com.jns.orienteering.model.common.GluonObservables;
 import com.jns.orienteering.model.persisted.Model;
 import com.jns.orienteering.model.persisted.Postable;
 import com.jns.orienteering.model.repo.readerwriter.JsonInputConverterExtended;
 import com.jns.orienteering.model.repo.readerwriter.JsonOutputConverterExtended;
 import com.jns.orienteering.model.repo.readerwriter.JsonTreeConverter;
 import com.jns.orienteering.util.ExceptionalTrigger;
-import com.jns.orienteering.util.GluonObservables;
 
 public class FireBaseRepo<T extends Model> {
 

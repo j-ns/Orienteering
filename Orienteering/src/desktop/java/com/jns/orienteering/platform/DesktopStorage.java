@@ -32,6 +32,8 @@ import java.io.File;
 
 public class DesktopStorage extends Storage {
 
+    private static final String APP_NAME = "orienteering";
+
     @Override
     public File getPublic() {
         return getPrivate();
@@ -40,7 +42,7 @@ public class DesktopStorage extends Storage {
     @Override
     public File getPrivate() {
         String home = System.getProperty("user.home");
-        File f = new File(home, "orienteering");
+        File f = new File(home, APP_NAME);
         if (!f.isDirectory()) {
             f.mkdirs();
         }

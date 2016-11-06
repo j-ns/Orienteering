@@ -29,6 +29,7 @@ package com.jns.orienteering.view;
 
 import static com.jns.orienteering.locale.Localization.localize;
 
+import java.util.Optional;
 import java.util.function.Supplier;
 
 import com.airhacks.afterburner.injection.Injector;
@@ -63,7 +64,7 @@ public enum ViewRegistry {
 
     private BasePresenter                  presenter;
 
-    private static Navigation              navigation = new Navigation();
+    private static final Navigation        navigation = new Navigation();
 
     static {
         Injector.setInstanceSupplier(c ->
@@ -114,8 +115,8 @@ public enum ViewRegistry {
     }
 
     public static void registerNavigation(MobileApplication app) {
-        navigation.viewProperty().bind(app.viewProperty());
         app.addLayerFactory(Navigation.NAVIGATION_DRAWER, () -> new SidePopupView(navigation.getNavigationDrawer()));
+        navigation.viewProperty().bind(app.viewProperty());
     }
 
     public String getViewName() {
@@ -148,15 +149,11 @@ public enum ViewRegistry {
         return (T) presenter;
     }
 
-    public Node getMenuGraphic() {
-        return menuGraphic;
-    }
-
-    public Item getMenuItem() {
+    public Optional<Item> getMenuItem() {
         if (menuItem == null && menuGraphic != null) {
             menuItem = new NavigationDrawer.ViewItem(menuTitle, menuGraphic, viewId);
         }
-        return menuItem;
+        return Optional.ofNullable(menuItem);
     }
 
     private static String iconSize() {

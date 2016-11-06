@@ -37,11 +37,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.gluonhq.connect.GluonObservableList;
+import com.jns.orienteering.model.common.GluonObservables;
 import com.jns.orienteering.model.persisted.City;
 import com.jns.orienteering.model.repo.AsyncResultReceiver;
 import com.jns.orienteering.model.repo.CityFBRepo;
 import com.jns.orienteering.model.repo.RepoService;
-import com.jns.orienteering.util.GluonObservables;
 
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.SortedList;

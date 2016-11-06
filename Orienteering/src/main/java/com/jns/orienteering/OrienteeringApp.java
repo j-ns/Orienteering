@@ -44,13 +44,14 @@ public class OrienteeringApp extends MobileApplication {
 
     @Override
     public void init() {
+        PlatformProvider.getPlatformService().checkPermissions();
+
         ViewRegistry.registerView(this, SPLASH_VIEW, () -> new StartView());
         ViewRegistry.registerViews(this);
         ViewRegistry.registerNavigation(this);
 
         addLayerFactory(ProgressLayer.DEFAULT_LAYER_NAME, ProgressLayer::new);
 
-        PlatformProvider.getPlatformService().checkPermissions();
     }
 
     @Override

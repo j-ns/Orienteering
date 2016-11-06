@@ -41,6 +41,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.gluonhq.connect.GluonObservableList;
+import com.jns.orienteering.model.common.GluonObservables;
 import com.jns.orienteering.model.dynamic.MissionCache;
 import com.jns.orienteering.model.persisted.ActiveTaskList;
 import com.jns.orienteering.model.persisted.ChangeLogEntry;
@@ -52,7 +53,6 @@ import com.jns.orienteering.model.repo.LocalRepo;
 import com.jns.orienteering.model.repo.MissionFBRepo;
 import com.jns.orienteering.model.repo.RepoService;
 import com.jns.orienteering.model.repo.TaskFBRepo;
-import com.jns.orienteering.util.GluonObservables;
 import com.jns.orienteering.util.MapUtils;
 
 import javafx.collections.ObservableList;

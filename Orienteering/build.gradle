@@ -3,9 +3,7 @@ buildscript {
         jcenter()
         mavenLocal()
     }
-    dependencies {
-        classpath 'org.javafxports:jfxmobile-plugin:1.0.8'
-    }
+    dependencies { classpath 'org.javafxports:jfxmobile-plugin:1.1.1' }
 }
 
 apply plugin: 'java'
@@ -19,20 +17,15 @@ repositories {
     mavenCentral()
     maven { url 'http://nexus.gluonhq.com/nexus/content/repositories/releases' }
     maven { url "https://oss.sonatype.org/content/repositories/snapshots" }
-}
+}   
 
-ext.GLUON_VERSION = "3.0.0"
 dependencies {
 
     /***************** GLUON **************************/
-    compile 'com.airhacks:afterburner.mfx:1.6.2'
+    compile 'org.javafxports:jfxdvk:8.60.8'
 
-    compile ("com.gluonhq:charm:$GLUON_VERSION")
-    androidRuntime "com.gluonhq:charm-android:$GLUON_VERSION"
-    iosRuntime "com.gluonhq:charm-ios:$GLUON_VERSION"
-    desktopRuntime "com.gluonhq:charm-desktop:$GLUON_VERSION"
-
-    compile "org.javafxports:jfxdvk:8.60.6"
+    compile 'com.gluonhq:charm:4.0.1'
+    compileNoRetrolambda 'com.airhacks:afterburner.mfx:1.6.2'
 
     /***************** LOGGING ***********************/
     compile 'org.slf4j:slf4j-api:1.7.21'
@@ -41,17 +34,19 @@ dependencies {
 
 
     /***************** DIVERSE ***********************/
-   compile 'de.jensd:fontawesomefx:8.8' 
-   
-   compile files('libs/jfoenix-0.0.0-SNAPSHOT-retrolambda.jar',
-            'libs/maps-1.0.1-SNAPSHOT.jar'
+    compile files('libs/jfoenix-0.0.0-SNAPSHOT-retrolambda.jar',
+            'libs/maps-1.0.2-SNAPSHOT.jar'
             )
-
-    androidRuntime 'com.google.zxing:core:3.2.1'
+    compileNoRetrolambda files('libs/jfoenix-0.0.0-SNAPSHOT-retrolambda.jar')
 
     compile ('com.google.cloud:google-cloud-storage:0.3.0') {
         exclude group: 'javax.inject', module: 'javax.inject'
     }
+    compile 'de.jensd:fontawesomefx:8.8'
+    compileNoRetrolambda 'de.jensd:fontawesomefx:8.8'
+
+    androidCompile files('libs/android-support-v4.jar')
+    androidRuntime 'com.google.zxing:core:3.2.1'
 
     /***************** TESTS ************************/
     testCompile 'junit:junit:4.12'
@@ -59,9 +54,19 @@ dependencies {
     testCompile 'ch.qos.logback:logback-classic:1.1.7'
 }
 
+eclipse {
+    classpath {
+        downloadSources = true
+        downloadJavadoc = true
+    }
+}
 
 jfxmobile {
-    javafxportsVersion = '8.60.6'
+    downConfig {
+        version '3.0.0'
+        plugins 'display', 'lifecycle','storage', 'settings', 'position', 'cache', 'barcode-scan'
+    }
+
     android {
         packagingOptions {
             exclude 'META-INF/LICENSE'
@@ -77,4 +82,5 @@ jfxmobile {
         compileSdkVersion = '23'
     }
 }
+
 

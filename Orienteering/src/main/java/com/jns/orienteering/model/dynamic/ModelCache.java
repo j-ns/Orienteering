@@ -5,10 +5,10 @@ import static com.jns.orienteering.util.Validators.isNullOrEmpty;
 import java.util.function.BiConsumer;
 
 import com.gluonhq.connect.GluonObservableList;
+import com.jns.orienteering.model.common.GluonObservables;
 import com.jns.orienteering.model.persisted.AccessType;
 import com.jns.orienteering.model.persisted.CityAssignable;
 import com.jns.orienteering.model.repo.AsyncResultReceiver;
-import com.jns.orienteering.util.GluonObservables;
 
 import javafx.collections.ObservableList;
 

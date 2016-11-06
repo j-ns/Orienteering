@@ -103,7 +103,7 @@ public class AndroidPlatform implements PlatformService {
             if (ContextCompat.checkSelfPermission(activity, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
                 Intent permIntent = new Intent(activity, PermissionRequestActivity.class);
                 permIntent.putExtra(KEY_PERMISSIONS, new String[] { Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.CAMERA,
-                        Manifest.permission.INTERNET });
+                        Manifest.permission.INTERNET, Manifest.permission.ACCESS_COARSE_LOCATION});
                 permIntent.putExtra(KEY_REQUEST_CODE, 11111);
                 activity.startActivityForResult(permIntent, REQUEST_CODE_ASK_PERMISSIONS);
                 return;

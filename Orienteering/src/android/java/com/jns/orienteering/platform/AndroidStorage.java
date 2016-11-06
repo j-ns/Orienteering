@@ -1,6 +1,6 @@
 /**
  *
- *  Copyright (c) 2016, Jens Stroh
+s *  Copyright (c) 2016, Jens Stroh
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -34,9 +34,11 @@ import android.os.Environment;
 
 public class AndroidStorage extends Storage {
 
+    private static final String APP_NAME = "orienteering";
+
     @Override
     public File getPublic() {
-        return Environment.getExternalStoragePublicDirectory("orienteering");
+        return Environment.getExternalStoragePublicDirectory(APP_NAME);
     }
 
     @Override

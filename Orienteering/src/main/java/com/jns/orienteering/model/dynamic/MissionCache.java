@@ -5,11 +5,11 @@ import static com.jns.orienteering.util.Validators.isNullOrEmpty;
 import java.util.List;
 
 import com.gluonhq.connect.GluonObservableList;
+import com.jns.orienteering.model.common.GluonObservables;
 import com.jns.orienteering.model.persisted.Mission;
 import com.jns.orienteering.model.persisted.Task;
 import com.jns.orienteering.model.repo.MissionFBRepo;
 import com.jns.orienteering.model.repo.RepoService;
-import com.jns.orienteering.util.GluonObservables;
 
 public class MissionCache extends ModelCache<Mission> {
 

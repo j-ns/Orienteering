@@ -43,11 +43,11 @@ import org.slf4j.LoggerFactory;
 import com.gluonhq.connect.GluonObservableList;
 import com.gluonhq.connect.provider.DataProvider;
 import com.gluonhq.connect.provider.RestClient;
+import com.jns.orienteering.model.common.GluonObservables;
 import com.jns.orienteering.model.persisted.MissionStat;
 import com.jns.orienteering.model.persisted.StatByMission;
 import com.jns.orienteering.model.persisted.StatByUser;
 import com.jns.orienteering.model.repo.readerwriter.RestObjectsReader;
-import com.jns.orienteering.util.GluonObservables;
 
 public class MissionStatFBRepo extends FireBaseRepo<MissionStat> {
 

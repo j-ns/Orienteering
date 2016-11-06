@@ -42,32 +42,34 @@ import org.slf4j.LoggerFactory;
 import com.gluonhq.charm.glisten.application.MobileApplication;
 import com.gluonhq.connect.ConnectState;
 import com.gluonhq.connect.GluonObservable;
+import com.jns.orienteering.control.Dialogs;
 import com.jns.orienteering.control.Message;
 import com.jns.orienteering.control.ProgressLayer;
 import com.jns.orienteering.model.common.CountProperty;
-import com.jns.orienteering.util.GluonObservables;
+import com.jns.orienteering.model.common.GluonObservables;
 import com.jns.orienteering.util.Trigger;
 
 import javafx.beans.value.ChangeListener;
 
 public class AsyncResultReceiver<T extends GluonObservable> {
 
-    private static final Logger                                      LOGGER              = LoggerFactory.getLogger(AsyncResultReceiver.class);
+    private static final Logger                                      LOGGER                      = LoggerFactory.getLogger(AsyncResultReceiver.class);
 
-    private static final MobileApplication                           APPLICATION         = MobileApplication.getInstance();
+    private static final MobileApplication                           APPLICATION                 = MobileApplication.getInstance();
+    private static final Optional<String>                            DEFAULT_PROGRESS_LAYER_NAME = Optional.of(ProgressLayer.DEFAULT_LAYER_NAME);
 
-    private static CountProperty                                     runningInstances    = new CountProperty();
+    private static CountProperty                                     runningInstances            = new CountProperty();
 
     private T                                                        observable;
-    private Optional<Consumer<T>>                                    consumer            = Optional.empty();
+    private Optional<Consumer<T>>                                    consumer                    = Optional.empty();
 
-    private Optional<String>                                         progressLayerName   = Optional.empty();
-    private Optional<GluonObservable>                                initializeOnSuccess = Optional.empty();
-    private Optional<Consumer<Throwable>>                            onException         = Optional.empty();
-    private Optional<Message>                                        exceptionMessage    = Optional.empty();
-    private Optional<Consumer<T>>                                    finalizer           = Optional.empty();
+    private Optional<String>                                         progressLayerName           = Optional.empty();
+    private Optional<GluonObservable>                                initializeOnSuccess         = Optional.empty();
+    private Optional<Consumer<Throwable>>                            onException                 = Optional.empty();
+    private Optional<Message>                                        exceptionMessage            = Optional.empty();
+    private Optional<Consumer<T>>                                    finalizer                   = Optional.empty();
 
-    private Optional<AsyncResultReceiver<? extends GluonObservable>> next                = Optional.empty();
+    private Optional<AsyncResultReceiver<? extends GluonObservable>> next                        = Optional.empty();
 
     private AsyncResultReceiver(T observable) {
         this.observable = observable;
@@ -78,7 +80,7 @@ public class AsyncResultReceiver<T extends GluonObservable> {
     }
 
     public AsyncResultReceiver<T> defaultProgressLayer() {
-        this.progressLayerName = Optional.of(ProgressLayer.DEFAULT_LAYER_NAME);
+        this.progressLayerName = DEFAULT_PROGRESS_LAYER_NAME;
         return this;
     }
 
@@ -191,8 +193,9 @@ public class AsyncResultReceiver<T extends GluonObservable> {
                                                                      {
                                                                          if (ex1 != null) {
                                                                              LOGGER.error("AsyncRestultReceiver exception:", ex1);
+
                                                                              onException.ifPresent(c -> c.accept(ex1));
-                                                                             exceptionMessage.ifPresent(msg -> showError(msg));
+                                                                             exceptionMessage.ifPresent(Dialogs::showError);
 
                                                                              if (ex1 instanceof UnknownHostException ||
                                                                                      ex1 instanceof ConnectException) {

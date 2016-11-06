@@ -51,7 +51,7 @@
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
-        <activity android:name="com.energymeter.platform.AndroidPlatform$PermissionRequestActivity" />
+        <activity android:name="com.jns.orienteering.platform.AndroidPlatform$PermissionRequestActivity" />
     </application>
 
 </manifest>

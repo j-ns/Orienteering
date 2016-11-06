@@ -34,7 +34,6 @@ import com.gluonhq.charm.down.Platform;
 import com.gluonhq.charm.down.Services;
 import com.gluonhq.charm.down.plugins.LifecycleService;
 import com.gluonhq.charm.glisten.application.MobileApplication;
-import com.gluonhq.charm.glisten.application.ViewStackPolicy;
 import com.gluonhq.charm.glisten.control.Avatar;
 import com.gluonhq.charm.glisten.control.NavigationDrawer;
 import com.gluonhq.charm.glisten.control.NavigationDrawer.Item;
@@ -52,25 +51,22 @@ import javafx.scene.layout.HBox;
 
 public class Navigation {
 
-    public static final String   NAVIGATION_DRAWER = "navigation_drawer";
+    public static final String     NAVIGATION_DRAWER = "navigation_drawer";
 
-    private NavigationDrawer     navigationDrawer;
-    private Avatar               avatar;
-    private Label                lblAlias;
-    private ObjectProperty<View> view              = new SimpleObjectProperty<>();
+    private final NavigationDrawer navigationDrawer;
+    private Avatar                 avatar;
+    private Label                  lblAlias;
+
+    private ObjectProperty<View>   view              = new SimpleObjectProperty<>();
 
     public Navigation() {
         navigationDrawer = new NavigationDrawer();
         navigationDrawer.setHeader(createHeader());
         addViewItems();
 
-        navigationDrawer.addEventHandler(NavigationDrawer.ITEM_SELECTED,
-                                         e -> MobileApplication.getInstance().hideLayer(NAVIGATION_DRAWER));
+        navigationDrawer.addEventHandler(NavigationDrawer.ITEM_SELECTED, e -> hideNavigationDrawer());
 
-        viewProperty().addListener((obs, v, v1) ->
-        {
-            navigationDrawer.setSelectedItem(null);
-        });
+        viewProperty().addListener((obs, v, v1) -> navigationDrawer.setSelectedItem(null));
     }
 
     private HBox createHeader() {
@@ -87,7 +83,7 @@ public class Navigation {
 
         boxHeader.setOnMouseClicked(e ->
         {
-            MobileApplication.getInstance().hideLayer(NAVIGATION_DRAWER);
+            hideNavigationDrawer();
             MobileApplication.getInstance().switchView(ViewRegistry.USER.getViewName());
         });
         return boxHeader;
@@ -95,10 +91,7 @@ public class Navigation {
 
     private void addViewItems() {
         for (ViewRegistry registry : ViewRegistry.values()) {
-            Item menuItem = registry.getMenuItem();
-            if (menuItem != null) {
-                navigationDrawer.getItems().add(menuItem);
-            }
+            registry.getMenuItem().ifPresent(navigationDrawer.getItems()::add);
         }
 
         if (Platform.isDesktop()) {
@@ -111,6 +104,10 @@ public class Navigation {
             });
             navigationDrawer.getItems().add(quitItem);
         }
+    }
+
+    private void hideNavigationDrawer() {
+        MobileApplication.getInstance().hideLayer(NAVIGATION_DRAWER);
     }
 
     public ObjectProperty<View> viewProperty() {
