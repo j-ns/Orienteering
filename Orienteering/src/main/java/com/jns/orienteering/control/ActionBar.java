@@ -72,7 +72,7 @@ public class ActionBar extends Pane {
 
     @Override
     protected void layoutChildren() {
-        double totalWidth = getWidth();
+        double w = getWidth();
         double totalWidthButtons = 0;
         int countOfVisibleChildren = 0;
 
@@ -83,8 +83,9 @@ public class ActionBar extends Pane {
             }
         }
 
-        double widthSpacer = (totalWidth - totalWidthButtons) / (countOfVisibleChildren + 1);
-        double currentX = widthSpacer;
+        double widthSpacer = (w - totalWidthButtons) / (countOfVisibleChildren + 1);
+        widthSpacer = Math.min(widthSpacer, 140);
+        double currentX = (w - (totalWidthButtons + widthSpacer * (countOfVisibleChildren - 1)) )/ 2;
         double heightBar = getHeight();
 
         for (Node c : getChildren()) {

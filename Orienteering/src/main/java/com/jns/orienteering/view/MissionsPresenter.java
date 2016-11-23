@@ -93,7 +93,7 @@ public class MissionsPresenter extends ListViewPresenter<Mission> {
         service.setCityBuffer(null);
         missionCache.clearMissionTasksTemp();
 
-        if (ViewRegistry.MISSION.equals(service.getPreviousViewName())) {
+        if (ViewRegistry.MISSION.nameEquals(service.getPreviousViewName())) {
             lview.refresh();
         } else {
             populateListView();

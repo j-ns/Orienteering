@@ -57,13 +57,22 @@
 	-fx-padding: 0.0;
 }
 
+/*******************************************************************************
+ *                                                                             *
+ * TOOLBARS																	   *
+ *                                                                             *
+ ******************************************************************************/
+
+
 .app-bar{
-	/*
-	-fx-pref-height: 56.0;
-	-fx-padding: 0.0 8.0 0.0 8.0;
-	 */
 	-fx-background-color: -color-primary;
 	-fx-effect: null;
+}
+
+.app-bar.label,
+.app-bar .title-box .label{
+	-fx-font-family: "Roboto Medium";
+	-fx-font-size: 20.0;
 }
 
 .app-bar > .nav-area > .icon-toggle:hover{
@@ -180,17 +189,6 @@
   	-fx-background-insets:  0.0 8.0 8.0 8.0 ;
   	-fx-border-insets: 0.0 8.0 8.0 8.0;
 }
-
-
-.list-view .scroll-bar:vertical,
-.scroll-pane .scroll-bar:vertical {
-	/*
-	 *
-    -fx-opacity: 0.0;
-	 */
-    -fx-padding: 0.0 0.0 0.0 -10.0;
-}
-
 
 .list-view {
 	-fx-padding: 8.0 0.0 8.0 0.0;
@@ -392,42 +390,35 @@
  ******************************************************************************/
 
 .dialog {
-	-fx-padding: 24.0 0.0 0.0 0.0;
-	-fx-spacing: 0.0;
-	/*
-	 * 
-	-fx-fill-width: true;
-	 */
-	 -fx-background-color: -color-army-green51;
+	-fx-padding: 0;
+	-fx-background-color: -color-army-green51;
 }
 
 .dialog > .container {
-	-fx-padding: 0.0 24.0 0.0 24.0;
+	-fx-padding: 24;
+	-fx-spacing: 0.0;
 }
 
 .dialog-title.label{
-	-fx-padding: 0.0 0.0 20.0  0.0;
+	-fx-padding: 0.0 0.0 00.0  0.0;
 	-fx-font-family: "Roboto Medium";
 	-fx-font-size: 20.0;
 }
 
 .dialog-content{
-	/*
-	 * 
-	 */
-	-fx-padding: 0.0 0 24 0;
+	-fx-padding: 20 0 0 0; 
 	-fx-font-size: 16.0;
 	-fx-effect: null;
 }
 
-.dialog > .dialog-button-bar{
+.dialog-button-bar{
 	-fx-padding: 8.0 8.0 8.0 24.0;
 	-fx-pref-height: 52.0;
 	-fx-spacing: 8.0;
 	-fx-alignment: center-right ;
 }
 
-.dialog > .dialog-button-bar .button.flat{
+.dialog-button-bar .button.flat{
 	-fx-background-color: null;
 	-fx-padding: 0.0 8.0 0.0 8.0;
 	-fx-min-width: 64.0;

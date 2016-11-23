@@ -164,7 +164,7 @@ public enum ViewRegistry {
         return navigation;
     }
 
-    public boolean equals(String viewName) {
+    public boolean nameEquals(String viewName) {
         return viewId.equals(viewName);
     }
 

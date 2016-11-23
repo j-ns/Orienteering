@@ -156,7 +156,7 @@ public class BaseService {
         {
             if (v != null) {
                 previousViewName = v.getName();
-                if (isInitialized() && ViewRegistry.HOME.equals(v1.getName())) {
+                if (isInitialized() && ViewRegistry.HOME.nameEquals(v1.getName())) {
                     PlatformProvider.getPlatformService().removeNodePositionAdjuster();
                     setSelectedMission(null);
                 }

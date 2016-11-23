@@ -76,10 +76,8 @@ public enum ActivatorDeactivatorService {
     }
 
     private void onViewChanged(String viewName) {
-        if (ViewRegistry.HOME.equals(viewName)) {
-            if (!activeViewNames.isEmpty()) {
-                deactivateAll();
-            }
+        if (ViewRegistry.HOME.nameEquals(viewName)) {
+            deactivateAll();
         } else {
             if (!activeViewNames.contains(viewName)) {
                 startActivators(viewName);

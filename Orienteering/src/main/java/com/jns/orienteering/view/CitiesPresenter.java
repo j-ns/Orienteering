@@ -105,7 +105,7 @@ public class CitiesPresenter extends BasePresenter {
     protected void onShown() {
         super.onShown();
 
-        if (ViewRegistry.CITY.equals(service.getPreviousViewName())) {
+        if (ViewRegistry.CITY.nameEquals(service.getPreviousViewName())) {
             service.setSelectedCity(null);
             lview.refresh();
         } else {

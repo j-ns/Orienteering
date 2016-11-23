@@ -34,6 +34,8 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -68,8 +70,8 @@ public class AndroidPlatform implements PlatformService {
 
     private static final long[]     VIBRATOR_PATTERN             = { 0, 1000, 500, 1000 };
 
-    private static final int        SELECT_PICTURE               = 1;
-    private static final int        TAKE_PICTURE                 = 2;
+    private static final int        SELECT_PICTURE               = 1511;
+    private static final int        TAKE_PICTURE                 = 1512;
 
     private static final int        MARSHMALLOW                  = 23;
 
@@ -100,14 +102,23 @@ public class AndroidPlatform implements PlatformService {
         if (Build.VERSION.SDK_INT >= MARSHMALLOW) {
             FXActivity activity = FXActivity.getInstance();
 
-            if (ContextCompat.checkSelfPermission(activity, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+            List<String> permissionsList = new ArrayList<>();
+            addPermission(activity, permissionsList, Manifest.permission.WRITE_EXTERNAL_STORAGE);
+            addPermission(activity, permissionsList, Manifest.permission.CAMERA);
+            addPermission(activity, permissionsList, Manifest.permission.ACCESS_COARSE_LOCATION);
+
+            if (permissionsList.size() > 0) {
                 Intent permIntent = new Intent(activity, PermissionRequestActivity.class);
-                permIntent.putExtra(KEY_PERMISSIONS, new String[] { Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.CAMERA,
-                        Manifest.permission.INTERNET, Manifest.permission.ACCESS_COARSE_LOCATION});
+                permIntent.putExtra(KEY_PERMISSIONS, permissionsList.toArray(new String[permissionsList.size()]));
                 permIntent.putExtra(KEY_REQUEST_CODE, 11111);
                 activity.startActivityForResult(permIntent, REQUEST_CODE_ASK_PERMISSIONS);
-                return;
             }
+        }
+    }
+
+    private void addPermission(Activity activity, List<String> permissionsList, String permission) {
+        if (ContextCompat.checkSelfPermission(activity, permission) != PackageManager.PERMISSION_GRANTED) {
+            permissionsList.add(permission);
         }
     }
 

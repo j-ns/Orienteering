@@ -3,3 +3,5 @@
 /ui/
 /.gradle/
 /scenicView.properties
+/.classpath
+/.project

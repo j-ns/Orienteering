@@ -207,7 +207,7 @@ public class MissionPresenter extends BasePresenter {
             setActionBarVisible(true);
 
         } else {
-            if (ViewRegistry.MISSIONS.equals(service.getPreviousViewName())) {
+            if (ViewRegistry.MISSIONS.nameEquals(service.getPreviousViewName())) {
                 tabPane.getSelectionModel().select(0);
 
                 GluonObservableList<Task> obsTasks = missionCache.retrieveMissionTasksOrdered(mission.getId());

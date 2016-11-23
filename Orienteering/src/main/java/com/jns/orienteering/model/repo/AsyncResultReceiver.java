@@ -149,8 +149,15 @@ public class AsyncResultReceiver<T extends GluonObservable> {
         LOGGER.debug("running instances: {}", runningInstances.get());
 
         if (observable.isInitialized()) {
-            consumer.ifPresent(c -> c.accept(observable));
+            if (observable.getException() == null) {
+                consumer.ifPresent(c -> c.accept(observable));
+            } else {
+                onException.ifPresent(c -> c.accept(observable.getException()));
+                exceptionMessage.ifPresent(Dialogs::showError);
+            }
             startFinalizer();
+
+
         } else {
             observable.stateProperty().addListener(stateListener);
             observable.initializedProperty().addListener(initializedListener);

@@ -118,7 +118,7 @@ public class TasksPresenter extends ListViewPresenter<Task> {
     protected void onShown() {
         super.onShown();
 
-        if (ViewRegistry.TASK.equals(service.getPreviousViewName())) {
+        if (ViewRegistry.TASK.nameEquals(service.getPreviousViewName())) {
             lview.refresh();
             service.setSelectedTask(null);
         } else {

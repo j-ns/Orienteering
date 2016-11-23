@@ -28,7 +28,7 @@
  */
 package com.jns.orienteering.model.persisted;
 
-public abstract class BaseModel implements Model{
+public abstract class BaseModel implements Model {
 
     protected String id;
 
@@ -40,6 +40,10 @@ public abstract class BaseModel implements Model{
     @Override
     public void setId(String id) {
         this.id = id;
+    }
+
+    public boolean isNewInstance() {
+        return id == null;
     }
 
 }

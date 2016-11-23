@@ -72,7 +72,7 @@ public class DesktopPlatform implements PlatformService {
     @Override
     public PositionServiceExtended getPositionService() {
         if (positionService == null) {
-            positionService = new FakeDesktopPositionService(PositionHelper.retrieveDefaultPosition());
+            positionService = new FakeDesktopPositionService(PositionHelper.retrieveStartPosition());
         }
 
         return positionService;
