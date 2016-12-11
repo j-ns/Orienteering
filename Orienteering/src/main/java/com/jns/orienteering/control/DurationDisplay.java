@@ -28,30 +28,27 @@
  */
 package com.jns.orienteering.control;
 
-import javafx.animation.Animation;
-import javafx.animation.KeyFrame;
-import javafx.animation.Timeline;
+import javafx.animation.AnimationTimer;
 import javafx.geometry.HPos;
 import javafx.geometry.VPos;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
-import javafx.util.Duration;
 
 public class DurationDisplay extends Pane {
 
-    private Label    lblMinutes;
-    private Label    lblSeparator;
-    private Label    lblSeconds;
-    private Label    lblUnit;
-    private Node     graphic;
+    private Label          lblMinutes;
+    private Label          lblSeparator;
+    private Label          lblSeconds;
+    private Label          lblUnit;
+    private Node           graphic;
 
-    private Timeline timeline;
+    private int            minutes;
+    private int            seconds;
+    private int            graphicTextGap;
 
-    private int      minutes;
-    private int      seconds;
-    private int      graphicTextGap;
+    private AnimationTimer timer;
 
     public DurationDisplay() {
         setMaxWidth(Region.USE_PREF_SIZE);
@@ -63,6 +60,25 @@ public class DurationDisplay extends Pane {
         lblUnit = new Label(" min");
 
         getChildren().addAll(lblMinutes, lblSeparator, lblSeconds, lblUnit);
+
+        timer = createTimer();
+    }
+
+    private AnimationTimer createTimer() {
+        return new AnimationTimer() {
+
+            private long lastTime;
+
+            @Override
+            public void handle(long now) {
+                if (lastTime == 0) {
+                    lastTime = now;
+                } else if (now > lastTime + 1_000_000_000) {
+                    lastTime = now;
+                    advanceDuration();
+                }
+            }
+        };
     }
 
     public void setGraphic(Node graphic) {
@@ -90,12 +106,7 @@ public class DurationDisplay extends Pane {
     }
 
     public void startTimer() {
-        timeline = new Timeline(
-                                new KeyFrame(Duration.seconds(0),
-                                             e -> advanceDuration()),
-                                new KeyFrame(Duration.seconds(1)));
-        timeline.setCycleCount(Animation.INDEFINITE);
-        timeline.play();
+        timer.start();
     }
 
     private void advanceDuration() {
@@ -122,9 +133,7 @@ public class DurationDisplay extends Pane {
     }
 
     public void stop() {
-        if (timeline != null) {
-            timeline.stop();
-        }
+        timer.stop();
     }
 
     @Override
