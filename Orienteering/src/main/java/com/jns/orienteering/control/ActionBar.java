@@ -40,6 +40,8 @@ import javafx.scene.layout.Pane;
  */
 public class ActionBar extends Pane {
 
+    private static final double MAX_WIDTH_ACTION = 168;
+
     /**
      * @param node
      *            which should be added to the ActionBar
@@ -73,39 +75,34 @@ public class ActionBar extends Pane {
     @Override
     protected void layoutChildren() {
         double w = getWidth();
-        double totalWidthButtons = 0;
-        int countOfVisibleChildren = 0;
+        double h = getHeight();
 
+        int countOfVisibleChildren = 0;
         for (Node c : getChildren()) {
             if (c.isVisible()) {
-                totalWidthButtons += c.prefWidth(-1);
                 countOfVisibleChildren++;
             }
         }
 
-        double widthSpacer = (w - totalWidthButtons) / (countOfVisibleChildren + 1);
-        widthSpacer = Math.min(widthSpacer, 140);
-        double currentX = (w - (totalWidthButtons + widthSpacer * (countOfVisibleChildren - 1)) )/ 2;
-        double heightBar = getHeight();
+        double buttonWidth = w / countOfVisibleChildren;
+        buttonWidth = Math.min(buttonWidth, MAX_WIDTH_ACTION);
+
+        double x = 0;
+        if (w > countOfVisibleChildren * MAX_WIDTH_ACTION) {
+            x = (w - countOfVisibleChildren * MAX_WIDTH_ACTION) / 2;
+        }
 
         for (Node c : getChildren()) {
             if (c.isVisible()) {
-                double widthButton = c.prefWidth(-1);
-
-                layoutInArea(c, currentX, 0, widthButton, heightBar, 0, HPos.CENTER, VPos.CENTER);
-                currentX = currentX + widthButton + widthSpacer;
+                layoutInArea(c, x, 0, buttonWidth, h, 0, HPos.CENTER, VPos.CENTER);
+                x = x + buttonWidth;
             }
         }
     }
 
     @Override
-    protected double computePrefWidth(double height) {
-        return getParent().prefWidth(height);
-    }
-
-    @Override
     protected double computePrefHeight(double width) {
-        return 48;
+        return 56;
     }
 
 }

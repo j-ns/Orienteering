@@ -35,11 +35,11 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
-public class Validators {
+public class Validations {
 
     private static final Predicate<Character> IS_DIGIT = c -> c >= '0' && c <= '9';
 
-    private Validators() {
+    private Validations() {
     }
 
     public static boolean isValidLength(String text, int validLength) {

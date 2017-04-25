@@ -17,6 +17,7 @@
 <?import javafx.scene.layout.BorderPane?>
 <?import com.jns.orienteering.control.ChoiceFloatingTextField?>
 <?import com.jns.orienteering.control.TextFieldValidator?>
+<?import com.jns.orienteering.control.RefocusableTextArea?>
 
 <View fx:id="view" xmlns="http://javafx.com/javafx/8.0.60" xmlns:fx="http://javafx.com/fxml/1"
 	fx:controller="com.jns.orienteering.view.TaskPresenter">
@@ -50,7 +51,7 @@
 							<Insets top="16.0" right="0.0" bottom="4.0" left="0.0" />
 						</padding>
 					</Label>
-					<TextArea fx:id="txtDescription" wrapText="true" prefWidth="200" />
+					<RefocusableTextArea  fx:id="txtDescription" wrapText="true" prefWidth="200" />
 					<FloatingTextField fx:id="txtScanCode" hint="%task.scanCode" />
 					<fx:define>
 						<TextFieldValidator fx:id="pointsValidator" regex="^$|[1-9]{1}([0-9]{1,4})?" />

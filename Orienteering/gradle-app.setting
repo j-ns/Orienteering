@@ -11,7 +11,7 @@
       <setting name="custom-gradle-executor"/>  
       <setting name="current-directory" value="F:\WorkspaceNeon\Orienteering"/>  
       <setting name="log-level" value="INFO"/>  
-      <setting name="stack-trace-level" value="ALWAYS"/> 
+      <setting name="stack-trace-level" value="ALWAYS_FULL"/> 
     </setting> 
   </setting>  
   <setting name="main_panel"> 

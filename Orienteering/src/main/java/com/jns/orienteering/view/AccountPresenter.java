@@ -29,7 +29,7 @@
 package com.jns.orienteering.view;
 
 import static com.jns.orienteering.control.Dialogs.showInfo;
-import static com.jns.orienteering.util.Validators.isNullOrEmpty;
+import static com.jns.orienteering.util.Validations.isNullOrEmpty;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;

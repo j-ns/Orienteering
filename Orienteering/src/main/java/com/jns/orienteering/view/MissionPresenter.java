@@ -62,7 +62,7 @@ import com.jns.orienteering.model.repo.AsyncResultReceiver;
 import com.jns.orienteering.model.repo.LocalRepo;
 import com.jns.orienteering.model.repo.MissionFBRepo;
 import com.jns.orienteering.util.SpecialCharReplacer;
-import com.jns.orienteering.util.Validators;
+import com.jns.orienteering.util.Validations;
 
 import javafx.css.PseudoClass;
 import javafx.fxml.FXML;
@@ -181,9 +181,9 @@ public class MissionPresenter extends BasePresenter {
     }
 
     private void initActionBar() {
-        Button btnSave = Icon.Buttons.save(e -> onSave());
-        Button btnSaveAndContinue = Icon.Buttons.saveAndContinue(e -> onSaveAndContinue());
-        Button btnDelete = Icon.Buttons.delete(e -> onDelete());
+        Button btnSave = Icon.Buttons.actionBarButton(Icon.DONE, localize("label.save"), e -> onSave());
+        Button btnSaveAndContinue = Icon.Buttons.actionBarButton(Icon.DONE_ALL, localize("label.saveNext"), e -> onSaveAndContinue());
+        Button btnDelete = Icon.Buttons.actionBarButton(Icon.DELETE, localize("label.delete"), e -> onDelete());
         setActionBar(btnSave, btnSaveAndContinue, btnDelete);
     }
 
@@ -346,7 +346,7 @@ public class MissionPresenter extends BasePresenter {
                                                                      localize("view.mission.info.nameExists"));
 
         MultiValidator<String> validator = new MultiValidator<>();
-        validator.addCheck(Validators::isNotNullOrEmpty, localize("view.mission.warning.nameMustNotBeEmpty"));
+        validator.addCheck(Validations::isNotNullOrEmpty, localize("view.mission.warning.nameMustNotBeEmpty"));
         validator.addCheck(SpecialCharReplacer::validateInput, localize("view.error.invalidCharEntered"));
         validator.addCheck(name ->
         {
@@ -375,16 +375,16 @@ public class MissionPresenter extends BasePresenter {
         String ownerId = service.getUserId();
         double distance = txtDistance.getTextAsDouble();
         AccessType accessType = choiceAccess.getSelectedItem();
-    
+
         Mission newMission = new Mission(missionName, getSelectedCityId(), ownerId, distance, accessType);
-    
+
         int maxPoints = 0;
         for (Task task : tasks) {
             maxPoints += task.getPoints();
         }
         newMission.setMaxPoints(maxPoints);
         newMission.updateTasksMap(tasks);
-    
+
         if (isEditorModus()) {
             newMission.setId(mission.getId());
             newMission.setPreviousMission(mission);

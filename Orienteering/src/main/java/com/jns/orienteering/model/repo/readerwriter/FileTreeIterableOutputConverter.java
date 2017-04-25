@@ -35,7 +35,7 @@ import java.util.List;
 
 import com.gluonhq.connect.converter.JsonOutputConverter;
 import com.jns.orienteering.model.persisted.Model;
-import com.jns.orienteering.util.Validators;
+import com.jns.orienteering.util.Validations;
 
 public class FileTreeIterableOutputConverter<E extends Model> {
 
@@ -52,7 +52,7 @@ public class FileTreeIterableOutputConverter<E extends Model> {
     }
 
     public void writeObjects() {
-        if (Validators.isNullOrEmpty(items)) {
+        if (Validations.isNullOrEmpty(items)) {
             return;
         }
 

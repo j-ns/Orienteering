@@ -30,62 +30,60 @@ package com.jns.orienteering.control;
 
 import java.util.function.Function;
 
+import com.jns.orienteering.control.cell.ChoiceCell;
 import com.jns.orienteering.control.skin.ChoiceMenuSkin;
-import com.jns.orienteering.util.Validators;
+import com.jns.orienteering.util.Validations;
 
-import javafx.beans.property.ListProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ObjectPropertyBase;
-import javafx.beans.property.SimpleListProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
 import javafx.collections.ObservableList;
 import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.event.EventType;
-import javafx.scene.Node;
 import javafx.scene.control.Control;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.control.Skin;
-import javafx.scene.input.MouseEvent;
 import javafx.util.Callback;
 
 public class ChoiceMenu<T> extends Control {
 
-    public static final EventType<Event>                       ON_SHOWING   = new EventType<Event>(Event.ANY, "CHOICE_MENU_SHOWING");
-    public static final EventType<Event>                       ON_HIDING    = new EventType<Event>(Event.ANY, "CHOICE_MENU_HIDING");
-    public static final EventType<Event>                       ON_SELECTION = new EventType<Event>(Event.ANY, "CHOICE_MENU_SELECTION");
-
-    private Node                                               parentNode;
+    public static final EventType<Event>                       ON_SHOWING   = new EventType<>(Event.ANY, "CHOICE_MENU_SHOWING");
+    public static final EventType<Event>                       ON_HIDING    = new EventType<>(Event.ANY, "CHOICE_MENU_HIDING");
+    public static final EventType<Event>                       ON_SELECTION = new EventType<>(Event.ANY, "CHOICE_MENU_SELECTION");
 
     private ObjectProperty<Callback<ListView<T>, ListCell<T>>> cellFactory;
     private Function<T, String>                                stringConverter;
 
+    private boolean                                            showSearchBox;
+    private StringProperty                                     filterText;
+
+    private ObjectProperty<ObservableList<T>>                  items;
     private SelectionModelBase<T>                              selectionModel;
-    private ListProperty<T>                                    items;
+
+    private boolean                                            showing;
+    private boolean                                            hiding;
 
     public ChoiceMenu() {
         getStyleClass().add("choice-menu");
-        setCellFactory(lview -> new ChoiceCell(this));
-    }
-
-    public Node getParentNode() {
-        return parentNode;
-    }
-
-    public void setParentNode(Node parent) {
-        parentNode = parent;
     }
 
     public final ObjectProperty<Callback<ListView<T>, ListCell<T>>> cellFactoryProperty() {
         if (cellFactory == null) {
-            cellFactory = new SimpleObjectProperty<Callback<ListView<T>, ListCell<T>>>(this, "cellFactory");
+            cellFactory = new SimpleObjectProperty<>(this, "cellFactory");
         }
         return cellFactory;
     }
 
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     public final Callback<ListView<T>, ListCell<T>> getCellFactory() {
-        return cellFactory == null ? null : cellFactory.get();
+        if (cellFactory != null) {
+            return cellFactory.get();
+        }
+        return lv -> new ChoiceCell(this);
     }
 
     public final void setCellFactory(Callback<ListView<T>, ListCell<T>> value) {
@@ -100,6 +98,21 @@ public class ChoiceMenu<T> extends Control {
         this.stringConverter = stringConverter;
     }
 
+    public boolean isShowSearchBox() {
+        return showSearchBox;
+    }
+
+    public void setShowSearchBox(boolean showSearchBox) {
+        this.showSearchBox = showSearchBox;
+    }
+
+    public final StringProperty filterTextProperty() {
+        if (filterText == null) {
+            filterText = new SimpleStringProperty(this, "filterText");
+        }
+        return filterText;
+    }
+
     public SelectionModelBase<T> getSelectionModel() {
         if (selectionModel == null) {
             selectionModel = new SelectionModelBase<>(itemsProperty());
@@ -111,9 +124,9 @@ public class ChoiceMenu<T> extends Control {
         this.selectionModel = selectionModel;
     }
 
-    public final ListProperty<T> itemsProperty() {
+    public final ObjectProperty<ObservableList<T>> itemsProperty() {
         if (items == null) {
-            items = new SimpleListProperty<>(this, "items");
+            items = new SimpleObjectProperty<>(this, "items");
         }
         return items;
     }
@@ -127,7 +140,7 @@ public class ChoiceMenu<T> extends Control {
     }
 
     public boolean isEmpty() {
-        return Validators.isNullOrEmpty(getItems());
+        return Validations.isNullOrEmpty(getItems());
     }
 
     private ObjectProperty<EventHandler<Event>> onSelection = new ObjectPropertyBase<EventHandler<Event>>() {
@@ -148,16 +161,38 @@ public class ChoiceMenu<T> extends Control {
         }
     };
 
-    public ObjectProperty<EventHandler<Event>> onSelectionProperty() {
+    public final ObjectProperty<EventHandler<Event>> onSelectionProperty() {
         return onSelection;
-    }
-
-    public EventHandler<Event> getOnSelection() {
-        return onSelection.get();
     }
 
     public void setOnSelection(EventHandler<Event> handler) {
         onSelection.set(handler);
+    }
+
+    private ObjectProperty<EventHandler<Event>> onShowing = new ObjectPropertyBase<EventHandler<Event>>() {
+
+        @Override
+        protected void invalidated() {
+            setEventHandler(ON_SHOWING, get());
+        }
+
+        @Override
+        public Object getBean() {
+            return ChoiceMenu.this;
+        }
+
+        @Override
+        public String getName() {
+            return "onShowing";
+        }
+    };
+
+    public final ObjectProperty<EventHandler<Event>> onShowingProperty() {
+        return onShowing;
+    }
+
+    public final void setOnShowing(EventHandler<Event> handler) {
+        onShowing.set(handler);
     }
 
     private ObjectProperty<EventHandler<Event>> onHiding = new ObjectPropertyBase<EventHandler<Event>>() {
@@ -178,71 +213,52 @@ public class ChoiceMenu<T> extends Control {
         }
     };
 
-    public ObjectProperty<EventHandler<Event>> onHidingProperty() {
+    public final ObjectProperty<EventHandler<Event>> onHidingProperty() {
         return onHiding;
     }
 
-    public EventHandler<Event> getOnHiding() {
-        return onHiding.get();
-    }
-
-    public void setOnHiding(EventHandler<Event> handler) {
+    public final void setOnHiding(EventHandler<Event> handler) {
         onHiding.set(handler);
     }
 
     public void show() {
-        fireEvent(new Event(ChoiceMenu.ON_SHOWING));
+        if (!isShowing()) {
+
+            showing = true;
+            fireEvent(new Event(ChoiceMenu.ON_SHOWING));
+        }
     }
 
     public void hide() {
-        fireEvent(new Event(ChoiceMenu.ON_HIDING));
+        if (isShowing() && !hiding) {
+
+            hiding = true;
+            fireEvent(new Event(ChoiceMenu.ON_HIDING));
+
+            showing = false;
+            hiding = false;
+
+            if (showSearchBox) {
+                filterTextProperty().set(null);
+            }
+        }
     }
 
-    public void setSelected() {
-        fireEvent(new Event(ChoiceMenu.ON_HIDING));
+    public void selected() {
+        hide();
         fireEvent(new Event(ChoiceMenu.ON_SELECTION));
+    }
+
+    public boolean isShowing() {
+        return showing;
+    }
+
+    public void setShowing(boolean value) {
+        showing = value;
     }
 
     @Override
     protected Skin<?> createDefaultSkin() {
         return new ChoiceMenuSkin<>(this);
-    }
-
-    public class ChoiceCell extends ListCell<T> {
-
-        private SelectionModelBase<T> selectionModel;
-        private Function<T, String>   stringConverter;
-
-        public ChoiceCell(ChoiceMenu<T> choiceBox) {
-            setPrefWidth(0);
-
-            selectionModel = choiceBox.getSelectionModel();
-            stringConverter = choiceBox.getStringConverter();
-
-            addEventHandler(MouseEvent.MOUSE_CLICKED, e -> selectItem());
-        }
-
-        private void selectItem() {
-            lviewSelectionModel().clearAndSelect(getIndex());
-
-            selectionModel.clearSelection();
-            selectionModel.select(lviewSelectionModel().getSelectedItem());
-        }
-
-        private javafx.scene.control.MultipleSelectionModel<T> lviewSelectionModel() {
-            return getListView().getSelectionModel();
-        }
-
-        @Override
-        protected void updateItem(T item, boolean empty) {
-            super.updateItem(item, empty);
-
-            if (item == null || empty) {
-                setText(null);
-            } else {
-                setText(stringConverter.apply(item));
-            }
-        }
-
     }
 }

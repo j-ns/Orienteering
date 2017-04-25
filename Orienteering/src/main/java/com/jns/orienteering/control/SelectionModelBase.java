@@ -28,35 +28,67 @@
  */
 package com.jns.orienteering.control;
 
-import javafx.beans.property.ListProperty;
+import java.util.Objects;
+
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.value.ChangeListener;
+import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
+import javafx.collections.WeakListChangeListener;
 import javafx.scene.control.SingleSelectionModel;
 
 public class SelectionModelBase<T> extends SingleSelectionModel<T> {
 
-    protected ListProperty<T> itemsProperty;
+    protected final ObjectProperty<ObservableList<T>> items;
 
-    public SelectionModelBase(ListProperty<T> itemsProperty) {
-        this.itemsProperty = itemsProperty;
+    private final ChangeListener<ObservableList<T>>   itemsListener            = (obs, t, t1) -> onItemsChanged(t, t1);
+
+    private final ListChangeListener<T>               itemsContentListener     = e -> onItemsContentChanged();
+    private final WeakListChangeListener<T>           weakItemsContentListener = new WeakListChangeListener<>(itemsContentListener);
+
+    public SelectionModelBase(ObjectProperty<ObservableList<T>> items) {
+        this.items = Objects.requireNonNull(items);
         addItemsListener();
     }
 
     protected void addItemsListener() {
-        itemsProperty.addListener((ov, t, t1) -> clearSelection());
+        items.addListener(itemsListener);
+        if (items.get() != null) {
+            items.get().addListener(weakItemsContentListener);
+        }
+    }
+
+    private void onItemsChanged(ObservableList<T> oldItems, ObservableList<T> newItems) {
+        if (oldItems != null) {
+            oldItems.removeListener(weakItemsContentListener);
+        }
+
+        if (newItems != null) {
+            newItems.addListener(weakItemsContentListener);
+        }
+
+        if (getSelectedItem() != null) {
+            select(getSelectedItem());
+        }
+    }
+
+    private void onItemsContentChanged() {
+        if (getSelectedItem() != null) {
+            select(getSelectedItem());
+        }
     }
 
     @Override
     protected T getModelItem(int index) {
-        if (index < 0 || index >= itemsProperty.size()) {
+        if (index < 0 || index >= getItemCount()) {
             return null;
         }
-        return itemsProperty.get(index);
+        return items.get().get(index);
     }
 
     @Override
     protected int getItemCount() {
-        final ObservableList<T> items = itemsProperty.get();
-        return items == null ? 0 : items.size();
+        return items.get() == null ? 0 : items.get().size();
     }
 
     public boolean isSingleSelection() {
@@ -71,7 +103,7 @@ public class SelectionModelBase<T> extends SingleSelectionModel<T> {
             return;
         }
 
-        final int itemCount = getItemCount();
+        int itemCount = getItemCount();
 
         for (int i = 0; i < itemCount; i++) {
             final T value = getModelItem(i);
@@ -80,6 +112,7 @@ public class SelectionModelBase<T> extends SingleSelectionModel<T> {
                 return;
             }
         }
+        clearSelection();
     }
 
 }

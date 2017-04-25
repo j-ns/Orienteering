@@ -1,6 +1,6 @@
 package com.jns.orienteering.model.repo;
 
-import static com.jns.orienteering.util.Validators.isNullOrEmpty;
+import static com.jns.orienteering.util.Validations.isNullOrEmpty;
 
 public class UrlBuilder {
 

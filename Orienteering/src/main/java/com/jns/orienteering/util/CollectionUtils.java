@@ -57,7 +57,7 @@ public class CollectionUtils {
     }
 
     public static boolean sizeIsGreaterThan(Collection<?> collection, int sizeToCompare) {
-        return !Validators.isNullOrEmpty(collection) && collection.size() > sizeToCompare;
+        return !Validations.isNullOrEmpty(collection) && collection.size() > sizeToCompare;
     }
 
     public static <T> Predicate<T> notContainedIn(Collection<T> col) {
@@ -142,7 +142,7 @@ public class CollectionUtils {
     }
 
     public static <T> void filterForEach(Collection<T> items, Predicate<T> filter, Consumer<T> action) {
-        if (Validators.isNullOrEmpty(items)) {
+        if (Validations.isNullOrEmpty(items)) {
             return;
         }
         for (T item : items) {

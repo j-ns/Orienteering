@@ -28,15 +28,17 @@
  */
 package com.jns.orienteering.control;
 
-import static com.jns.orienteering.util.Validators.isNullOrEmpty;
+import static com.jns.orienteering.control.Dialogs.showInfo;
+import static com.jns.orienteering.locale.Localization.localize;
+import static com.jns.orienteering.util.Validations.isNullOrEmpty;
 
 import java.util.function.Function;
 
 import com.jns.orienteering.control.skin.BaseChoiceFieldSkin;
 import com.jns.orienteering.util.StringUtils;
 
-import javafx.beans.property.ListProperty;
-import javafx.beans.property.SimpleListProperty;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.Node;
@@ -46,82 +48,27 @@ import javafx.scene.control.Skin;
 
 public abstract class BaseChoiceField<T> extends Control {
 
-    private ChoiceMenu<T>         choiceMenu;
+    private boolean                           showOpenButton;
+    private Label                             openButton;                 // als node?
 
-    private Function<T, String>   stringConverter;
+    private Node                              popupOwnerNode;
+    private ChoiceMenu<T>                     choiceMenu;
 
-    private Message               missingDataMessage;
+    private Message                           missingDataMessage;
+    private Function<T, String>               stringConverter;
 
-    private boolean               showOpenButton;
-    private Label                 openButton;
-
-    private SelectionModelBase<T> selectionModel;
-    private ListProperty<T>       items;
+    private SelectionModelBase<T>             selectionModel;
+    private ObjectProperty<ObservableList<T>> items;
 
     public BaseChoiceField(ChoiceMenu<T> choiceMenu) {
         this();
         this.choiceMenu = choiceMenu;
+        selectionModel = choiceMenu.getSelectionModel();
     }
 
     public BaseChoiceField() {
         getStyleClass().add("choice-field");
-        setShowOpenButton(true);
-    }
-
-    public ChoiceMenu<T> getChoiceMenu() {
-        if (choiceMenu == null) {
-            choiceMenu = new ChoiceMenu<>();
-            choiceMenu.setParentNode(this);
-            choiceMenu.setSelectionModel(getSelectionModel());
-            choiceMenu.setStringConverter(getStringConverter());
-        }
-        return choiceMenu;
-    }
-
-    public void setChoiceMenu(ChoiceMenu<T> choiceBox) {
-        this.choiceMenu = choiceBox;
-    }
-
-    public SelectionModelBase<T> getSelectionModel() {
-        if (selectionModel == null) {
-            selectionModel = new SelectionModelBase<>(itemsProperty());
-        }
-        return selectionModel;
-    }
-
-    public void setSelectionModel(SelectionModelBase<T> selectionModel) {
-        this.selectionModel = selectionModel;
-    }
-
-    public T getSelectedItem() {
-        return getSelectionModel().getSelectedItem();
-    }
-
-    public abstract String getHint();
-
-    public abstract void setHint(String hint);
-
-    public Function<T, String> getStringConverter() {
-        if (stringConverter == null) {
-            stringConverter = StringUtils.getDefaultStringConverter();
-        }
-        return stringConverter;
-    }
-
-    public void setStringConverter(Function<T, String> stringConverter) {
-        this.stringConverter = stringConverter;
-    }
-
-    public String getMissingDataTitle() {
-        return missingDataMessage.getTitle();
-    }
-
-    public void setMissingDataMessage(Message msg) {
-        this.missingDataMessage = msg;
-    }
-
-    public Message getMissingDataMessage() {
-        return missingDataMessage;
+        popupOwnerNode = this;
     }
 
     public void setShowOpenButton(boolean value) {
@@ -140,27 +87,96 @@ public abstract class BaseChoiceField<T> extends Control {
         this.openButton = label;
     }
 
+    public Node getPopupOwnerNode() {
+        return popupOwnerNode;
+    }
+
+    public void setPopupOwnerNode(Node owner) {
+        popupOwnerNode = owner;
+    }
+
+    public ChoiceMenu<T> getChoiceMenu() {
+        if (choiceMenu == null) {
+            choiceMenu = new ChoiceMenu<>();
+            choiceMenu.setSelectionModel(getSelectionModel());
+            choiceMenu.setStringConverter(getStringConverter());
+        }
+        return choiceMenu;
+    }
+
+    public void setChoiceMenu(ChoiceMenu<T> choiceBox) {
+        this.choiceMenu = choiceBox;
+    }
+
+    public SelectionModelBase<T> getSelectionModel() {
+        if (selectionModel == null) {
+            selectionModel = new SelectionModelBase<>(itemsProperty());
+        }
+        return selectionModel;
+    }
+
+    public void setSelectionModel(SelectionModelBase<T> selectionModel) {
+        if (choiceMenu != null) {
+            throw new IllegalStateException("Cannot set selectionModel, choiceMenu is already initialized");
+        }
+        this.selectionModel = selectionModel;
+    }
+
+    public T getSelectedItem() {
+        return getSelectionModel().getSelectedItem();
+    }
+
+    public void setSelectedItem(T item) {
+        getSelectionModel().select(item);
+    }
+
+    public abstract String getHint();
+
+    public abstract void setHint(String hint);
+
+    public Function<T, String> getStringConverter() {
+        if (stringConverter == null) {
+            stringConverter = StringUtils.getDefaultStringConverter();
+        }
+        return stringConverter;
+    }
+
+    public void setStringConverter(Function<T, String> stringConverter) {
+        this.stringConverter = stringConverter;
+    }
+
+    public Message getMissingDataMessage() {
+        if (missingDataMessage == null) {
+            missingDataMessage = Message.create().text(localize("info.noDataToDisplay"));
+        }
+        return missingDataMessage;
+    }
+
+    public void setMissingDataMessage(Message message) {
+        this.missingDataMessage = message;
+    }
+
+    public void showMissingDataMessage() {
+        showInfo(getMissingDataMessage());
+    }
+
     public abstract Node getDisplayNode();
 
     public abstract void setEditable(boolean value);
 
-    public ObservableList<T> getItems() {
-        return items == null ? null : items.get();
-    }
-
-    public void setItems(ObservableList<T> items) {
-        itemsProperty().set(items);
-    }
-
-    public ListProperty<T> itemsProperty() {
+    public final ObjectProperty<ObservableList<T>> itemsProperty() {
         if (items == null) {
-            items = new SimpleListProperty<T>(this, "items", FXCollections.observableArrayList());
+            items = new SimpleObjectProperty<>(this, "items", FXCollections.observableArrayList());
         }
         return items;
     }
 
-    public void showMissingDataMessage() {
-        Dialogs.ok(missingDataMessage).showAndWait();
+    public final ObservableList<T> getItems() {
+        return items == null ? null : items.get();
+    }
+
+    public final void setItems(ObservableList<T> items) {
+        itemsProperty().set(items);
     }
 
     public abstract void updateDisplay(T item);
@@ -171,12 +187,12 @@ public abstract class BaseChoiceField<T> extends Control {
 
     public void clear() {
         if (items != null) {
-            items.set(FXCollections.emptyObservableList());
+            items.set(FXCollections.observableArrayList());
         }
     }
 
     @Override
     protected Skin<?> createDefaultSkin() {
-        return new BaseChoiceFieldSkin<T, BaseChoiceField<T>>(this);
+        return new BaseChoiceFieldSkin<>(this);
     }
 }

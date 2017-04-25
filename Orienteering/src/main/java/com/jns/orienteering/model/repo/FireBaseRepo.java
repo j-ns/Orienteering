@@ -28,7 +28,7 @@
  */
 package com.jns.orienteering.model.repo;
 
-import static com.jns.orienteering.util.Validators.isNullOrEmpty;
+import static com.jns.orienteering.util.Validations.isNullOrEmpty;
 
 import java.io.BufferedReader;
 import java.io.IOException;

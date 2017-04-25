@@ -30,7 +30,7 @@ package com.jns.orienteering.view;
 
 import static com.jns.orienteering.control.Dialogs.confirmDeleteAnswer;
 import static com.jns.orienteering.control.Dialogs.showError;
-import static com.jns.orienteering.util.Validators.isNotNullOrEmpty;
+import static com.jns.orienteering.util.Validations.isNotNullOrEmpty;
 
 import java.io.FileNotFoundException;
 import java.util.function.Consumer;
@@ -63,7 +63,7 @@ import com.jns.orienteering.model.repo.image.ImageHandler;
 import com.jns.orienteering.model.repo.image.StorableImage;
 import com.jns.orienteering.platform.PositionHelper;
 import com.jns.orienteering.util.SpecialCharReplacer;
-import com.jns.orienteering.util.Validators;
+import com.jns.orienteering.util.Validations;
 
 import javafx.animation.PauseTransition;
 import javafx.beans.property.ObjectProperty;
@@ -148,13 +148,13 @@ public class TaskPresenter extends BasePresenter {
             imageChanged = true;
         });
 
-        btnTakePicture.setGraphic(Icon.CAMERA.icon(Icon.DEFAULT_ICON_SIZE));
+        btnTakePicture.setGraphic(Icon.CAMERA.icon(Icon.DEFAULT_FONT_SIZE));
         btnTakePicture.setOnAction(e -> platformService().takePicture());
 
-        btnSelectPicture.setGraphic(Icon.PICTURES.icon(Icon.DEFAULT_ICON_SIZE));
+        btnSelectPicture.setGraphic(Icon.PICTURES.icon(Icon.DEFAULT_FONT_SIZE));
         btnSelectPicture.setOnAction(e -> platformService().retrievePicture());
 
-        btnClearPicture.setGraphic(Icon.DELETE.icon(Icon.DEFAULT_ICON_SIZE));
+        btnClearPicture.setGraphic(Icon.DELETE.icon(Icon.DEFAULT_FONT_SIZE));
         btnClearPicture.setOnAction(e -> image.set(null));
         btnClearPicture.disableProperty().bind(imgView.imageProperty().isNull());
 
@@ -191,9 +191,9 @@ public class TaskPresenter extends BasePresenter {
     }
 
     private void initActionBar() {
-        Button btnSave = Icon.Buttons.save(e -> onSave());
-        Button btnSaveAndContinue = Icon.Buttons.saveAndContinue(e -> onSaveAndContinue());
-        Button btnDelete = Icon.Buttons.delete(e -> onDelete());
+        Button btnSave = Icon.Buttons.actionBarButton(Icon.DONE, localize("label.save"), e -> onSave());
+        Button btnSaveAndContinue = Icon.Buttons.actionBarButton(Icon.DONE_ALL, localize("label.saveNext"), e -> onSaveAndContinue());
+        Button btnDelete = Icon.Buttons.actionBarButton(Icon.DELETE, localize("label.delete"), e -> onDelete());
         setActionBar(btnSave, btnSaveAndContinue, btnDelete);
     }
 
@@ -311,7 +311,7 @@ public class TaskPresenter extends BasePresenter {
                                                                                  localize("view.task.info.nameAlreadyExists"));
 
         MultiValidator<String> validator = new MultiValidator<>();
-        validator.addCheck(Validators::isNotNullOrEmpty, localize("view.task.info.taskNameCantBeEmpty"));
+        validator.addCheck(Validations::isNotNullOrEmpty, localize("view.task.info.taskNameCantBeEmpty"));
         validator.addCheck(e -> choiceCity.getSelectedItem() != null, localize("view.task.info.selectCity")); // possible?
         validator.addCheck(SpecialCharReplacer::validateInput, localize("view.error.invalidCharEntered"));
         validator.addCheck(name ->

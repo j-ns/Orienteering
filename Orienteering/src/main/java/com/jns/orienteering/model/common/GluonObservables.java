@@ -28,7 +28,7 @@
  */
 package com.jns.orienteering.model.common;
 
-import static com.jns.orienteering.util.Validators.ifNotNullOrEmpty;
+import static com.jns.orienteering.util.Validations.ifNotNullOrEmpty;
 
 import java.util.Collection;
 

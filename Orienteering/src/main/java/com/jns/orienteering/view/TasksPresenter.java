@@ -108,9 +108,10 @@ public class TasksPresenter extends ListViewPresenter<Task> {
     }
 
     private void initActionBar() {
-        Button btnSave = Icon.Buttons.save(e -> onUpdateMissionTasks());
-        Button btnRemoveAllTasks = Icon.MAP_MARKER_OFF.button(e -> onRemoveMissionTasks());
-        setActionBar(btnSave, btnRemoveAllTasks);
+        Button btnSave = Icon.Buttons.actionBarButton(Icon.DONE, localize("label.save"), e -> onUpdateMissionTasks());
+        Button btnRemoveAllTask = Icon.Buttons.actionBarButton(Icon.MAP_MARKER_OFF, localize("label.clear"), e -> onRemoveMissionTasks());
+        setActionBar(btnSave, btnRemoveAllTask);
+
         setActionBarVisible(false);
     }
 

@@ -28,8 +28,9 @@
  */
 package com.jns.orienteering.control;
 
+import static com.jns.orienteering.util.Validations.isNullOrEmpty;
+
 import com.jns.orienteering.util.Calculations;
-import com.jns.orienteering.util.Validators;
 
 import javafx.geometry.Insets;
 import javafx.scene.Node;
@@ -66,13 +67,13 @@ public class ChoiceTextField<T> extends BaseChoiceField<T> {
         double prefWidth = insets.getLeft() + textWidth + insets.getRight();
 
         textOld = text;
-        prefWidthCache = prefWidth +2;
+        prefWidthCache = prefWidth + 2;
         return prefWidthCache;
     }
 
     private String getDisplayText() {
         String text = textField.getText();
-        if (Validators.isNullOrEmpty(text)) {
+        if (isNullOrEmpty(text)) {
             text = getHint();
         }
         return text;
@@ -86,6 +87,10 @@ public class ChoiceTextField<T> extends BaseChoiceField<T> {
     @Override
     public void setHint(String text) {
         textField.setPromptText(text);
+    }
+
+    public boolean isEditable() {
+        return textField.isEditable();
     }
 
     @Override

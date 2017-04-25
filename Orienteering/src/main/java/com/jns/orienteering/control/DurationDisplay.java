@@ -150,20 +150,20 @@ public class DurationDisplay extends Pane {
             x = prefGraphicWidth + graphicTextGap;
         }
 
-        double prefMinutesWidth = lblMinutes.prefWidth(-1);
-        lblMinutes.resize(prefMinutesWidth, height);
+        double prefWidthMinutes = lblMinutes.prefWidth(-1);
+        lblMinutes.resize(prefWidthMinutes, height);
         lblMinutes.relocate(x, y);
-        x += prefMinutesWidth;
+        x += prefWidthMinutes;
 
-        double prefSeparatorWidth = lblSeparator.prefWidth(-1);
-        lblSeparator.resize(prefSeparatorWidth, height);
+        double prefWidthSeparator = lblSeparator.prefWidth(-1);
+        lblSeparator.resize(prefWidthSeparator, height);
         lblSeparator.relocate(x, y);
-        x += prefSeparatorWidth;
+        x += prefWidthSeparator;
 
-        double prefSecondsWidth = lblSeconds.prefWidth(-1);
-        lblSeconds.resize(prefSecondsWidth, height);
+        double prefWidthSeconds = lblSeconds.prefWidth(-1);
+        lblSeconds.resize(prefWidthSeconds, height);
         lblSeconds.relocate(x, y);
-        x += prefSecondsWidth;
+        x += prefWidthSeconds;
 
         lblUnit.resize(lblUnit.prefWidth(-1), height);
         lblUnit.relocate(x, y);

@@ -28,7 +28,7 @@
  */
 package com.jns.orienteering.view;
 
-import static com.jns.orienteering.util.Validators.isNullOrEmpty;
+import static com.jns.orienteering.util.Validations.isNullOrEmpty;
 
 import java.util.List;
 

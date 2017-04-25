@@ -29,7 +29,7 @@
 package com.jns.orienteering.common;
 
 import static com.jns.orienteering.control.Dialogs.showError;
-import static com.jns.orienteering.util.Validators.isNullOrEmpty;
+import static com.jns.orienteering.util.Validations.isNullOrEmpty;
 
 import java.util.function.Predicate;
 import java.util.function.Supplier;

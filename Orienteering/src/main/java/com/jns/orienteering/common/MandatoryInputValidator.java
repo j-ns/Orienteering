@@ -1,6 +1,6 @@
 package com.jns.orienteering.common;
 
-import static com.jns.orienteering.util.Validators.isObjectNullOrEmpty;
+import static com.jns.orienteering.util.Validations.isObjectNullOrEmpty;
 
 import java.util.function.Supplier;
 

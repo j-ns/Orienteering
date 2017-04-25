@@ -28,7 +28,7 @@
 package com.jns.orienteering.model.repo.image;
 
 import static com.jns.orienteering.model.common.GluonObservables.setInitialized;
-import static com.jns.orienteering.util.Validators.isNullOrEmpty;
+import static com.jns.orienteering.util.Validations.isNullOrEmpty;
 
 import java.io.File;
 import java.io.FileOutputStream;

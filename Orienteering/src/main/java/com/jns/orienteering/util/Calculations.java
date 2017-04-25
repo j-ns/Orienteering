@@ -40,10 +40,10 @@ public class Calculations {
     }
 
     public static <T> double maxTextWidth(ObservableList<T> items, Font font) {
-        return greatestTextWidth(items, defaultStringMapper(), font);
+        return maxTextWidth(items, defaultStringMapper(), font);
     }
 
-    public static <T> double greatestTextWidth(ObservableList<T> items, Function<T, String> stringMapper, Font font) {
+    public static <T> double maxTextWidth(ObservableList<T> items, Function<T, String> stringMapper, Font font) {
         if (stringMapper == null) {
             stringMapper = defaultStringMapper();
         }

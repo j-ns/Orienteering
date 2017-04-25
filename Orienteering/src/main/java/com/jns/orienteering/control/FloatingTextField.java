@@ -86,7 +86,7 @@ public class FloatingTextField extends Control {
 
         hint = new SimpleStringProperty();
         text = new SimpleStringProperty();
-        textField = new TextField();
+        textField = new RefocusableTextField();
         textField.textProperty().bindBidirectional(text);
     }
 

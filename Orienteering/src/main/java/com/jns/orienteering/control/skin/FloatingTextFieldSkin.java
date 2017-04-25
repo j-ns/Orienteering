@@ -30,9 +30,6 @@ package com.jns.orienteering.control.skin;
 
 import java.util.function.Consumer;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.jns.orienteering.control.FloatingTextField;
 
 import javafx.animation.Transition;
@@ -40,46 +37,30 @@ import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.SkinBase;
 import javafx.scene.control.TextField;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.transform.Scale;
 import javafx.util.Duration;
 
 public class FloatingTextFieldSkin extends SkinBase<FloatingTextField> {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(FloatingTextFieldSkin.class);
+    protected TextField    textField;
+    protected Label        lblHint;
+    protected HintPosition hintPosition;
 
-    protected TextField         textField;
-    protected Label             lblHint;
-    protected HintPosition      hintPosition;
-
-    private final MoveHint      MOVE_HINT_UP;
-    private final MoveHint      MOVE_HINT_DOWN;
-    private MoveHint            moveHint;
+    private final MoveHint MOVE_HINT_UP;
+    private final MoveHint MOVE_HINT_DOWN;
+    private MoveHint       moveHint;
 
     public FloatingTextFieldSkin(FloatingTextField control) {
         super(control);
         control.getStyleClass().add("floating-text-field");
 
         textField = control.getTextField();
-        textField.setMouseTransparent(true);
         getChildren().add(textField);
 
         MOVE_HINT_UP = new MoveHintUp();
         MOVE_HINT_DOWN = new MoveHintDown();
         initHint();
 
-        control.addEventFilter(MouseEvent.MOUSE_PRESSED, evt ->
-            {
-                if (!textField.isFocused()) {
-                    evt.consume();
-                }
-            });
-
-        control.addEventHandler(MouseEvent.MOUSE_CLICKED, e ->
-            {
-                textField.requestFocus();
-                textField.end();
-            });
         textField.focusedProperty().addListener((ov, b, b1) -> onFocusChanged(b1));
 
         control.emptyProperty().addListener((ov, b, b1) -> onTextEmptyChanged());
@@ -137,23 +118,16 @@ public class FloatingTextFieldSkin extends SkinBase<FloatingTextField> {
         if (graphic != null) {
             double graphicWidth = graphic.prefWidth(-1);
 
-            graphic.resize(graphicWidth, graphic.prefHeight(-1));
+            graphic.resize(graphicWidth, textFieldHeight);
             graphic.relocate(x + w - graphicWidth, y + h - textFieldHeight);
         }
     }
 
     @Override
-    protected double computeMinWidth(double height, double topInset, double rightInset, double bottomInset, double leftInset) {
-        double width = super.computeMinWidth(height, topInset, rightInset, bottomInset, leftInset);
-        LOGGER.debug("width {}", width);
-        return width;
-    }
-
-    @Override
     protected double computePrefWidth(double height, double topInset, double rightInset, double bottomInset, double leftInset) {
-        double textFieldWidth = textField.prefWidth(-1);
+        double tfWidth = textField.prefWidth(-1);
         double graphicWidth = !containsGraphic() ? 0 : getSkinnable().getGraphic().prefWidth(-1);
-        return leftInset + textFieldWidth + graphicWidth + rightInset;
+        return leftInset + tfWidth + graphicWidth + rightInset;
     }
 
     @Override
@@ -167,19 +141,21 @@ public class FloatingTextFieldSkin extends SkinBase<FloatingTextField> {
 
     private class HintPosition extends Transition {
 
-        private static final int    ANIMATION_DURATION = 200;
+        private static final int    DEFAULT_ANIMATION_DURATION = 200;
 
-        private static final double DISTANCE_Y         = 20;
-        private static final double TOP_Y              = -DISTANCE_Y;
-        private static final double DEFAULT_SCALE      = 1.0;
-        private static final double SHRINK_SCALE       = 0.8;
+        private static final double DISTANCE_Y                 = 20;
+        private static final double TOP_Y                      = -DISTANCE_Y;
+        private static final double DEFAULT_SCALE              = 1.0;
+        private static final double SHRINK_SCALE               = 0.8;
 
-        private final Scale         hintScale          = new Scale(1, 1);
+        private final Scale         hintScale                  = new Scale(1, 1);
+
         private Direction           direction;
 
         private HintPosition() {
             lblHint.getTransforms().add(hintScale);
-            setCycleDuration(Duration.millis(ANIMATION_DURATION));
+
+            setCycleDuration(Duration.millis(DEFAULT_ANIMATION_DURATION));
         }
 
         void set(Direction direction) {
@@ -209,6 +185,7 @@ public class FloatingTextFieldSkin extends SkinBase<FloatingTextField> {
                 translateY = TOP_Y + frac * DISTANCE_Y;
                 scaleXY = SHRINK_SCALE + frac * .2;
             }
+
             move(translateY, scaleXY);
         }
 

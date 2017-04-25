@@ -46,7 +46,7 @@ import com.jns.orienteering.model.repo.AsyncResultReceiver;
 import com.jns.orienteering.model.repo.CityFBRepo;
 import com.jns.orienteering.model.repo.LocalRepo;
 import com.jns.orienteering.util.SpecialCharReplacer;
-import com.jns.orienteering.util.Validators;
+import com.jns.orienteering.util.Validations;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -80,9 +80,9 @@ public class CityPresenter extends BasePresenter {
     }
 
     private void initActionBar() {
-        Button btnSave = Icon.Buttons.save(e -> onSave());
-        Button btnSaveAndContinue = Icon.Buttons.saveAndContinue(e -> onSaveAndContinue());
-        Button btnDelete = Icon.Buttons.delete(e -> onDelete());
+        Button btnSave = Icon.Buttons.actionBarButton(Icon.DONE, localize("label.save"), e -> onSave());
+        Button btnSaveAndContinue = Icon.Buttons.actionBarButton(Icon.DONE_ALL, localize("label.saveNext"), e -> onSaveAndContinue());
+        Button btnDelete = Icon.Buttons.actionBarButton(Icon.DELETE, localize("label.delete"), e -> onDelete());
         setActionBar(btnSave, btnSaveAndContinue, btnDelete);
     }
 
@@ -132,7 +132,7 @@ public class CityPresenter extends BasePresenter {
     private MultiValidator<String> createCityNameValidator() {
         MultiValidator<String> validator = new MultiValidator<>();
 
-        validator.addCheck(Validators::isNotNullOrEmpty, localize("view.city.info.nameMustNotBeEmpty"));
+        validator.addCheck(Validations::isNotNullOrEmpty, localize("view.city.info.nameMustNotBeEmpty"));
         validator.addCheck(SpecialCharReplacer::validateInput, localize("view.error.invalidCharEntered"));
         validator.addCheck(cityName ->
         {

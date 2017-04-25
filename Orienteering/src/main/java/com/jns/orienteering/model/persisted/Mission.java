@@ -28,7 +28,7 @@
  */
 package com.jns.orienteering.model.persisted;
 
-import static com.jns.orienteering.util.Validators.isNullOrEmpty;
+import static com.jns.orienteering.util.Validations.isNullOrEmpty;
 
 import java.util.LinkedHashMap;
 import java.util.List;
