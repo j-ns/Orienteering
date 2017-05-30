@@ -33,6 +33,7 @@ import static com.jns.orienteering.locale.Localization.localize;
 
 import java.net.ConnectException;
 import java.net.UnknownHostException;
+import java.util.Objects;
 import java.util.concurrent.Callable;
 import java.util.function.Consumer;
 
@@ -196,21 +197,23 @@ public class AsyncResultReceiver<T extends GluonObservable> {
 
         ensureObservable();
 
-        if (observableResult.getException() != null) {
-            ifPresentConsume(onException, observableResult.getException());
-            ifPresent(exceptionMessage, Dialogs::showError);
-            startFinalizer();
+        synchronized (observableResult) {
+            if (observableResult.getException() != null) {
+                ifPresentConsume(onException, observableResult.getException());
+                ifPresent(exceptionMessage, Dialogs::showError);
+                startFinalizer();
 
-        } else if (observableResult.isInitialized()) {
-            ifPresentConsume(consumer, observableResult);
-            startFinalizer();
+            } else if (observableResult.isInitialized()) {
+                ifPresentConsume(consumer, observableResult);
+                startFinalizer();
 
-        } else {
-            observableResult.stateProperty().addListener(stateListener);
-            observableResult.initializedProperty().addListener(initializedListener);
-            observableResult.exceptionProperty().addListener(exceptionListener);
+            } else {
+                observableResult.stateProperty().addListener(stateListener);
+                observableResult.initializedProperty().addListener(initializedListener);
+                observableResult.exceptionProperty().addListener(exceptionListener);
 
-            ifPresent(progressLayerName, APPLICATION::showLayer);
+                ifPresent(progressLayerName, APPLICATION::showLayer);
+            }
         }
     }
 
@@ -258,6 +261,8 @@ public class AsyncResultReceiver<T extends GluonObservable> {
     }
 
     private <U> void ifPresent(U value, Consumer<? super U> consumer) {
+        Objects.requireNonNull(consumer, "consumer cannot be null");
+
         if (value != null) {
             consumer.accept(value);
         }
