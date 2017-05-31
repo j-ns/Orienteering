@@ -254,17 +254,17 @@ public class AsyncResultReceiver<T extends GluonObservable> {
         observableResult.exceptionProperty().removeListener(exceptionListener);
     }
 
-    private <U> void ifPresentConsume(Consumer<U> consumer, U target) {
-        if (consumer != null) {
-            consumer.accept(target);
+    private <U> void ifPresent(U value, Consumer<? super U> consumer) {
+        Objects.requireNonNull(consumer, "consumer cannot be null");
+    
+        if (value != null) {
+            consumer.accept(value);
         }
     }
 
-    private <U> void ifPresent(U value, Consumer<? super U> consumer) {
-        Objects.requireNonNull(consumer, "consumer cannot be null");
-
-        if (value != null) {
-            consumer.accept(value);
+    private <U> void ifPresentConsume(Consumer<U> consumer, U target) {
+        if (consumer != null) {
+            consumer.accept(target);
         }
     }
 
