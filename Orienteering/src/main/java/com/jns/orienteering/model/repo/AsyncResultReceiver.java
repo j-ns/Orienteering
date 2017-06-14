@@ -197,23 +197,21 @@ public class AsyncResultReceiver<T extends GluonObservable> {
 
         ensureObservable();
 
-        synchronized (observableResult) {
-            if (observableResult.getException() != null) {
-                ifPresentConsume(onException, observableResult.getException());
-                ifPresent(exceptionMessage, Dialogs::showError);
-                startFinalizer();
+        if (observableResult.getException() != null) {
+            ifPresentConsume(onException, observableResult.getException());
+            ifPresent(exceptionMessage, Dialogs::showError);
+            startFinalizer();
 
-            } else if (observableResult.isInitialized()) {
-                ifPresentConsume(consumer, observableResult);
-                startFinalizer();
+        } else if (observableResult.isInitialized()) {
+            ifPresentConsume(consumer, observableResult);
+            startFinalizer();
 
-            } else {
-                observableResult.stateProperty().addListener(stateListener);
-                observableResult.initializedProperty().addListener(initializedListener);
-                observableResult.exceptionProperty().addListener(exceptionListener);
+        } else {
+            ifPresent(progressLayerName, APPLICATION::showLayer);
 
-                ifPresent(progressLayerName, APPLICATION::showLayer);
-            }
+            observableResult.stateProperty().addListener(stateListener);
+            observableResult.initializedProperty().addListener(initializedListener);
+            observableResult.exceptionProperty().addListener(exceptionListener);
         }
     }
 
@@ -256,7 +254,7 @@ public class AsyncResultReceiver<T extends GluonObservable> {
 
     private <U> void ifPresent(U value, Consumer<? super U> consumer) {
         Objects.requireNonNull(consumer, "consumer cannot be null");
-    
+
         if (value != null) {
             consumer.accept(value);
         }
