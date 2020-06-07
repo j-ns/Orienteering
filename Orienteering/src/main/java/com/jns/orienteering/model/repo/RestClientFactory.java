@@ -35,9 +35,10 @@ import com.gluonhq.connect.provider.RestClient;
 
 class RestClientFactory {
 
-    private static final String   APP_ID          = "https://orienteering-2dd97.firebaseio.com";
+    private static final String   APP_ID          = "your firebase app id";
     private static final String   AUTH_PARAM_NAME = "auth";
-    private static final String   CREDENTIALS     = "2ekET9SyGxrYCeSWgPZaWdiCHxncCHmAvGCjDjwu";
+    private static final String   CREDENTIALS     = "firebase app credentials";
+    // add the service_secret.json file from firebase to /main/resources 
 
     protected static final String GET             = "GET";
     protected static final String PUT             = "PUT";
